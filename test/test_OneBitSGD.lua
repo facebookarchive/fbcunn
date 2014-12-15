@@ -1,10 +1,8 @@
 require('fb.luaunit')
-require('fbtorch')
 require('cunn')
 
-local TU = require('test.test_util')
+local TU = require('test_util')
 local pl = require('pl.import_into')()
-local _fbd = require('fb.debugger')
 local OBSGD = require('fbcunn.OneBitSGD')
 
 torch.setdefaulttensortype('torch.CudaTensor')

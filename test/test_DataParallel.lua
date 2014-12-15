@@ -1,4 +1,3 @@
-local fboptim = require('fboptim')
 -- Copyright 2004-present Facebook. All Rights Reserved.
 
 local dprintL = (require 'fb.util.dbg').new('parallel')
@@ -6,9 +5,9 @@ local dprint = function(...)
     return dprintL(1, ...)
 end
 require 'optim'
-require 'fbnn'
-print 'Requiring cunn. This will take a while. Talk amongst yourselves.'
 require 'cunn'
+require 'fbcunn'
+require 'fbnn'
 
 -- Hyper-params. We're targeting a toy problem that computes
 -- some function of its inputs.
@@ -146,7 +145,7 @@ for i=1, 10 do
     local outputs = dp:forward(inputs)
     syncCPUModels()
     checkWideResult(inputs, outputs)
-    opt:optimize(fboptim.sgd, inputs, targets, criterion)
+    opt:optimize(optim.sgd, inputs, targets, criterion)
     local out = dp:forward(inputs)
     local err = criterion:forward(out, targets)
     print(i, err)

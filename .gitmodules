@@ -1,0 +1,3 @@
+[submodule "cuda"]
+	path = cuda
+	url = https://github.com/facebook/fbcuda.git

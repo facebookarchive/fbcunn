@@ -9,7 +9,7 @@ local mptest = {}
 local utils = {}
 
 local times = {}
-local nGPUs = 4
+local nGPUs = cutorch.getDeviceCount()
 local precision = 1e-4
 
 local mytester = torch.Tester()
