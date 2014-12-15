@@ -1,18 +1,21 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
 -- Author: Michael Mathieu <myrhev@fb.com>
 
--- LookupTableGPU layer (fast lookup table)
-
 require 'math'
 require 'nn'
 
+
+--[[
+Fast lookup table, supporting both CPU and GPU modes.
+]]
 local LookupTableGPU, parent = torch.class('nn.LookupTableGPU', 'nn.Module')
 
 
--- if featuresInDim2 is true, an input of dimension
---   batchSize x N  will produce an output of size
---   batchSize x nOutput x N  . If it is set to false (default)
---  if will produce an output of size batchSize x N x nOutput
+--[[
+If `featuresInDim2` is `true`, an input of dimension `batchSize` ${\times}$ `N` will produce an output of size `batchSize` ${\times}$ `nOutput`
+${\times}$ `N`. If it is set to `false` (default) it will produce an output
+of size `batchSize` ${\times}$ `N` ${\times}$ `nOutput`.
+]]
 function LookupTableGPU:__init(nInput, nOutput, featuresInDim2)
    parent:__init(self)
    self.nInput = nInput

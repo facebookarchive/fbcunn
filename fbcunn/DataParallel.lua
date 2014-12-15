@@ -1,5 +1,5 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
-
+-- [[This file defines an example class]]
 require('cutorch')
 local withDevice = cutorch.withDevice
 local dprintL = (require 'fb.util.dbg').new('parallel')
@@ -8,43 +8,45 @@ local dprint = function(...)
 end
 local pl = require('pl.import_into')()
 
+--[[
+DataParallel splits the input along separate columns, that run the
+same models on distinct partitions of the input.
+
+Pictorially
+```
+                        +--------+
+        column 1        |        |         column 3
+           +------------+  Input +-------------+
+           |            |        |             |
+           |            +----+---+             |
+           |                 |                 |
+           |                 |                 |
+      +----+---+        +----+---+        +----+---+
+      |        |        |        |        |        |
+      | Linear |        | Linear |        | Linear |       row 1
+      |        |        |        |        |        |
+      +----+---+        +----+---+        +----+---+
+           |                 |                 |
+           |                 |                 |
+      +----+---+        +----+---+        +----+---+
+      |        |        |        |        |        |
+      |  Tanh  |        |  Tanh  |        |  Tanh  |       row 2
+      |        |        |        |        |        |
+      +----+---+        +----+---+        +----+---+
+           |                 |                 |
+           |                 |                 |
+           |                 |                 |
+           |            +----+---+             |
+           |            |        |             |
+           +------------+ Output +-------------+
+                        |        |
+                        +--------+
+```
+]]
 local DataParallel, _ = torch.class('nn.DataParallel',
                                     'nn.AbstractParallel')
 
--- DataParallel splits the input along separate columns, that run the
--- same models on distinct partitions of the input.
-
--- Pictorially
---                         +--------+
---         column 1        |        |         column 3
---            +------------+  Input +-------------+
---            |            |        |             |
---            |            +----+---+             |
---            |                 |                 |
---            |                 |                 |
---       +----+---+        +----+---+        +----+---+
---       |        |        |        |        |        |
---       | Linear |        | Linear |        | Linear |       row 1
---       |        |        |        |        |        |
---       +----+---+        +----+---+        +----+---+
---            |                 |                 |
---            |                 |                 |
---       +----+---+        +----+---+        +----+---+
---       |        |        |        |        |        |
---       |  Tanh  |        |  Tanh  |        |  Tanh  |       row 2
---       |        |        |        |        |        |
---       +----+---+        +----+---+        +----+---+
---            |                 |                 |
---            |                 |                 |
---            |                 |                 |
---            |            +----+---+             |
---            |            |        |             |
---            +------------+ Output +-------------+
---                         |        |
---                         +--------+
-
-
--- _distributeInput slices the input along self.dimension
+-- `_distributeInput` slices the input along self.dimension
 -- and copies each portion into each child module.
 function DataParallel:_distributeInput(input)
     local container_gpuid = cutorch.getDevice()
@@ -85,6 +87,8 @@ function DataParallel:_distributeInput(input)
     dprint("after DataParallel:_distributeInput", self.input_gpu)
 end
 
+-- `_mixGrads` applies the `_combineAcrossColumns` operator (e.g. averaging)
+-- for each row in the DataParallel module.
 function DataParallel:_mixGrads()
     -- [column][submodule][grads]
     local subModToGrads = pl.tablex.map(

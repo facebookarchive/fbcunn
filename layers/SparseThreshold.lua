@@ -1,7 +1,6 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
 
 -- Same as Threshold module, for sparse vectors. 
-
 local SparseThreshold, parent = torch.class('nn.SparseThreshold','nn.Module')
 
 function SparseThreshold:__init(th,v)

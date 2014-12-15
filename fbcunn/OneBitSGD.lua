@@ -1,4 +1,7 @@
-local M = {} -- export local functions for unit testing.
+--[[
+OneBitSGD contains various utility functions for use in OneBitDataParallel, exported for unit testing purposes.
+]]
+local M = {}
 
 local _fbd = require('fb.debugger')
 local _trace = require('fb.util.trace')

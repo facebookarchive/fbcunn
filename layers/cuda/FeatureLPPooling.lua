@@ -6,23 +6,29 @@ require 'nn'
 local FeatureLPPooling, parent =
     torch.class('nn.FeatureLPPooling', 'nn.Module')
 
--- Possible inputs that we handle:
---
--- batch_mode = false
--- The dimensionality of the input chooses between the following modes:
--- [feature dim]
--- [feature dim][opt dim 1]
--- [feature dim][opt dim 1][opt dim 2]
---
--- batch_mode = true
--- The dimensionality of the input chooses between the following modes:
--- [batch dim][feature dim]
--- [batch dim][feature dim][opt dim 1]
--- [batch dim][feature dim][opt dim 1][opt dim 2]
---
--- The output has the same number of dimensions as the input, except the feature
--- dimension size is reduced to ((input - width) / stride) + 1
+--[[
+Possible inputs that we handle:
 
+#### `batch_mode = false`
+The dimensionality of the input chooses between the following modes:
+
+```
+[feature dim]
+[feature dim][opt dim 1]
+[feature dim][opt dim 1][opt dim 2]
+```
+
+#### `batch_mode = true`
+The dimensionality of the input chooses between the following modes:
+```
+[batch dim][feature dim]
+[batch dim][feature dim][opt dim 1]
+[batch dim][feature dim][opt dim 1][opt dim 2]
+```
+
+The output has the same number of dimensions as the input, except the feature
+dimension size is reduced to ((`input` - `width`) / `stride`) + 1
+]]
 function FeatureLPPooling:__init(width, stride, power, batch_mode)
     parent.__init(self)
 

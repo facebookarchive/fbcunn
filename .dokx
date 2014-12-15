@@ -1,0 +1,6 @@
+return {
+   packageName = 'fbcunn',
+   tocLevel = 'class',
+   githubURL = 'facebook/fbcunn',
+   exclude = {'**/init.lua', '**/test/*', '**/nn_layers.lua'}
+}

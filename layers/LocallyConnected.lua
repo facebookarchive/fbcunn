@@ -1,8 +1,10 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
---
--- LocallyConnected layer, see
--- https://code.google.com/p/cuda-convnet/wiki/LayerParams#Locally-connected_layer_with_unshared_weights
---
+
+
+--[[LocallyConnected layer
+
+See https://code.google.com/p/cuda-convnet/wiki/LayerParams#Locally-connected_layer_with_unshared_weights
+]]
 local LocallyConnected, parent = torch.class('nn.LocallyConnected',
                                              'nn.Module')
 

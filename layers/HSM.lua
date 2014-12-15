@@ -1,25 +1,26 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
 -- Author: Michael Mathieu <myrhev@fb.com>
 
--- Hierarchical soft max with minibatches.
 
 require 'math'
 require 'nn'
 
+-- Hierarchical soft max with minibatches.
 local HSM, parent =
     torch.class('nn.HSM', 'nn.Criterion')
 
 --[[
-  mapping is a table (or tensor) with n_classes elements,
-    such that mapping[i] is a table with 2 elements.
-    mapping[i][1] : index (1-based) of the cluster of class i
-    mapping[i][2] : index (1-based) of the index within its cluster of class i
-  input_size is the number of elements of the previous layer
-  unk_index is an index that is ignored at test time (not added to the
+Parameters:
+* `mapping` is a table (or tensor) with `n_classes` elements,
+    such that `mapping[i]` is a table with 2 elements.
+    * `mapping[i][1]` : index (1-based) of the cluster of class `i`
+    * `mapping[i][2]` : index (1-based) of the index within its cluster of class `i`
+*  `input_size` is the number of elements of the previous layer
+*  `unk_index` is an index that is ignored at test time (not added to the
     loss). It can be disabled by setting it to 0 (not nil).
     It should only be used uring testing (since during training,
     it is not disabled in the backprop (TODO) )
---]]
+]]
 function HSM:__init(mapping, input_size, unk_index)
     parent.__init(self)
     if type(mapping) == 'table' then
@@ -221,8 +222,8 @@ function HSM:updateOutputCUDA(input, target)
     return self.output, self.batch_size
 end
 
--- Note: call this function at most once after each call updateOutput,
--- or the output will be wrong (it uses class_score and cluster_score
+-- Note: call this function at most once after each call `updateOutput`,
+-- or the output will be wrong (it uses `class_score` and `cluster_score`
 -- as temporary buffers)
 function HSM:updateGradInput(input, target)
     if input:type() == 'torch.CudaTensor' then
@@ -265,11 +266,11 @@ function HSM:updateGradInputCUDA(input, target)
     return self.gradInput
 end
 
--- If direct_update is set, the parameters are directly updated (not the
--- gradients). It means that the gradient tensors (like cluster_grad_weight)
+-- If `direct_update` is set, the parameters are directly updated (not the
+-- gradients). It means that the gradient tensors (like `cluster_grad_weight`)
 -- are not used. scale must be set to the negative learning rate
--- (-learning_rate). direct_update mode is much faster.
--- Before calling this function you have to call HSM:updateGradInput first.
+-- (`-learning_rate`). `direct_update` mode is much faster.
+-- Before calling this function you have to call `HSM:updateGradInput` first.
 function HSM:accGradParameters(input, target, scale, direct_update)
     scale = scale or 1
     if self.unk_index ~= 0 then

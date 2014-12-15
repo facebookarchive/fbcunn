@@ -1,4 +1,5 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
+
 -- Sum module for sparse vectors.
 local SparseSum, parent = torch.class('nn.SparseSum','nn.Module')
 

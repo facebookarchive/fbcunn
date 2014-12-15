@@ -3,7 +3,14 @@ require('cutorch')
 
 local withDevice = cutorch.withDevice
 
--- ModelParallel: copies inputs to all child modules.
+--[[ `ModelParallel` copies inputs to all child modules, and runs
+disjoint parts of the model on separate devices.
+
+For example, consider a convolutional layer with a large number of
+filter banks. ModelParallel will split the model along the given
+`dimension` (e.g. 2 if we lay the input out as `BDWH`), copy the input
+to each device, and then merge the outputs across the device.
+]]
 local ModelParallel, parent = torch.class('nn.ModelParallel',
                                           'nn.AbstractParallel')
 

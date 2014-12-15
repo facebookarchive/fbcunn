@@ -2,12 +2,15 @@
 
 local SparseConverter, parent = torch.class('nn.SparseConverter','nn.Module')
 
--- Arguments:
--- fconv - conversion to perform in fprop, either 'StoD','DtoS' or nil
--- bconv - conversion to perform in bprop, either 'StoD','DtoS' or nil
--- dim - number of dimensions
--- thresh - threshold for sparsifying (0 by default)
 
+
+--[[
+Parameters:
+* `fconv` - conversion to perform in fprop, either 'StoD','DtoS' or nil
+* `bconv` - conversion to perform in bprop, either 'StoD','DtoS' or nil
+* `dim` - number of dimensions
+* `thresh` - threshold for sparsifying (0 by default)
+]]
 function SparseConverter:__init(fconv,bconv,dim,thresh)
   parent.__init(self)
   if fconv == 'DtoS' and bconv == 'DtoS' 

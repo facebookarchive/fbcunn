@@ -1,18 +1,20 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
 -- Author: Michael Mathieu <myrhev@fb.com>
 
--- Sparse ClassNLL criterion
-
 require 'math'
 require 'nn'
 
+-- Sparse ClassNLL criterion
 local SparseNLLCriterion, parent =
     torch.class('nn.SparseNLLCriterion', 'nn.Criterion')
 
--- K : number of non-zero elements of the target
--- do_target_check : checks whether the target is a
---   probability vector (default true)
--- sizeAverage : divides the error by the size of the minibatch
+--[[
+Parameters:
+* `K` : number of non-zero elements of the target
+* `do`_target_check : checks whether the target is a
+   probability vector (default true)
+* `sizeAverage` : divides the error by the size of the minibatch
+]]
 function SparseNLLCriterion:__init(K)
    parent.__init(self)
    self.K = K
@@ -23,11 +25,16 @@ function SparseNLLCriterion:__init(K)
    self.tmp_buffer = torch.Tensor()
 end
 
--- target should be a table containing two tensors :
--- target = {targetP, targetIdx}
--- where targetP are the probabilities associated to the indices targetIdx
--- we assume targetIdx doesn't have twice the same number in the
--- same sample.
+--[[
+`target` should be a table containing two tensors :
+
+```
+target = {targetP, targetIdx}
+```
+
+where `targetP` are the probabilities associated to the indices `targetIdx`
+we assume `targetIdx` doesn't have twice the same number in the same sample.
+]]
 function SparseNLLCriterion:updateOutput(input, target)
    -- minibatches
    if input:dim() == 1 then

@@ -3,6 +3,9 @@
 require 'cutorch'
 require 'nn'
 
+--[[
+CUDA implementation of the quantize/unquantize methods used by `nn.OneBitDataParallel`.
+]]
 local OneBitQuantization = torch.class('nn.OneBitQuantization')
 
 function OneBitQuantization:__init()

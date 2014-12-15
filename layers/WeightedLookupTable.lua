@@ -1,8 +1,5 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
 
--- Input should be an n x 2 tensor where the first column is dictionary indexes
--- and the second column is weights.
-
 require('nn')
 
 local WeightedLookupTable, parent =
@@ -47,6 +44,11 @@ function WeightedLookupTable:reset(stdv)
    end
 end
 
+--[[
+Parameters:
+* `Input` should be an n x 2 tensor where the first column is dictionary indexes
+   and the second column is weights.
+]]
 function WeightedLookupTable:updateOutput(input)
    local output_size = torch.LongStorage(self.size:size()):copy(self.size)
    output_size[1] = input:size(1)

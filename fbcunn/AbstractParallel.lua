@@ -1,4 +1,6 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
+
+
 require('cutorch')
 local tablex = require 'pl.tablex'
 
@@ -6,6 +8,18 @@ local withDevice = cutorch.withDevice
 
 local gpu_local_copy_buffers = {}
 
+--[[
+`nn.AbstractParallel` is the base class for modules controlling
+data/model-parallel behaviour in Torch.
+
+The key concept is that data/model-parallelism _splits_ along a
+dimension, and this class controls the distribution of input and
+merging of output along this dimension.
+
+To extend this class, override `_distributeInput` as appropriate.
+
+See `nn.DataParallel` and `nn.ModelParallel` for examples of usage.
+]]
 local AbstractParallel, parent = torch.class('nn.AbstractParallel',
                                              'nn.Container')
 
@@ -52,9 +66,12 @@ function AbstractParallel:_freeCaches()
     self.gradInput_gpu = {}
 end
 
+--[[
+This function yields the GPU id for the module to be added.
+
+It can be used for load balancing. It assumes all GPUs are available.
+]]
 function AbstractParallel:nextGPU()
-    -- This function yields the GPU id for the module to be added.
-    -- It can be used for load balancing. It assumes all GPUs are available.
     local gpuid = #self.gpu_assignments % cutorch.getDeviceCount() + 1
     return gpuid
 end
@@ -79,9 +96,12 @@ function AbstractParallel:get(index)
     return self.modules[index]
 end
 
--- Asynchronous copy from dest to source. Use with caution; there
--- needs to be some sort of external synchronization to prevent source from
--- being modified after this copy is enqueued.
+--[[
+Asynchronous copy from dest to source.
+
+Use with caution; there needs to be some sort of external synchronization to
+prevent source from being modified after this copy is enqueued.
+]]
 function AbstractParallel:gpuSend(dest, source)
     assert(torch.typename(dest) == 'torch.CudaTensor')
     assert(torch.typename(source) == 'torch.CudaTensor')

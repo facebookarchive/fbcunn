@@ -1,20 +1,25 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
 
--- Sparse lookup table. Similar to the regular LookupTable.lua module, 
--- except for the following differences:
--- 1. The outputs are in sparse format.
--- 2. The inputs are pairs (i,w), so the output corresponding to index i
--- is scaled by w.
--- 3. The indices are fixed, i.e. during a parameter update only the nonzero 
--- coefficents are updated. This is to avoid having to create new indices, 
--- which is expensive and may result in the weights no longer being sparse.
+--[[
+Sparse lookup table. Similar to the regular LookupTable.lua module, 
+except for the following differences:
 
+1. The outputs are in sparse format.
+2. The inputs are pairs (i,w), so the output corresponding to index i
+is scaled by w.
+3. The indices are fixed, i.e. during a parameter update only the nonzero 
+coefficents are updated. This is to avoid having to create new indices, 
+which is expensive and may result in the weights no longer being sparse.
+]]
 local SparseLookupTable, parent = torch.class('nn.SparseLookupTable','nn.Module')
 
 sparse = require('sparse')
 
--- indices is a 2D matrix of indices which will be nonzero.
--- sparseGrad indicates whether incoming gradients will be sparse or dense.
+--[[
+Parameters:
+* `indices` is a 2D matrix of indices which will be nonzero.
+* `sparseGrad` indicates whether incoming gradients will be sparse or dense.
+]]
 function SparseLookupTable:__init(indices,sparseGrad)
   parent.__init(self)
 

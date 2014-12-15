@@ -1,19 +1,27 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
 
--- Hierarchical softmax classifier with two levels and arbitrary clusters.
--- Note: this criterion does include the lower layer parameters
--- (this is more Linear + ClassNLLCriterion, but hierarchical).
--- Also, this layer does not support the use of mini-batches
--- (only 1 sample at the time).
+--[[
+Hierarchical softmax classifier with two levels and arbitrary clusters.
+
+Note:
+This criterion does include the lower layer parameters
+(this is more `Linear` + `ClassNLLCriterion`, but hierarchical).
+Also, this layer does not support the use of mini-batches
+(only 1 sample at the time).
+]]
 local ClassHierarchicalNLLCriterion, parent = torch.class(
    'nn.ClassHierarchicalNLLCriterion', 'nn.Criterion')
 
--- mapping is a tensor with as many elements as classes.
--- mapping[i][1] stores the cluster id, and mapping[i][2] the class id within
---  that cluster of the i-th class.
--- clusterCounts is a vector with as many entry as clusters.
--- clusterCounts[i] stores the number of classes in the i-th cluster.
--- inputSize is the number of input features
+--[[
+Parameters:
+
+* `mapping` is a tensor with as many elements as classes.
+   `mapping[i][1]` stores the cluster id, and `mapping[i][2]` the class id within
+   that cluster of the ${i}$-th class.
+* `clusterCounts` is a vector with as many entry as clusters.
+   clusterCounts[i] stores the number of classes in the i-th cluster.
+*  `inputSize` is the number of input features
+]]
 function ClassHierarchicalNLLCriterion:__init(mapping, clusterCounts, inputSize)
    parent.__init(self)
    local numClusters = clusterCounts:size(1)
@@ -54,7 +62,7 @@ function ClassHierarchicalNLLCriterion:__init(mapping, clusterCounts, inputSize)
    self.numClasses = 0
 end
 
--- target is the class id
+-- `target` is the class id
 function ClassHierarchicalNLLCriterion:updateOutput(input, target)
    assert(input:dim() == 1) -- we do not support mini-batch training
    self.clusterID = self.mapping[target][1]

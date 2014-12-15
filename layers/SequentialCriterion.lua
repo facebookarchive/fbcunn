@@ -1,10 +1,12 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
 -- Author: Michael Mathieu <myrhev@fb.com>
 
--- Combines a module and a criterion
--- It is mainly thought for preprocessing, but trainable parameters
--- can be used if needed
+--[[
+Combines a module and a criterion.
 
+It is mainly thought for preprocessing, but trainable parameters
+can be used if needed
+]]
 local SequentialCriterion, parent =
    torch.class('nn.SequentialCriterion', 'nn.Criterion')
 
