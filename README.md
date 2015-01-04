@@ -17,6 +17,9 @@ In summary, we're releasing fast nn modules for Convnets and neural networks in 
 - LP and Max Pooling over feature maps (usable for MaxOut).
 - more goodies. Full documentation and spec is here: https://facebook.github.io/fbcunn/fbcunn/
 
+Examples:
+- Training an imagenet based classifier in Torch-7 using multiple GPUs (showcasing our FFT convolutions as well as our ModelParallel container)
+
 ## Why?
 We know that science and technology progress faster when researchers exchange ideas and tools. Making significant progress in AI will take the participation of the entire research comunnity, and We want to do what we can to make the field progress faster. That is why we love open science and open source. We publish our research with opoen access, very often on [Arxiv](http://arxiv.org), on [our members' web sites](http://research.facebook.com/ai), and eventually on the [FAIR publications page](https://research.facebook.com/publications/ai/). And we share our code right here!
 
@@ -36,12 +39,12 @@ We've worked hard to make the install as pain-free as possible. If you have an i
 
 ## How to use them?
 
-- The DataParallel and ModelParallel modules are super-simple to use. The unit-test doubles as both an example as well as a test. If you want more examples, please do ask.
+- The DataParallel and ModelParallel modules are super-simple to use. The unit-test doubles as both an example as well as a test. There is also a practical example of ModelParallel in examples/imagenet. If you want more examples, please do ask.
 ```lua
 m = nn.DataParallel():add(nn.SpatialConvolution(...)):add(nn.ReLU()) -- see, so simple
 ```
 
-- Convolution modules are even simpler to use. They are fully API compatible with their [nn equivalents](https://github.com/torch/nn/blob/master/doc/convolution.md)
+- Convolution modules are even simpler to use. They are fully API compatible with their [nn equivalents](https://github.com/torch/nn/blob/master/doc/convolution.md). For an example, look at examples/imagenet
 ```lua
 conv = nn.SpatialConvolutionCuFFT(...) -- fast spatial convolutions!
 conv = nn.TemporalConvolutionFB(...) -- fast temporal convolutions!
