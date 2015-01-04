@@ -11,11 +11,22 @@ In this concise example (1200 lines including a general-purpose and highly scala
 - Download Imagenet-12 dataset from http://image-net.org/download-images . It has 1000 classes and 1.2 million images.
 
 ### Data processing
-The images **dont** need to be preprocessed or packaged in any database. It is preferred to keep the dataset on an [SSD](http://en.wikipedia.org/wiki/Solid-state_drive) but we have used the data loader comfortably over NFS without loss in speed.  
+**The images dont need to be preprocessed or packaged in any database.** It is preferred to keep the dataset on an [SSD](http://en.wikipedia.org/wiki/Solid-state_drive) but we have used the data loader comfortably over NFS without loss in speed.  
 We just use a simple convention: SubFolderName == ClassName.  
 So, for example: if you have classes {cat,dog}, cat images go into the folder dataset/cat and dog images go into dataset/dog
 
-The training images for imagenet are already in appropriate subfolders (like n07579787, n07880968). You need to get the validation groundtruth and move the validation images into appropriate subfolders.
+The training images for imagenet are already in appropriate subfolders (like n07579787, n07880968).  
+You need to get the validation groundtruth and move the validation images into appropriate subfolders.
+To do this, download ILSVRC2012_img_train.tar ILSVRC2012_img_val.tar and use the following commands:
+```bash
+# extract train data
+mkdir train && mv ILSVRC2012_img_train.tar train/ && cd train
+tar -xvf ILSVRC2012_img_train.tar && rm -f ILSVRC2012_img_train.tar
+find . -name "*.tar" | while read NAME ; do mkdir -p "${NAME%.tar}"; tar -xvf "${NAME}" -C "${NAME%.tar}"; rm -f "${NAME}"; done
+# extract validation data
+cd ../ && mkdir val && mv ILSVRC2012_img_val.tar val/ && cd val && tar -xvf ILSVRC2012_img_val.tar
+wget -qO- https://raw.githubusercontent.com/soumith/imagenetloader.torch/master/valprep.sh | bash
+```
 
 Now you are all set!
 
