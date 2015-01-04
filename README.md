@@ -3,7 +3,7 @@
 ## What?
 [Deep Learning](http://en.wikipedia.org/wiki/Deep_learning) is a popular kid in machine learning these days.
 At [Facebook AI Research](http://research.facebook.com/ai/) we've been doing quite a bit of deep learning research.
-This repository contains our highly engineered deep learning modules for GPUs, to accelerate your own deep learning endeavours.
+This repository contains our highly engineered deep learning modules for GPUs, to accelerate your own deep learning endeavors.
 It plugs into the [Torch-7](https://github.com/torch/torch7/wiki/Cheatsheet) framework and installs seamlessly via `luarocks`, 
 and is fully compatible with torch's [nn](https://github.com/torch/nn) package.
 
@@ -21,7 +21,7 @@ Examples:
 - Training an imagenet based classifier in Torch-7 using multiple GPUs (showcasing our FFT convolutions as well as our ModelParallel container)
 
 ## Why?
-We know that science and technology progress faster when researchers exchange ideas and tools. Making significant progress in AI will take the participation of the entire research comunnity, and We want to do what we can to make the field progress faster. That is why we love open science and open source. We publish our research with opoen access, very often on [Arxiv](http://arxiv.org), on [our members' web sites](http://research.facebook.com/ai), and eventually on the [FAIR publications page](https://research.facebook.com/publications/ai/). And we share our code right here!
+We know that science and technology progress faster when researchers exchange ideas and tools. Making significant progress in AI will take the participation of the entire research community, and We want to do what we can to make the field progress faster. That is why we love open science and open source. We publish our research with open access, very often on [Arxiv](http://arxiv.org), on [our members' web sites](http://research.facebook.com/ai), and eventually on the [FAIR publications page](https://research.facebook.com/publications/ai/). And we share our code right here!
 
 ## Who is this for?
 This will help you if you want to train large-scale deep learning systems (particularly convolutional nets) for image recognition, NLP, or other applications. This will help you particularly well if already are a Torch user.
@@ -30,8 +30,9 @@ This will help you if you want to train large-scale deep learning systems (parti
 - Find a machine with [Ubuntu 14.04+](http://www.ubuntu.com/) and an NVIDIA GPU with compute capability 3.5 or above, as well as CUDA 6.5.
 - [Install Torch-7](https://github.com/torch/torch7/wiki/Cheatsheet). It's awesome.
 - Install folly, fbthrift, thpp and fblualib by running [this simple script](https://github.com/soumith/fblualib/blob/master/install_all.sh). Take a lunch break, this takes some time, compiling and all...
-- That's it, now install fbcunn:
+- That's it, now install fbcunn (and some mods to nn):
 ```bash
+git clone https://github.com/torch/nn && cd nn && git checkout getParamsByDevice && luarocks make rocks/nn-scm-1.rockspec
 git clone https://github.com/soumith/fbcunn.git
 cd fbcunn && luarocks make rocks/fbcunn-scm-1.rockspec # go get a coffee
 ```
