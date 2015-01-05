@@ -93,7 +93,7 @@ end
 
 -- 4. Convert model to CUDA
 print('==> Converting model to CUDA')
-model = model:clone():cuda()
+model = model:cuda()
 criterion:cuda()
 
 collectgarbage()

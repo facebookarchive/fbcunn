@@ -130,12 +130,12 @@ function train()
    print('\n')
 
    -- save model
-   local fmodel = model:clone():float()
-   fmodel:for_each(function(mod)
-        -- Trim activations so the checkpoint is not too huge
-        mod.output = torch.Tensor()
-        mod.gradInput = torch.Tensor()
+   model:for_each(function(mod)
+                     -- Trim activations so the checkpoint is not too huge
+                     mod.output = mod.output.new()
+                     mod.gradInput = mod.gradInput.new()
    end)
+   local fmodel = model:clone():float()
    torch.save(paths.concat(opt.save, 'model_' .. epoch .. '.t7'), fmodel)
    torch.save(paths.concat(opt.save, 'optimState_' .. epoch .. '.t7'), optimState)
 end -- of train()
