@@ -38,8 +38,8 @@ local initcheck = argcheck{
 
    {name="split",
     type="number",
-    help="Percentage of split to go to Training",
-    default = 100},
+    help="Percentage of split to go to Training"
+   },
 
    {name="samplingMode",
     type="string",

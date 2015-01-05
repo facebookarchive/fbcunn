@@ -79,7 +79,7 @@ function train()
    local params, newRegime = paramsForEpoch(epoch)
    optimator:setParameters(params)
    if newRegime then
-       -- Zero gradients by throwing away previous state.
+       -- Zero the momentum vector by throwing away previous state.
        optimator = nn.Optim(model, optimState)
    end
    batchNumber = 0
@@ -130,12 +130,12 @@ function train()
    print('\n')
 
    -- save model
-   local fmodel = model:clone():float()
-   fmodel:for_each(function(mod)
-        -- Trim activations so the checkpoint is not too huge
-        mod.output = torch.Tensor()
-        mod.gradInput = torch.Tensor()
+   model:for_each(function(mod)
+                     -- Trim activations so the checkpoint is not too huge
+                     mod.output = mod.output.new()
+                     mod.gradInput = mod.gradInput.new()
    end)
+   local fmodel = model:clone():float()
    torch.save(paths.concat(opt.save, 'model_' .. epoch .. '.t7'), fmodel)
    torch.save(paths.concat(opt.save, 'optimState_' .. epoch .. '.t7'), optimState)
 end -- of train()
@@ -190,7 +190,7 @@ function trainBatch(dataPointer, labelPointer)
        end
 
        -- print info
-       print(string.format('Eval ' ..
+       print(string.format('Accuracy ' ..
                               'top1-%%: %.2f \t' ..
                               'top5-%%: %.2f \t' ..
                               'Loss: %.4f \t' ..
