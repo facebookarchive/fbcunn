@@ -7,7 +7,7 @@ In this concise example (1200 lines including a general-purpose and highly scala
 - multithreaded data-loading from disk (showcases sending tensors from one thread to another without serialization)
 
 ### Requirements
-- Install Torch-7, graphicsmagick, nn, cunn, fbnn, fbcunn, threads (luarocks install [package])
+- Install Torch-7, graphicsmagick, nn, cunn, cudnn, fbnn, fbcunn, threads (luarocks install [package])
 - Download Imagenet-12 dataset from http://image-net.org/download-images . It has 1000 classes and 1.2 million images.
 
 ### Data processing
@@ -33,7 +33,7 @@ Now you are all set!
 ### Running
 To run the training, simply run main.lua
 ```bash
-th main.lua
+th main.lua --data [imagenet-folder with train and val folders]
 ```
 
 To get help and command-line options, use --help

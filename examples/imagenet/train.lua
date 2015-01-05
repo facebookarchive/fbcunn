@@ -79,7 +79,7 @@ function train()
    local params, newRegime = paramsForEpoch(epoch)
    optimator:setParameters(params)
    if newRegime then
-       -- Zero gradients by throwing away previous state.
+       -- Zero the momentum vector by throwing away previous state.
        optimator = nn.Optim(model, optimState)
    end
    batchNumber = 0
@@ -190,7 +190,7 @@ function trainBatch(dataPointer, labelPointer)
        end
 
        -- print info
-       print(string.format('Eval ' ..
+       print(string.format('Accuracy ' ..
                               'top1-%%: %.2f \t' ..
                               'top5-%%: %.2f \t' ..
                               'Loss: %.4f \t' ..
