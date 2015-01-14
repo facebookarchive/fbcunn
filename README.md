@@ -27,15 +27,8 @@ We know that science and technology progress faster when researchers exchange id
 This will help you if you want to train large-scale deep learning systems (particularly convolutional nets) for image recognition, NLP, or other applications. This will help you particularly well if already are a Torch user.
 
 ## How to install them?
-- Find a machine with [Ubuntu 14.04+](http://www.ubuntu.com/) and an NVIDIA GPU with compute capability 3.5 or above, as well as CUDA 6.5.
-- [Install Torch-7](https://github.com/torch/torch7/wiki/Cheatsheet). It's awesome.
-- Install folly, fbthrift, thpp and fblualib by running [this simple script](https://github.com/soumith/fblualib/blob/master/install_all.sh). Take a lunch break, this takes some time, compiling and all...
-- That's it, now install fbcunn (and some mods to nn):
-```bash
-git clone https://github.com/torch/nn && cd nn && git checkout getParamsByDevice && luarocks make rocks/nn-scm-1.rockspec
-git clone https://github.com/soumith/fbcunn.git
-cd fbcunn && luarocks make rocks/fbcunn-scm-1.rockspec # go get a coffee
-```
+You will find step-by-step and detailed installation instructions in **[INSTALL.md](INSTALL.md)**
+
 We've worked hard to make the install as pain-free as possible. If you have an issue, use github issues, we'll try our best to help.
 
 ## How to use them?
