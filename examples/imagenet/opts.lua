@@ -19,13 +19,15 @@ function M.parse(arg)
     ------------ General options --------------------
 
     cmd:option('-cache',
-               defaultDir ..'/alexnet_runs',
+               defaultDir ..'/imagenet_runs',
                'subdirectory in which to save/log experiments')
     cmd:option('-data',
                defaultDir .. '/imagenet_raw_images/256',
                'Home of ImageNet dataset')
     cmd:option('-manualSeed',         2, 'Manually set RNG seed')
     cmd:option('-GPU',                1, 'Default preferred GPU')
+    cmd:option('-nGPU',               1, 'Number of GPUs to use by default')
+    cmd:option('-backend',     'cudnn', 'Options: cudnn | fbcunn | cunn')
     ------------- Data options ------------------------
     cmd:option('-nDonkeys',        2, 'number of donkeys to initialize (data loading threads)')
     ------------- Training options --------------------
@@ -39,6 +41,7 @@ function M.parse(arg)
     cmd:option('-momentum',        0.9,  'momentum')
     cmd:option('-weightDecay',     5e-4, 'weight decay')
     ---------- Model options ----------------------------------
+    cmd:option('-netType',     'alexnet', 'Options: alexnet | overfeat')
     cmd:option('-retrain',     'none', 'provide path to model to retrain with')
     cmd:option('-optimState',  'none', 'provide path to an optimState to reload from')
     cmd:text()

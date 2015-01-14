@@ -113,7 +113,7 @@ function train()
 
    donkeys:synchronize()
    cutorch.synchronize()
-   
+
    top1_epoch = top1_epoch * 100 / (opt.batchSize * opt.epochSize)
    top5_epoch = top5_epoch * 100 / (opt.batchSize * opt.epochSize)
    loss_epoch = loss_epoch / opt.epochSize
@@ -135,8 +135,8 @@ function train()
                      mod.output = mod.output.new()
                      mod.gradInput = mod.gradInput.new()
    end)
-   local fmodel = model:clone():float()
-   torch.save(paths.concat(opt.save, 'model_' .. epoch .. '.t7'), fmodel)
+   collectgarbage()
+   torch.save(paths.concat(opt.save, 'model_' .. epoch .. '.t7'), model)
    torch.save(paths.concat(opt.save, 'optimState_' .. epoch .. '.t7'), optimState)
 end -- of train()
 -------------------------------------------------------------------------------------------
