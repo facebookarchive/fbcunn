@@ -130,11 +130,6 @@ function train()
    print('\n')
 
    -- save model
-   model:for_each(function(mod)
-                     -- Trim activations so the checkpoint is not too huge
-                     mod.output = mod.output.new()
-                     mod.gradInput = mod.gradInput.new()
-   end)
    collectgarbage()
    torch.save(paths.concat(opt.save, 'model_' .. epoch .. '.t7'), model)
    torch.save(paths.concat(opt.save, 'optimState_' .. epoch .. '.t7'), optimState)
