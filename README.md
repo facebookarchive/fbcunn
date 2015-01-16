@@ -52,7 +52,8 @@ The unit tests in the test/ folder also double as examples! If you have a questi
 
 
 ## I want exact details of everything...
-API docs - https://facebook.github.io/fbcunn/fbcunn/
+
+API docs, generated with [torch-dokx](https://github.com/deepmind/torch-dokx), are available at http://facebook.github.io/fbcunn/fbcunn/
 
 Some of the unit tests need [fbnn](https://github.com/facebook/fbnn)
 
