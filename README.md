@@ -1,4 +1,4 @@
-# `fbcunn` - Deep Learning CUDA Extensions from Facebook Ai Research.
+# `fbcunn` - Deep Learning CUDA Extensions from Facebook AI Research.
 
 ## What?
 [Deep Learning](http://en.wikipedia.org/wiki/Deep_learning) is a popular kid in machine learning these days.
