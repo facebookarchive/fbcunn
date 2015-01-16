@@ -32,7 +32,7 @@ if opt.optimState ~= 'none' then
     optimState = torch.load(opt.optimState)
 end
 
-local optimator = nn.Optim(model, optimState)
+local optimator = nil
 
 -- Learning rate annealing schedule. We will build a new optimizer for
 -- each epoch.
@@ -65,6 +65,12 @@ local function paramsForEpoch(epoch)
     end
 end
 
+local function splice(dest, src)
+  for k,v in pairs(src) do
+    dest[k] = v
+  end
+end
+
 -- 2. Create loggers.
 trainLogger = optim.Logger(paths.concat(opt.save, 'train.log'))
 local batchNumber
@@ -77,10 +83,11 @@ function train()
    print("==> online epoch # " .. epoch)
 
    local params, newRegime = paramsForEpoch(epoch)
-   optimator:setParameters(params)
    if newRegime then
-       -- Zero the momentum vector by throwing away previous state.
-       optimator = nn.Optim(model, optimState)
+      -- Update optimState
+      splice(optimState, params)
+      -- Zero the momentum vector by throwing away previous state.
+      optimator = nn.Optim(model, optimState)
    end
    batchNumber = 0
    cutorch.synchronize()
