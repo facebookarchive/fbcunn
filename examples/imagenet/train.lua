@@ -83,7 +83,7 @@ function train()
    print("==> online epoch # " .. epoch)
 
    local params, newRegime = paramsForEpoch(epoch)
-   if newRegime then
+   if newRegime or not optimator then
       -- Update optimState
       splice(optimState, params)
       -- Zero the momentum vector by throwing away previous state.
