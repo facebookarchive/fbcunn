@@ -147,6 +147,7 @@ local labels = torch.CudaTensor(opt.batchSize)
 local timer = torch.Timer()
 -- 4. trainBatch - Used by train() to train a single batch after the data is loaded.
 function trainBatch(dataPointer, labelPointer)
+   cutorch.synchronize()
    timer:reset()
    -- set the data and labels to the main thread tensor buffers (free any existing storage)
    setFloatStorage(inputsCPU, dataPointer)
@@ -162,6 +163,7 @@ function trainBatch(dataPointer, labelPointer)
        labels,
        criterion)
 
+   cutorch.synchronize()
    -- Calculate top-1 and top-5 errors, and print information
    print(('Epoch: [%d][%d/%d]\tTime %.3f Err %.4f LR %.0e'):format(
           epoch, batchNumber, opt.epochSize, timer:time().real, err,
