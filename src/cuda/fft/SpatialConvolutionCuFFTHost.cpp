@@ -27,17 +27,17 @@ int updateOutputLua(lua_State* L) {
 
   auto input = (THCudaTensor*)luaT_checkudata(L, 2, "torch.CudaTensor");
 
-  luaL_argcheck(L, THCudaTensor_nDimension(input) == 4, 2,
+  luaL_argcheck(L, THCudaTensor_nDimension(NULL, input) == 4, 2,
                 "4D (batch mode) tensor is expected");
-  luaL_argcheck(L, THCudaTensor_isContiguous(input), 2,
+  luaL_argcheck(L, THCudaTensor_isContiguous(NULL, input), 2,
                 "input must be contiguous");
-  luaL_argcheck(L, THCudaTensor_isContiguous(weight), 1,
+  luaL_argcheck(L, THCudaTensor_isContiguous(NULL, weight), 1,
                 "weight must be contiguous");
-  luaL_argcheck(L, THCudaTensor_isContiguous(bias), 1,
+  luaL_argcheck(L, THCudaTensor_isContiguous(NULL, bias), 1,
                 "bias must be contiguous");
 
   luaL_argcheck(L,
-                THCudaTensor_size(input, 1) == THCudaTensor_size(weight, 1),
+                THCudaTensor_size(NULL, input, 1) == THCudaTensor_size(NULL, weight, 1),
                 2,
                 "Wrong number of input planes");
   luaL_argcheck(L, (dH == 1) && (dW == 1), 1, "FFT only supports stride 1");
@@ -63,11 +63,11 @@ int updateGradInputLua(lua_State* L) {
       L, 1, "gradInput", "torch.CudaTensor");
   auto gradOutput = (THCudaTensor*)luaT_checkudata(L, 2, "torch.CudaTensor");
 
-  luaL_argcheck(L, THCudaTensor_nDimension(gradOutput) == 4, 2,
+  luaL_argcheck(L, THCudaTensor_nDimension(NULL, gradOutput) == 4, 2,
                 "4D (batch mode) tensor is expected");
-  luaL_argcheck(L, THCudaTensor_isContiguous(gradOutput), 2,
+  luaL_argcheck(L, THCudaTensor_isContiguous(NULL, gradOutput), 2,
                 "gradOutput must be contiguous");
-  luaL_argcheck(L, THCudaTensor_isContiguous(weight), 1,
+  luaL_argcheck(L, THCudaTensor_isContiguous(NULL, weight), 1,
                 "weight must be contiguous");
 
   luaL_argcheck(L, (dH == 1) && (dW == 1), 1, "FFT only supports stride 1");
@@ -97,13 +97,13 @@ int accGradParametersLua(lua_State* L) {
   auto gradOutput = (THCudaTensor*)luaT_checkudata(L, 3, "torch.CudaTensor");
   float scale = luaL_optnumber(L, 4, 1.f);
 
-  luaL_argcheck(L, THCudaTensor_nDimension(input) == 4, 2,
+  luaL_argcheck(L, THCudaTensor_nDimension(NULL, input) == 4, 2,
                 "4D (batch mode) tensor is expected");
-  luaL_argcheck(L, THCudaTensor_isContiguous(input), 2,
+  luaL_argcheck(L, THCudaTensor_isContiguous(NULL, input), 2,
                 "input must be contiguous");
-  luaL_argcheck(L, THCudaTensor_isContiguous(gradOutput), 3,
+  luaL_argcheck(L, THCudaTensor_isContiguous(NULL, gradOutput), 3,
                 "gradOutput must be contiguous");
-  luaL_argcheck(L, THCudaTensor_isContiguous(gradBias), 1,
+  luaL_argcheck(L, THCudaTensor_isContiguous(NULL, gradBias), 1,
                 "gradBias must be contiguous");
 
   luaL_argcheck(L, (dH == 1) && (dW == 1), 1, "FFT only supports stride 1");
@@ -137,7 +137,7 @@ vector<long> defaultWeightCols({});
 
 vector<long> asVector(
   THCudaTensor* th, const vector<long>& defaultVec) {
-  if (THCudaTensor_nDimension(th) == 0) {
+  if (THCudaTensor_nDimension(NULL, th) == 0) {
     return defaultVec;
   }
   auto t = copyFromCuda(th);

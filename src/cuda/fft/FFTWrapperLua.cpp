@@ -89,12 +89,12 @@ int fftFun(lua_State* L, bool forward) {
   auto frequencyTHTensor =
     (THCudaTensor*)luaT_checkudata(L, 3, "torch.CudaTensor");
 
-  CHECK_EQ(THCudaTensor_nDimension(timeTHTensor) + 1,
-           THCudaTensor_nDimension(frequencyTHTensor));
+  CHECK_EQ(THCudaTensor_nDimension(NULL, timeTHTensor) + 1,
+           THCudaTensor_nDimension(NULL, frequencyTHTensor));
 
   auto time = 0.0f;
   constexpr int kNumTrials = 10;
-  int dims = THCudaTensor_nDimension(timeTHTensor);
+  int dims = THCudaTensor_nDimension(NULL, timeTHTensor);
   FFTParameters p; // forward and normalize are default
   if (!forward) {
     p = p.inverse().normalize(false);
@@ -134,7 +134,7 @@ int fftFun(lua_State* L, bool forward) {
 
   long batches = 1;
   for (auto i = 0; i < batchDims; ++i) {
-    batches *= THCudaTensor_size(timeTHTensor, i);
+    batches *= THCudaTensor_size(NULL, timeTHTensor, i);
   }
 
   // 1-D -> batches * N log N
@@ -142,11 +142,11 @@ int fftFun(lua_State* L, bool forward) {
   // 3-D -> batches * (M N P log P + P N M logM +  M P N logN)
   float size = batches;
   for (int i = 1; i < dims; ++i){
-    size *= THCudaTensor_size(timeTHTensor, dims - i);
+    size *= THCudaTensor_size(NULL, timeTHTensor, dims - i);
   }
   float logs = 1.0f;
   for (int i = 1; i < dims; ++i){
-    logs += log(THCudaTensor_size(timeTHTensor, dims - i));
+    logs += log(THCudaTensor_size(NULL, timeTHTensor, dims - i));
   }
   size *= logs;
 
@@ -161,9 +161,9 @@ int fftFun(lua_State* L, bool forward) {
     dims - batchDims,
     version,
     direction,
-    (dims >= 1) ? THCudaTensor_size(timeTHTensor, 0) : 1,
-    (dims >= 2) ? THCudaTensor_size(timeTHTensor, 1) : 1,
-    (dims >= 3) ? THCudaTensor_size(timeTHTensor, 2) : 1,
+    (dims >= 1) ? THCudaTensor_size(NULL, timeTHTensor, 0) : 1,
+    (dims >= 2) ? THCudaTensor_size(NULL, timeTHTensor, 1) : 1,
+    (dims >= 3) ? THCudaTensor_size(NULL, timeTHTensor, 2) : 1,
     batches,
     (GOut / time) * 1e3,
     time).str();

@@ -38,18 +38,18 @@ int updateOutput(lua_State* L) {
   auto output = (THCudaTensor*)luaT_checkudata(L, 3, "torch.CudaTensor");
   bool featuresInDim2 = lua_toboolean(L, 4);
 
-  if (!(THCudaTensor_isContiguous(input) &&
-        THCudaTensor_isContiguous(weight) &&
-        THCudaTensor_isContiguous(output))) {
+  if (!(THCudaTensor_isContiguous(NULL, input) &&
+        THCudaTensor_isContiguous(NULL, weight) &&
+        THCudaTensor_isContiguous(NULL, output))) {
     luaL_error(L, "Tensors must be contiguous");
   }
 
-  const auto inputDims = THCudaTensor_nDimension(input);
+  const auto inputDims = THCudaTensor_nDimension(NULL, input);
   if (inputDims > 2) {
     luaL_error(L, "input tensor size must be 1 or 2 dims (2 for batch mode)");
   }
 
-  if (THCudaTensor_nDimension(output) != inputDims + 1) {
+  if (THCudaTensor_nDimension(NULL, output) != inputDims + 1) {
     luaL_error(L, "input and output tensors must both be "
                "in batch mode or non-batch mode");
   }
@@ -85,18 +85,18 @@ int accGradParameters(lua_State* L) {
   float scale = lua_tonumber(L, 4);
   bool featuresInDim2 = lua_toboolean(L, 5);
 
-  if (!(THCudaTensor_isContiguous(input) &&
-        THCudaTensor_isContiguous(gradOutput) &&
-        THCudaTensor_isContiguous(gradWeight))) {
+  if (!(THCudaTensor_isContiguous(NULL, input) &&
+        THCudaTensor_isContiguous(NULL, gradOutput) &&
+        THCudaTensor_isContiguous(NULL, gradWeight))) {
     luaL_error(L, "Tensors must be contiguous");
   }
 
-  const auto inputDims = THCudaTensor_nDimension(input);
+  const auto inputDims = THCudaTensor_nDimension(NULL, input);
   if (inputDims > 2) {
     luaL_error(L, "input tensor size must be 1 or 2 dims (2 for batch mode)");
   }
 
-  if (THCudaTensor_nDimension(gradOutput) != inputDims + 1) {
+  if (THCudaTensor_nDimension(NULL, gradOutput) != inputDims + 1) {
     luaL_error(L, "input and gradOutput tensors must both be "
                "in batch mode or non-batch mode");
   }

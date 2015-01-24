@@ -77,49 +77,49 @@ static int fbcunn_TemporalMaxPooling_updateOutput(lua_State *L) {
   int dimS = 0; // sequence dimension
   int dimF = 1; // feature dimension
 
-  luaL_argcheck(L, THCudaTensor_nDimension(inputTH) == 2 ||
-                THCudaTensor_nDimension(inputTH) == 3, 2,
+  luaL_argcheck(L, THCudaTensor_nDimension(NULL, inputTH) == 2 ||
+                THCudaTensor_nDimension(NULL, inputTH) == 3, 2,
                 "2D or 3D(batch mode) tensor expected");
 
-  if (THCudaTensor_nDimension(inputTH) == 3) {
+  if (THCudaTensor_nDimension(NULL, inputTH) == 3) {
     dimS = 1;
     dimF = 2;
   }
 
-  luaL_argcheck(L, THCudaTensor_size(inputTH, dimS) >= kW, 2,
+  luaL_argcheck(L, THCudaTensor_size(NULL, inputTH, dimS) >= kW, 2,
                 "input sequence smaller than kernel size");
 
   // sizes
-  long niframe = THCudaTensor_size(inputTH, dimS);
-  long framesize = THCudaTensor_size(inputTH, dimF);
+  long niframe = THCudaTensor_size(NULL, inputTH, dimS);
+  long framesize = THCudaTensor_size(NULL, inputTH, dimF);
   long noframe = (niframe - kW) / dW + 1;
 
   // get contiguous input
-  THCudaTensor* inputContiguousTH = THCudaTensor_newContiguous(inputTH);
+  THCudaTensor* inputContiguousTH = THCudaTensor_newContiguous(NULL, inputTH);
 
   DeviceTensor<float, 3> input;
   DeviceTensor<float, 3> indices;
   DeviceTensor<float, 3> output;
 
-  if (THCudaTensor_nDimension(inputContiguousTH) == 2) {
+  if (THCudaTensor_nDimension(NULL, inputContiguousTH) == 2) {
     // resize output
-    THCudaTensor_resize2d(outputTH, noframe, framesize);
+    THCudaTensor_resize2d(NULL, outputTH, noframe, framesize);
 
     // indices will contain index locations for each output point
-    THCudaTensor_resize2d(indicesTH, noframe, framesize);
+    THCudaTensor_resize2d(NULL, indicesTH, noframe, framesize);
 
     input = torchToDeviceTensor<float, 2>(inputContiguousTH).upcastOuter<3>();
     output = torchToDeviceTensor<float, 2>(outputTH).upcastOuter<3>();
     indices = torchToDeviceTensor<float, 2>(indicesTH).upcastOuter<3>();
   } else {
     // number of batch frames
-    long nbframe = THCudaTensor_size(inputContiguousTH, 0);
+    long nbframe = THCudaTensor_size(NULL, inputContiguousTH, 0);
 
     // resize output
-    THCudaTensor_resize3d(outputTH, nbframe, noframe, framesize);
+    THCudaTensor_resize3d(NULL, outputTH, nbframe, noframe, framesize);
 
     // indices will contain index locations for each output point
-    THCudaTensor_resize3d(indicesTH, nbframe, noframe, framesize);
+    THCudaTensor_resize3d(NULL, indicesTH, nbframe, noframe, framesize);
 
     input = torchToDeviceTensor<float, 3>(inputContiguousTH);
     indices = torchToDeviceTensor<float, 3>(indicesTH);
@@ -141,7 +141,7 @@ static int fbcunn_TemporalMaxPooling_updateOutput(lua_State *L) {
     input, indices, output, kW, dW);
 
   // cleanup
-  THCudaTensor_free(inputContiguousTH);
+  THCudaTensor_free(NULL, inputContiguousTH);
 
   return 1;
 }
@@ -161,17 +161,17 @@ static int fbcunn_TemporalMaxPooling_updateGradInput(lua_State *L) {
 
   // get contiguous gradOutput
   THCudaTensor* gradOutputContiguousTH =
-    THCudaTensor_newContiguous(gradOutputTH);
+    THCudaTensor_newContiguous(NULL, gradOutputTH);
 
   // resize and zero
-  THCudaTensor_resizeAs(gradInputTH, inputTH);
-  THCudaTensor_zero(gradInputTH);
+  THCudaTensor_resizeAs(NULL, gradInputTH, inputTH);
+  THCudaTensor_zero(NULL, gradInputTH);
 
   DeviceTensor<float, 3> gradOutput;
   DeviceTensor<float, 3> indices;
   DeviceTensor<float, 3> gradInput;
 
-  if (THCudaTensor_nDimension(inputTH) == 2) {
+  if (THCudaTensor_nDimension(NULL, inputTH) == 2) {
     gradOutput =
       torchToDeviceTensor<float, 2>(gradOutputContiguousTH).upcastOuter<3>();
     indices = torchToDeviceTensor<float, 2>(indicesTH).upcastOuter<3>();
@@ -197,7 +197,7 @@ static int fbcunn_TemporalMaxPooling_updateGradInput(lua_State *L) {
     gradOutput, indices, gradInput, dW);
 
   // cleanup
-  THCudaTensor_free(gradOutputContiguousTH);
+  THCudaTensor_free(NULL, gradOutputContiguousTH);
 
   return 1;
 }

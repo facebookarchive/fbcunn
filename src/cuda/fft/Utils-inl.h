@@ -23,7 +23,7 @@ makeCuFFTTensorReal(
     THCudaTensor* candidateCudaStorageReal = nullptr,
     FFTOutputSpecification inPlace = FFTOutputSpecification::OutOfPlace) {
   DCHECK_EQ(FFTDim, commonDims.size());
-  DCHECK_EQ(4, THCudaTensor_nDimension(in));
+  DCHECK_EQ(4, THCudaTensor_nDimension(NULL, in));
   DCHECK_LE(1, FFTDim);
   DCHECK_GE(3, FFTDim);
 
@@ -33,21 +33,21 @@ makeCuFFTTensorReal(
   const auto strideCols = (inPlace == FFTOutputSpecification::InPlace) ?
     2 * numFFTCols(commonDims.back()) : commonDims.back();
 
-  auto batchOrFFTDim0 = THCudaTensor_size(in, 0); // always batch
+  auto batchOrFFTDim0 = THCudaTensor_size(NULL, in, 0); // always batch
   auto batchOrFFTDim1 = commonDims[0];
   auto batchOrFFTDim2 = commonDims[1];
   // Overwrite, less code, negligible perf
   if (FFTDim <= 2) {
-    batchOrFFTDim1 = THCudaTensor_size(in, 1);
+    batchOrFFTDim1 = THCudaTensor_size(NULL, in, 1);
     batchOrFFTDim2 = commonDims[0];
   }
   if (FFTDim <= 1) {
-    batchOrFFTDim2 = THCudaTensor_size(in, 2);
+    batchOrFFTDim2 = THCudaTensor_size(NULL, in, 2);
   }
-  DCHECK_LE(THCudaTensor_size(in, 0), batchOrFFTDim0);
-  DCHECK_LE(THCudaTensor_size(in, 1), batchOrFFTDim1);
-  DCHECK_LE(THCudaTensor_size(in, 2), batchOrFFTDim2);
-  DCHECK_LE(THCudaTensor_size(in, 3), commonDims.back());
+  DCHECK_LE(THCudaTensor_size(NULL, in, 0), batchOrFFTDim0);
+  DCHECK_LE(THCudaTensor_size(NULL, in, 1), batchOrFFTDim1);
+  DCHECK_LE(THCudaTensor_size(NULL, in, 2), batchOrFFTDim2);
+  DCHECK_LE(THCudaTensor_size(NULL, in, 3), commonDims.back());
 
   // The real tensor is always created, allocated and filled with the data
   // 1. Allocate with the input stride to embed in a 'large enough' zero
@@ -76,34 +76,34 @@ makeCuFFTTensorReal(
                                          size,
                                          std::vector<long>(stride));
       // Reset to 0, we are using existing garbage as buffer.
-      THCudaTensor_fill(real.get(), 0.0f);
+      THCudaTensor_fill(NULL, real.get(), 0.0f);
     }
   }
 
   // 2. Resize to the input size to allow proper copy
   {
-    long rawSize[] = {THCudaTensor_size(in, 0),
-                      THCudaTensor_size(in, 1),
-                      THCudaTensor_size(in, 2),
-                      THCudaTensor_size(in, 3)};
+    long rawSize[] = {THCudaTensor_size(NULL, in, 0),
+                      THCudaTensor_size(NULL, in, 1),
+                      THCudaTensor_size(NULL, in, 2),
+                      THCudaTensor_size(NULL, in, 3)};
     THLongStorage *sizeTH = LongStorage(rawSize, rawSize + 4).moveAsTH();
     SCOPE_EXIT { THLongStorage_free(sizeTH); };
-    long rawStride[] = {THCudaTensor_stride(real.get(), 0),
-                        THCudaTensor_stride(real.get(), 1),
-                        THCudaTensor_stride(real.get(), 2),
-                        THCudaTensor_stride(real.get(), 3)};
+    long rawStride[] = {THCudaTensor_stride(NULL, real.get(), 0),
+                        THCudaTensor_stride(NULL, real.get(), 1),
+                        THCudaTensor_stride(NULL, real.get(), 2),
+                        THCudaTensor_stride(NULL, real.get(), 3)};
     THLongStorage *strideTH = LongStorage(rawStride, rawStride + 4).moveAsTH();
     SCOPE_EXIT { THLongStorage_free(strideTH); };
 
     // See D1581014, for in-place fft, we can just resize since the capacity
     // is that of a full tensor as per 1.
-    THCudaTensor_resize(real.get(), sizeTH, strideTH);
+    THCudaTensor_resize(NULL, real.get(), sizeTH, strideTH);
   }
 
   // 3. Copy using the effective data size of in.
   // This achieves padding in the time domain which is necessary to properly
   // interpolate in the Fourier space.
-  THCudaTensor_copy(real.get(), in);
+  THCudaTensor_copy(NULL, real.get(), in);
 
   // 4. Now that the copy to CUDA is done properly, resize as
   // (commonRows x commonCols) reals within the zero padded tensor
@@ -113,16 +113,16 @@ makeCuFFTTensorReal(
                      commonDims.back()}; // size does not always match stride
   THLongStorage *sizeTH = LongStorage(rawSize, rawSize + 4).moveAsTH();
   SCOPE_EXIT { THLongStorage_free(sizeTH); };
-  long rawStride[] = {THCudaTensor_stride(real.get(), 0),
-                      THCudaTensor_stride(real.get(), 1),
-                      THCudaTensor_stride(real.get(), 2),
-                      THCudaTensor_stride(real.get(), 3)};
+  long rawStride[] = {THCudaTensor_stride(NULL, real.get(), 0),
+                      THCudaTensor_stride(NULL, real.get(), 1),
+                      THCudaTensor_stride(NULL, real.get(), 2),
+                      THCudaTensor_stride(NULL, real.get(), 3)};
   THLongStorage *strideTH = LongStorage(rawStride, rawStride + 4).moveAsTH();
   SCOPE_EXIT { THLongStorage_free(strideTH); };
 
   // See D1581014, for in-place fft, we can just resize since the capacity
   // is that of a full tensor as per 1.
-  THCudaTensor_resize(real.get(), sizeTH, strideTH);
+  THCudaTensor_resize(NULL, real.get(), sizeTH, strideTH);
 
   return real;
 }
@@ -134,7 +134,7 @@ makeCuFFTTensorComplex(
     const std::vector<long>& commonDims,
     THCudaTensor* candidateCudaStorageComplex = nullptr,
     FFTOutputSpecification inPlace = FFTOutputSpecification::OutOfPlace) {
-  DCHECK_EQ(4, THCudaTensor_nDimension(real));
+  DCHECK_EQ(4, THCudaTensor_nDimension(NULL, real));
   DCHECK_LE(1, FFTDim);
   DCHECK_GE(3, FFTDim);
 
@@ -142,16 +142,16 @@ makeCuFFTTensorComplex(
   const auto strideCols = 2 * numFFTCols(commonDims.back());
   std::unique_ptr<THCudaTensor, CudaTensorDeleter> complex;
 
-  auto batchOrFFTDim0 = THCudaTensor_size(real, 0); // always batch
+  auto batchOrFFTDim0 = THCudaTensor_size(NULL, real, 0); // always batch
   auto batchOrFFTDim1 = commonDims[0];
   auto batchOrFFTDim2 = commonDims[1];
   // Overwrite, less code, negligible perf
   if (FFTDim <= 2) {
-    batchOrFFTDim1 = THCudaTensor_size(real, 1);
+    batchOrFFTDim1 = THCudaTensor_size(NULL, real, 1);
     batchOrFFTDim2 = commonDims[0];
   }
   if (FFTDim <= 1) {
-    batchOrFFTDim2 = THCudaTensor_size(real, 2);
+    batchOrFFTDim2 = THCudaTensor_size(NULL, real, 2);
   }
 
   std::initializer_list<long> size =

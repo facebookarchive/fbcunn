@@ -470,9 +470,9 @@ class FFTTest : public ConvolutionModule {
     auto filtersCuda = copyToCuda(filters);
     auto outputCuda = makeTHCudaTensorSameSize(output);
 
-    fftUpdateOutput(THCudaTensor_data(inputCuda.get()),
-                    THCudaTensor_data(filtersCuda.get()),
-                    THCudaTensor_data(outputCuda.get()),
+    fftUpdateOutput(THCudaTensor_data(NULL, inputCuda.get()),
+                    THCudaTensor_data(NULL, filtersCuda.get()),
+                    THCudaTensor_data(NULL, outputCuda.get()),
                     input.size(0), input.size(1),
                     filters.size(0),
                     input.size(2), input.size(3),
@@ -495,9 +495,9 @@ class FFTTest : public ConvolutionModule {
     auto filtersCuda = copyToCuda(filters);
     auto inputCuda = makeTHCudaTensorSameSize(input);
 
-    fftUpdateGradInput(THCudaTensor_data(outputCuda.get()),
-                       THCudaTensor_data(filtersCuda.get()),
-                       THCudaTensor_data(inputCuda.get()),
+    fftUpdateGradInput(THCudaTensor_data(NULL, outputCuda.get()),
+                       THCudaTensor_data(NULL, filtersCuda.get()),
+                       THCudaTensor_data(NULL, inputCuda.get()),
                        input.size(0), input.size(1),
                        filters.size(0),
                        input.size(2), input.size(3),
@@ -522,9 +522,9 @@ class FFTTest : public ConvolutionModule {
     auto outputCuda = copyToCuda(output);
     auto filtersCuda = makeTHCudaTensorSameSize(filters);
 
-    fftAccGradParameters(THCudaTensor_data(inputCuda.get()),
-                         THCudaTensor_data(outputCuda.get()),
-                         THCudaTensor_data(filtersCuda.get()),
+    fftAccGradParameters(THCudaTensor_data(NULL, inputCuda.get()),
+                         THCudaTensor_data(NULL, outputCuda.get()),
+                         THCudaTensor_data(NULL, filtersCuda.get()),
                          input.size(0), input.size(1),
                          filters.size(0),
                          input.size(2), input.size(3),

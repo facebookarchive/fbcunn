@@ -109,18 +109,18 @@ int updateOutputWithTarget(lua_State* L) {
   auto cluster_score_strides = cluster_score->stride;
   auto n_max_class_per_cluster = class_score->size[1];
   auto n_clusters = n_class_in_cluster->size[0];
-  auto input_data = THCudaTensor_data(input);
-  auto class_weight_data = THCudaTensor_data(class_weight);
-  auto class_bias_data = THCudaTensor_data(class_bias);
-  auto mapping_data = THCudaTensor_data(mapping);
-  auto n_class_in_cluster_data = THCudaTensor_data(n_class_in_cluster);
-  auto class_start_indices_data = THCudaTensor_data(class_start_indices);
-  auto target_data = THCudaTensor_data(target);
-  auto class_score_data = THCudaTensor_data(class_score);
-  auto class_logsum_data = THCudaTensor_data(class_logsum);
-  auto cluster_score_data = THCudaTensor_data(cluster_score);
-  auto cluster_logsum_data = THCudaTensor_data(cluster_logsum);
-  auto output_data = THCudaTensor_data(output);
+  auto input_data = THCudaTensor_data(NULL, input);
+  auto class_weight_data = THCudaTensor_data(NULL, class_weight);
+  auto class_bias_data = THCudaTensor_data(NULL, class_bias);
+  auto mapping_data = THCudaTensor_data(NULL, mapping);
+  auto n_class_in_cluster_data = THCudaTensor_data(NULL, n_class_in_cluster);
+  auto class_start_indices_data = THCudaTensor_data(NULL, class_start_indices);
+  auto target_data = THCudaTensor_data(NULL, target);
+  auto class_score_data = THCudaTensor_data(NULL, class_score);
+  auto class_logsum_data = THCudaTensor_data(NULL, class_logsum);
+  auto cluster_score_data = THCudaTensor_data(NULL, cluster_score);
+  auto cluster_logsum_data = THCudaTensor_data(NULL, cluster_logsum);
+  auto output_data = THCudaTensor_data(NULL, output);
 
   detail::launchUpdateOutputWithTargetKernel(
     input_data,
@@ -167,16 +167,16 @@ int updateGradInput(lua_State* L) {
   auto gradInput_strides = gradInput->stride;
   auto n_max_class_per_cluster = class_score->size[1];
   auto n_clusters = n_class_in_cluster->size[0];
-  auto class_weight_data = THCudaTensor_data(class_weight);
-  auto mapping_data = THCudaTensor_data(mapping);
-  auto n_class_in_cluster_data = THCudaTensor_data(n_class_in_cluster);
-  auto class_start_indices_data = THCudaTensor_data(class_start_indices);
-  auto target_data = THCudaTensor_data(target);
-  auto class_score_data = THCudaTensor_data(class_score);
-  auto class_logsum_data = THCudaTensor_data(class_logsum);
-  auto cluster_score_data = THCudaTensor_data(cluster_score);
-  auto cluster_logsum_data = THCudaTensor_data(cluster_logsum);
-  auto gradInput_data = THCudaTensor_data(gradInput);
+  auto class_weight_data = THCudaTensor_data(NULL, class_weight);
+  auto mapping_data = THCudaTensor_data(NULL, mapping);
+  auto n_class_in_cluster_data = THCudaTensor_data(NULL, n_class_in_cluster);
+  auto class_start_indices_data = THCudaTensor_data(NULL, class_start_indices);
+  auto target_data = THCudaTensor_data(NULL, target);
+  auto class_score_data = THCudaTensor_data(NULL, class_score);
+  auto class_logsum_data = THCudaTensor_data(NULL, class_logsum);
+  auto cluster_score_data = THCudaTensor_data(NULL, cluster_score);
+  auto cluster_logsum_data = THCudaTensor_data(NULL, cluster_logsum);
+  auto gradInput_data = THCudaTensor_data(NULL, gradInput);
 
   detail::launchUpdateGradInput(
     class_weight_data,
@@ -212,20 +212,20 @@ int accGradParameters(lua_State* L) {
   auto target = getCudaTensor(L, 3);
   auto scale  = lua_tonumber(L, 4);
 
-  auto class_score_data = THCudaTensor_data(class_score);
-  auto mapping_data = THCudaTensor_data(mapping);
-  auto n_class_in_cluster_data = THCudaTensor_data(n_class_in_cluster);
-  auto class_start_indices_data = THCudaTensor_data(class_start_indices);
-  auto target_data = THCudaTensor_data(target);
-  auto input_data = THCudaTensor_data(input);
+  auto class_score_data = THCudaTensor_data(NULL, class_score);
+  auto mapping_data = THCudaTensor_data(NULL, mapping);
+  auto n_class_in_cluster_data = THCudaTensor_data(NULL, n_class_in_cluster);
+  auto class_start_indices_data = THCudaTensor_data(NULL, class_start_indices);
+  auto target_data = THCudaTensor_data(NULL, target);
+  auto input_data = THCudaTensor_data(NULL, input);
   auto input_strides = input->stride;
   auto class_score_strides = class_score->stride;
   auto class_gradWeight_strides = class_gradWeight->stride;
   auto n_max_class_per_cluster = class_score->size[1];
   auto input_size = input->size[1];
   auto batch_size = input->size[0];
-  auto class_gradWeight_data = THCudaTensor_data(class_gradWeight);
-  auto class_gradBias_data = THCudaTensor_data(class_gradBias);
+  auto class_gradWeight_data = THCudaTensor_data(NULL, class_gradWeight);
+  auto class_gradBias_data = THCudaTensor_data(NULL, class_gradBias);
 
   detail::launchAccGradParameters(
     class_score_data,
@@ -258,20 +258,20 @@ int accGradParameters_directUpdate(lua_State* L) {
   auto target = getCudaTensor(L, 3);
   auto scale  = lua_tonumber(L, 4);
 
-  auto class_score_data = THCudaTensor_data(class_score);
-  auto mapping_data = THCudaTensor_data(mapping);
-  auto n_class_in_cluster_data = THCudaTensor_data(n_class_in_cluster);
-  auto class_start_indices_data = THCudaTensor_data(class_start_indices);
-  auto target_data = THCudaTensor_data(target);
-  auto input_data = THCudaTensor_data(input);
+  auto class_score_data = THCudaTensor_data(NULL, class_score);
+  auto mapping_data = THCudaTensor_data(NULL, mapping);
+  auto n_class_in_cluster_data = THCudaTensor_data(NULL, n_class_in_cluster);
+  auto class_start_indices_data = THCudaTensor_data(NULL, class_start_indices);
+  auto target_data = THCudaTensor_data(NULL, target);
+  auto input_data = THCudaTensor_data(NULL, input);
   auto input_strides = input->stride;
   auto class_score_strides = class_score->stride;
   auto class_weight_strides = class_weight->stride;
   auto n_max_class_per_cluster = class_score->size[1];
   auto input_size = input->size[1];
   auto batch_size = input->size[0];
-  auto class_weight_data = THCudaTensor_data(class_weight);
-  auto class_bias_data = THCudaTensor_data(class_bias);
+  auto class_weight_data = THCudaTensor_data(NULL, class_weight);
+  auto class_bias_data = THCudaTensor_data(NULL, class_bias);
 
   detail::launchAccGradParameters(
     class_score_data,

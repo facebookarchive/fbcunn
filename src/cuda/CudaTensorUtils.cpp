@@ -1,12 +1,13 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #include "CudaTensorUtils.h"
+#include "THC.h"
 
 using namespace std;
 using namespace thpp;
 
 void
 CudaTensorDeleter::operator()(THCudaTensor* t) {
-  THCudaTensor_free(t);
+  THCudaTensor_free(NULL, t);
 }
 
 namespace facebook { namespace deeplearning { namespace torch {
@@ -29,9 +30,9 @@ makeTHCudaTensorFull(const vector<long>& sizes,
     size = strides->front() * sizes.front();
   }
 
-  auto storage = THCudaStorage_newWithSize(size);
+  auto storage = THCudaStorage_newWithSize(NULL, size);
 
-  auto tensor = THCudaTensor_new();
+  auto tensor = THCudaTensor_new(NULL);
   tensor->storage = storage;
   tensor->storageOffset = 0;
   tensor->nDimension = sizes.size();
@@ -53,7 +54,7 @@ makeTHCudaTensorFull(const vector<long>& sizes,
     memcpy(tensor->stride, tmpStrides.data(), sizeof(long) * tmpStrides.size());
   }
 
-  THCudaTensor_fill(tensor, 0.0f);
+  THCudaTensor_fill(NULL, tensor, 0.0f);
   return unique_ptr<THCudaTensor, CudaTensorDeleter>(tensor);
 }
 
@@ -110,7 +111,7 @@ makeAliasedTHCudaTensorFull(THCudaTensor* in,
     makeMutable(LongRange(stridesTH, sizes.size()))).moveAsTH();
   SCOPE_EXIT { THLongStorage_free(strTH); };
 
-  auto tensor = THCudaTensor_newWithStorage(
+  auto tensor = THCudaTensor_newWithStorage(NULL, 
     in->storage,
     in->storageOffset,
     szTH,
@@ -135,7 +136,7 @@ Tensor<float> copyFromCuda(const THCudaTensor* ctensor) {
   THCudaTensor* tensor = const_cast<THCudaTensor*>(ctensor);
   auto dataTH = Storage<float>(tensor->storage->size, 0.0f).moveAsTH();
   SCOPE_EXIT{ THFloatStorage_free(dataTH); };
-  THFloatStorage_copyCuda(dataTH, tensor->storage);
+  THFloatStorage_copyCuda(NULL, dataTH, tensor->storage);
 
   return Tensor<float>(
     Storage<float>(dataTH), tensor->storageOffset,
@@ -158,12 +159,12 @@ copyToCuda(Tensor<float>& tensor) {
     LongStorage(tensor.strides().begin(), tensor.strides().end()).moveAsTH();
   SCOPE_EXIT{ THLongStorage_free(strideTH); };
 
-  auto cudaStorageTH = THCudaStorage_newWithSize(tensor.storage().size());
-  SCOPE_EXIT{ THCudaStorage_free(cudaStorageTH); };
-  THCudaStorage_copyFloat(cudaStorageTH, storageTH);
+  auto cudaStorageTH = THCudaStorage_newWithSize(NULL, tensor.storage().size());
+  SCOPE_EXIT{ THCudaStorage_free(NULL, cudaStorageTH); };
+  THCudaStorage_copyFloat(NULL, cudaStorageTH, storageTH);
 
   return unique_ptr<THCudaTensor, CudaTensorDeleter>(
-    THCudaTensor_newWithStorage(
+    THCudaTensor_newWithStorage(NULL, 
       cudaStorageTH, tensor.storageOffset(), sizeTH, strideTH));
 }
 

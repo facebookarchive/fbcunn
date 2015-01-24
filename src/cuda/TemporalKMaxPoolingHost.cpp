@@ -40,21 +40,21 @@ int cunn_TemporalKMaxPooling_updateOutput(lua_State *L) {
   auto dimS = 0; // sequence dimension
   auto dimF = 1; // feature dimension
 
-  luaL_argcheck(L, THCudaTensor_nDimension(inputTH) == 2 ||
-                THCudaTensor_nDimension(inputTH) == 3, 2,
+  luaL_argcheck(L, THCudaTensor_nDimension(NULL, inputTH) == 2 ||
+                THCudaTensor_nDimension(NULL, inputTH) == 3, 2,
                 "2D or 3D (batch mode) tensor expected");
 
-  if (THCudaTensor_nDimension(inputTH) == 3) {
+  if (THCudaTensor_nDimension(NULL, inputTH) == 3) {
     dimS = 1;
     dimF = 2;
   }
 
-  const auto sequenceLength = THCudaTensor_size(inputTH, dimS);
-  const auto featureSize = THCudaTensor_size(inputTH, dimF);
+  const auto sequenceLength = THCudaTensor_size(NULL, inputTH, dimS);
+  const auto featureSize = THCudaTensor_size(NULL, inputTH, dimF);
 
   // get contiguous input
-  auto inputContiguousTH = THCudaTensor_newContiguous(inputTH);
-  SCOPE_EXIT{ THCudaTensor_free(inputContiguousTH); };
+  auto inputContiguousTH = THCudaTensor_newContiguous(NULL, inputTH);
+  SCOPE_EXIT{ THCudaTensor_free(NULL, inputContiguousTH); };
 
   checkAndAdjustK(L, k, kDynamic, sequenceLength);
 
@@ -62,25 +62,25 @@ int cunn_TemporalKMaxPooling_updateOutput(lua_State *L) {
   DeviceTensor<float, 3> indices;
   DeviceTensor<float, 3> output;
 
-  if (THCudaTensor_nDimension(inputContiguousTH) == 2) {
+  if (THCudaTensor_nDimension(NULL, inputContiguousTH) == 2) {
     // resize output
-    THCudaTensor_resize2d(outputTH, k, featureSize);
+    THCudaTensor_resize2d(NULL, outputTH, k, featureSize);
 
     // indices will contain index locations for each output point
-    THCudaTensor_resize2d(indicesTH, k, featureSize);
+    THCudaTensor_resize2d(NULL, indicesTH, k, featureSize);
 
     input = torchToDeviceTensor<float, 2>(inputContiguousTH).upcastOuter<3>();
     output = torchToDeviceTensor<float, 2>(outputTH).upcastOuter<3>();
     indices = torchToDeviceTensor<float, 2>(indicesTH).upcastOuter<3>();
   } else {
     // number of batch frames
-    const auto batchSize = THCudaTensor_size(inputContiguousTH, 0);
+    const auto batchSize = THCudaTensor_size(NULL, inputContiguousTH, 0);
 
     // resize output
-    THCudaTensor_resize3d(outputTH, batchSize, k, featureSize);
+    THCudaTensor_resize3d(NULL, outputTH, batchSize, k, featureSize);
 
     // indices will contain index locations for each output point
-    THCudaTensor_resize3d(indicesTH, batchSize, k, featureSize);
+    THCudaTensor_resize3d(NULL, indicesTH, batchSize, k, featureSize);
 
     input = torchToDeviceTensor<float, 3>(inputContiguousTH);
     indices = torchToDeviceTensor<float, 3>(indicesTH);
@@ -105,18 +105,18 @@ int cunn_TemporalKMaxPooling_updateGradInput(lua_State *L) {
 
   // get contiguous gradOutput
   auto gradOutputContiguousTH =
-    THCudaTensor_newContiguous(gradOutputTH);
-  SCOPE_EXIT{ THCudaTensor_free(gradOutputContiguousTH); };
+    THCudaTensor_newContiguous(NULL, gradOutputTH);
+  SCOPE_EXIT{ THCudaTensor_free(NULL, gradOutputContiguousTH); };
 
   // resize and zero
-  THCudaTensor_resizeAs(gradInputTH, inputTH);
-  THCudaTensor_zero(gradInputTH);
+  THCudaTensor_resizeAs(NULL, gradInputTH, inputTH);
+  THCudaTensor_zero(NULL, gradInputTH);
 
   DeviceTensor<float, 3> gradOutput;
   DeviceTensor<float, 3> indices;
   DeviceTensor<float, 3> gradInput;
 
-  if (THCudaTensor_nDimension(inputTH) == 2) {
+  if (THCudaTensor_nDimension(NULL, inputTH) == 2) {
     gradOutput =
       torchToDeviceTensor<float, 2>(gradOutputContiguousTH).upcastOuter<3>();
     indices =

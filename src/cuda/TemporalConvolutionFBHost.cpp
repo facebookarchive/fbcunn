@@ -52,48 +52,48 @@ int updateOutput(lua_State *L)
 
   // Remnants from original Torch code
   auto inputTHFrameSize = luaT_getfieldcheckint(L, 1, "inputFrameSize");
-  auto dimS = (THCudaTensor_nDimension(inputTH) == 3) ?
+  auto dimS = (THCudaTensor_nDimension(NULL, inputTH) == 3) ?
     1 : 0; // sequence dimension
-  auto dimF = (THCudaTensor_nDimension(inputTH) == 3) ?
+  auto dimF = (THCudaTensor_nDimension(NULL, inputTH) == 3) ?
     2 : 1; // feature dimension
   luaL_argcheck(L,
-                THCudaTensor_nDimension(inputTH) == 2 ||
-                THCudaTensor_nDimension(inputTH) == 3,
+                THCudaTensor_nDimension(NULL, inputTH) == 2 ||
+                THCudaTensor_nDimension(NULL, inputTH) == 3,
                 2,
                 "2D or 3D(batch mode) tensor expected");
-  luaL_argcheck(L, THCudaTensor_size(inputTH, dimF) == inputTHFrameSize,
+  luaL_argcheck(L, THCudaTensor_size(NULL, inputTH, dimF) == inputTHFrameSize,
                 2, "invalid inputTH frame size");
-  luaL_argcheck(L, THCudaTensor_size(inputTH, dimS) >= kW,
+  luaL_argcheck(L, THCudaTensor_size(NULL, inputTH, dimS) >= kW,
                 2, "inputTH sequence smaller than kernel size");
 
-  inputTH = THCudaTensor_newContiguous(inputTH);
+  inputTH = THCudaTensor_newContiguous(NULL, inputTH);
   SCOPE_EXIT {
-    THCudaTensor_free(inputTH);
+    THCudaTensor_free(NULL, inputTH);
   };
 
   // Init everything to 3-D  and work in 3-D
   DeviceTensor<float, 3> input;
   DeviceTensor<float, 3> weight;
   DeviceTensor<float, 3> output;
-  auto inputDim = THCudaTensor_nDimension(inputTH);
-  auto nInputTHFrame = THCudaTensor_size(inputTH, dimS);
+  auto inputDim = THCudaTensor_nDimension(NULL, inputTH);
+  auto nInputTHFrame = THCudaTensor_size(NULL, inputTH, dimS);
   auto outputTHFrameSize = luaT_getfieldcheckint(L, 1, "outputFrameSize");
   if (inputDim == 2) {
     input = torchToDeviceTensor<float, 2>(inputTH).upcastOuter<3>();
     { // Remnants from original Torch code
       auto nOutputTHFrame = (nInputTHFrame - kW) / dW + 1;
-      THCudaTensor_resize2d(outputTH,
+      THCudaTensor_resize2d(NULL, outputTH,
                             nOutputTHFrame,
                             outputTHFrameSize);
     }
     output = torchToDeviceTensor<float, 2>(outputTH).upcastOuter<3>();
   } else {
     CHECK_EQ(3, inputDim);
-    auto nBatchFrame = THCudaTensor_size(inputTH, 0);
+    auto nBatchFrame = THCudaTensor_size(NULL, inputTH, 0);
     input = torchToDeviceTensor<float, 3>(inputTH);
     { // Remnants from original Torch code
       auto nOutputTHFrame = (nInputTHFrame - kW) / dW + 1;
-      THCudaTensor_resize3d(outputTH,
+      THCudaTensor_resize3d(NULL, outputTH,
                             nBatchFrame,
                             nOutputTHFrame,
                             outputTHFrameSize);
@@ -108,9 +108,9 @@ int updateOutput(lua_State *L)
   auto inputWidth = input.getSize(2);
   auto outputWidth = output.getSize(2);
 
-  CHECK(THCudaTensor_isContiguous(inputTH));
-  CHECK(THCudaTensor_isContiguous(outputTH));
-  CHECK(THCudaTensor_isContiguous(weightTH));
+  CHECK(THCudaTensor_isContiguous(NULL, inputTH));
+  CHECK(THCudaTensor_isContiguous(NULL, outputTH));
+  CHECK(THCudaTensor_isContiguous(NULL, weightTH));
 
   BLASParameters params;
   params.withTransposeB(CUBLAS_OP_T);
@@ -231,8 +231,8 @@ int updateGradInput(lua_State *L) {
   DeviceTensor<float, 3> gradInput;
   DeviceTensor<float, 3> weight;
   DeviceTensor<float, 3> gradOutput;
-  auto gradOutputDim = THCudaTensor_nDimension(gradOutputTH);
-  THCudaTensor_resizeAs(gradInputTH, inputTH);
+  auto gradOutputDim = THCudaTensor_nDimension(NULL, gradOutputTH);
+  THCudaTensor_resizeAs(NULL, gradInputTH, inputTH);
   if (gradOutputDim == 2) {
     auto tmpOut = torchToDeviceTensor<float, 2>(gradOutputTH);
     gradOutput = tmpOut.upcastOuter<3>();
@@ -259,7 +259,7 @@ int updateGradInput(lua_State *L) {
     // In this case, we accumulate multiple results in gradInput, need to
     // zero it first and accumulate into it.
     params.withAccumulate(true);
-    THCudaTensor_zero(gradInputTH);
+    THCudaTensor_zero(NULL, gradInputTH);
 
     // Compute over numBand non-overlapping independent bands of size kW
     auto numBand = ceil(kW, dW);
@@ -345,16 +345,16 @@ int accGradParameters(lua_State *L) {
   auto gradBiasTH = (THCudaTensor*)luaT_getfieldcheckudata(
       L, 1, "gradBias", "torch.CudaTensor");
 
-  inputTH = THCudaTensor_newContiguous(inputTH);
+  inputTH = THCudaTensor_newContiguous(NULL, inputTH);
   SCOPE_EXIT {
-    THCudaTensor_free(inputTH);
+    THCudaTensor_free(NULL, inputTH);
   };
 
   // Init everything to 3-D  and work in 3-D
   DeviceTensor<float, 3> input;
   DeviceTensor<float, 3> gradWeight;
   DeviceTensor<float, 3> gradOutput;
-  auto gradOutputDim = THCudaTensor_nDimension(gradOutputTH);
+  auto gradOutputDim = THCudaTensor_nDimension(NULL, gradOutputTH);
   if (gradOutputDim == 2) {
     auto tmpOut = torchToDeviceTensor<float, 2>(gradOutputTH);
     gradOutput = tmpOut.upcastOuter<3>();
@@ -380,11 +380,11 @@ int accGradParameters(lua_State *L) {
   // TODO #5407858: Completely drop storage when we have working, efficient,
   //   inplace transposition
   auto inputHWBTH =
-    THCudaTensor_newWithSize3d(nBatches, inputHeight, inputWidth);
+    THCudaTensor_newWithSize3d(NULL, nBatches, inputHeight, inputWidth);
   DeviceTensor<float, 3> inputHWB =
     torchToDeviceTensor<float, 3>(inputHWBTH);
   SCOPE_EXIT {
-    THCudaTensor_free(inputHWBTH);
+    THCudaTensor_free(NULL, inputHWBTH);
   };
   transpose(input, inputHWB, 1);
 
@@ -398,11 +398,11 @@ int accGradParameters(lua_State *L) {
   // TODO #5407858: Completely drop storage when we have working, efficient,
   //   inplace transposition
   auto gradWeightKIOTH =
-    THCudaTensor_newWithSize3d(kW, inputWidth, outputWidth);
+    THCudaTensor_newWithSize3d(NULL, kW, inputWidth, outputWidth);
   DeviceTensor<float, 3> gradWeightKIO =
     torchToDeviceTensor<float, 3>(gradWeightKIOTH);
   SCOPE_EXIT {
-    THCudaTensor_free(gradWeightKIOTH);
+    THCudaTensor_free(NULL, gradWeightKIOTH);
   };
   // No need to zero since we do not accumulate in this implementation
 
@@ -427,10 +427,10 @@ int accGradParameters(lua_State *L) {
     //   (dW * outputCol + weightCol) x inputWidth x batch
     // We want 'outputH' scattered rows from input with step dW.
     // This can be obtained, without copying, with the following view.
-    auto inputoHWBBand = THCudaTensor_new();
-    THCudaTensor_setStorage3d(
+    auto inputoHWBBand = THCudaTensor_new(NULL);
+    THCudaTensor_setStorage3d(NULL, 
       inputoHWBBand,
-      THCudaTensor_storage(inputHWBTH),
+      THCudaTensor_storage(NULL, inputHWBTH),
       // Take only scattered weightCol + dW * outputCol so shift by
       // appropriate amount
       weightCol * inputWidth * nBatches,
@@ -443,29 +443,29 @@ int accGradParameters(lua_State *L) {
       1                           // stride[2]
     );
     SCOPE_EXIT {
-      THCudaTensor_free(inputoHWBBand);
+      THCudaTensor_free(NULL, inputoHWBBand);
     };
 
     // Extract subtensor
     // TODO #5407858: Make a buffer for multi-GPU to avoid blocking
     auto inputoHWBTH =
-      THCudaTensor_newWithSize3d(outputHeight, inputWidth, nBatches);
+      THCudaTensor_newWithSize3d(NULL, outputHeight, inputWidth, nBatches);
     DeviceTensor<float, 3> inputoHWB =
       torchToDeviceTensor<float, 3>(inputoHWBTH);
     SCOPE_EXIT {
-      THCudaTensor_free(inputoHWBTH);
+      THCudaTensor_free(NULL, inputoHWBTH);
     };
-    THCudaTensor_copy(inputoHWBTH, inputoHWBBand);
+    THCudaTensor_copy(NULL, inputoHWBTH, inputoHWBBand);
 
     // TODO #5407858: Make a buffer for multi-GPU to avoid blocking
     // TODO #5407858: Completely drop storage when we have working, efficient,
     // inplace transposition
     auto inputBoHWTH =
-      THCudaTensor_newWithSize3d(nBatches, outputHeight, inputWidth);
+      THCudaTensor_newWithSize3d(NULL, nBatches, outputHeight, inputWidth);
     DeviceTensor<float, 3> inputBoHW =
       torchToDeviceTensor<float, 3>(inputBoHWTH);
     SCOPE_EXIT {
-      THCudaTensor_free(inputBoHWTH);
+      THCudaTensor_free(NULL, inputBoHWTH);
     };
 
     // Transpose to band x outputH x inputW

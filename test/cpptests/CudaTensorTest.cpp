@@ -63,12 +63,12 @@ TEST(CudaTensor, testWrite3dNonTrivialStride) {
 
 TEST(CudaTensor, testWrite1d) {
   constexpr long kSize = 3;
-  auto storage = THCudaStorage_newWithSize(kSize);
-  auto tensor = THCudaTensor_newWithStorage1d(storage, 0, kSize, 1);
-  SCOPE_EXIT{ THCudaTensor_free(tensor); };
+  auto storage = THCudaStorage_newWithSize(NULL, kSize);
+  auto tensor = THCudaTensor_newWithStorage1d(NULL, storage, 0, kSize, 1);
+  SCOPE_EXIT{ THCudaTensor_free(NULL, tensor); };
 
   // Clear out tensor
-  THCudaTensor_fill(tensor, 0.0f);
+  THCudaTensor_fill(NULL, tensor, 0.0f);
 
   // Run our kernel
   EXPECT_TRUE(testAssignment1d(tensor));

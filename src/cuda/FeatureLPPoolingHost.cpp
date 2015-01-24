@@ -32,7 +32,7 @@ constexpr int outputSize(int inputSize, int width, int stride) {
 // [batch dim][feature dim][opt dim 1][opt dim 2]
 folly::Optional<DeviceTensor<float, 4>>
 upcast(THCudaTensor* t, bool batchMode) {
-  auto inputDim = THCudaTensor_nDimension(t);
+  auto inputDim = THCudaTensor_nDimension(NULL, t);
 
   if (inputDim == 1) {
     if (batchMode) {
@@ -74,63 +74,63 @@ upcast(THCudaTensor* t, bool batchMode) {
 void
 resizeForOutput(THCudaTensor* toResize, THCudaTensor* input,
                 bool batchMode, int width, int stride) {
-  auto inputDim = THCudaTensor_nDimension(input);
+  auto inputDim = THCudaTensor_nDimension(NULL, input);
   assert(inputDim >= 1 && inputDim <= 4);
 
-  auto outSize = outputSize(THCudaTensor_size(input, 0), width, stride);
+  auto outSize = outputSize(THCudaTensor_size(NULL, input, 0), width, stride);
   if (batchMode) {
     assert(inputDim > 1);
-    outSize = outputSize(THCudaTensor_size(input, 1), width, stride);
+    outSize = outputSize(THCudaTensor_size(NULL, input, 1), width, stride);
   } else {
     assert(inputDim < 4);
   }
 
   if (inputDim == 1) {
-    THCudaTensor_resize1d(toResize, outSize);
+    THCudaTensor_resize1d(NULL, toResize, outSize);
   } else if (inputDim == 2) {
     if (batchMode) {
-      THCudaTensor_resize2d(toResize, THCudaTensor_size(input, 0), outSize);
+      THCudaTensor_resize2d(NULL, toResize, THCudaTensor_size(NULL, input, 0), outSize);
     } else {
-      THCudaTensor_resize2d(toResize, outSize, THCudaTensor_size(input, 1));
+      THCudaTensor_resize2d(NULL, toResize, outSize, THCudaTensor_size(NULL, input, 1));
     }
   } else if (inputDim == 3) {
     if (batchMode) {
-      THCudaTensor_resize3d(
+      THCudaTensor_resize3d(NULL, 
         toResize,
-        THCudaTensor_size(input, 0), outSize, THCudaTensor_size(input, 2));
+        THCudaTensor_size(NULL, input, 0), outSize, THCudaTensor_size(NULL, input, 2));
     } else {
-      THCudaTensor_resize3d(
+      THCudaTensor_resize3d(NULL, 
         toResize,
-        outSize, THCudaTensor_size(input, 1), THCudaTensor_size(input, 2));
+        outSize, THCudaTensor_size(NULL, input, 1), THCudaTensor_size(NULL, input, 2));
     }
   } else if (inputDim == 4) {
-    THCudaTensor_resize4d(
+    THCudaTensor_resize4d(NULL, 
       toResize,
-      THCudaTensor_size(input, 0), outSize,
-      THCudaTensor_size(input, 2), THCudaTensor_size(input, 3));
+      THCudaTensor_size(NULL, input, 0), outSize,
+      THCudaTensor_size(NULL, input, 2), THCudaTensor_size(NULL, input, 3));
   }
 }
 
 // Makes `toResize` the same size/dimensionality as `src`
 void
 resize(THCudaTensor* toResize, THCudaTensor* src) {
-  auto inputDim = THCudaTensor_nDimension(src);
+  auto inputDim = THCudaTensor_nDimension(NULL, src);
 
   if (inputDim == 1) {
-    THCudaTensor_resize1d(toResize, THCudaTensor_size(src, 0));
+    THCudaTensor_resize1d(NULL, toResize, THCudaTensor_size(NULL, src, 0));
   } else if (inputDim == 2) {
-    THCudaTensor_resize2d(
-      toResize, THCudaTensor_size(src, 0), THCudaTensor_size(src, 1));
+    THCudaTensor_resize2d(NULL, 
+      toResize, THCudaTensor_size(NULL, src, 0), THCudaTensor_size(NULL, src, 1));
   } else if (inputDim == 3) {
-    THCudaTensor_resize3d(
+    THCudaTensor_resize3d(NULL, 
       toResize,
-      THCudaTensor_size(src, 0), THCudaTensor_size(src, 1),
-      THCudaTensor_size(src, 2));
+      THCudaTensor_size(NULL, src, 0), THCudaTensor_size(NULL, src, 1),
+      THCudaTensor_size(NULL, src, 2));
   } else if (inputDim == 4) {
-    THCudaTensor_resize4d(
+    THCudaTensor_resize4d(NULL, 
       toResize,
-      THCudaTensor_size(src, 0), THCudaTensor_size(src, 1),
-      THCudaTensor_size(src, 2), THCudaTensor_size(src, 3));
+      THCudaTensor_size(NULL, src, 0), THCudaTensor_size(NULL, src, 1),
+      THCudaTensor_size(NULL, src, 2), THCudaTensor_size(NULL, src, 3));
   } else {
     // should not encounter this dimensionality
     assert(false);

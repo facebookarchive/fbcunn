@@ -37,17 +37,17 @@ int quantize(lua_State *L) {
     L, 1, "avg_neg", "torch.CudaTensor");
 
   // The input should be two-dimensional
-  luaL_argcheck(L, THCudaTensor_nDimension(nonQuantizedTH) == 2, 2,
+  luaL_argcheck(L, THCudaTensor_nDimension(NULL, nonQuantizedTH) == 2, 2,
                 "non_quantized_input should be 2d");
 
-  const auto rows = THCudaTensor_size(nonQuantizedTH, 0);
-  const auto cols = THCudaTensor_size(nonQuantizedTH, 1);
+  const auto rows = THCudaTensor_size(NULL, nonQuantizedTH, 0);
+  const auto cols = THCudaTensor_size(NULL, nonQuantizedTH, 1);
 
   // Make sure that the outputs are properly sized
-  THCudaTensor_resize2d(quantizedTH, rows, toQuantizedSize(cols));
-  THCudaTensor_resize2d(quantizationErrorTH, rows, cols);
-  THCudaTensor_resize1d(avgPosTH, rows);
-  THCudaTensor_resize1d(avgNegTH, rows);
+  THCudaTensor_resize2d(NULL, quantizedTH, rows, toQuantizedSize(cols));
+  THCudaTensor_resize2d(NULL, quantizationErrorTH, rows, cols);
+  THCudaTensor_resize1d(NULL, avgPosTH, rows);
+  THCudaTensor_resize1d(NULL, avgNegTH, rows);
 
   DeviceTensor<float, 2> nonQuantized =
     torchToDeviceTensor<float, 2>(nonQuantizedTH);
@@ -74,22 +74,22 @@ int dequantize(lua_State *L) {
     L, 1, "non_quantized", "torch.CudaTensor");
 
   // The input should be two-dimensional
-  luaL_argcheck(L, THCudaTensor_nDimension(quantizedTH) == 2, 2,
+  luaL_argcheck(L, THCudaTensor_nDimension(NULL, quantizedTH) == 2, 2,
                 "input should be 2d");
 
-  const auto rows = THCudaTensor_size(quantizedTH, 0);
-  const auto quantizedCols = THCudaTensor_size(quantizedTH, 1);
+  const auto rows = THCudaTensor_size(NULL, quantizedTH, 0);
+  const auto quantizedCols = THCudaTensor_size(NULL, quantizedTH, 1);
 
   // The input should be within appropriate quantization sizes
   luaL_argcheck(L, quantizedCols == toQuantizedSize(nonQuantizedCols), 5,
                 "num_orig_cols does not match quantized_input cols");
-  luaL_argcheck(L, THCudaTensor_size(avgPosTH, 0) == rows, 3,
+  luaL_argcheck(L, THCudaTensor_size(NULL, avgPosTH, 0) == rows, 3,
                 "avg_pos size doesn't match quantized_input rows");
-  luaL_argcheck(L, THCudaTensor_size(avgNegTH, 0) == rows, 4,
+  luaL_argcheck(L, THCudaTensor_size(NULL, avgNegTH, 0) == rows, 4,
                 "avg_neg size doesn't match quantized_input rows");
 
   // Make sure that the outputs are properly sized
-  THCudaTensor_resize2d(nonQuantizedTH, rows, nonQuantizedCols);
+  THCudaTensor_resize2d(NULL, nonQuantizedTH, rows, nonQuantizedCols);
 
   DeviceTensor<float, 2> quantized =
     torchToDeviceTensor<float, 2>(quantizedTH);

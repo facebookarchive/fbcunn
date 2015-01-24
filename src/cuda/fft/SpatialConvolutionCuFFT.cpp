@@ -167,14 +167,14 @@ template <int FFTDim> class CuFFTBuffers {
                   uint32_t streamInd) {
     // Only 2 parallel FFTs at any point.
     DCHECK_GE(1, streamInd);
-    TensorSizeType sizes(THCudaTensor_size(realTH, 0),
-                         THCudaTensor_size(realTH, 1),
-                         THCudaTensor_size(realTH, 2),
-                         THCudaTensor_size(realTH, 3));
-    TensorStrideType strides(THCudaTensor_stride(realTH, 0),
-                             THCudaTensor_stride(realTH, 1),
-                             THCudaTensor_stride(realTH, 2),
-                             THCudaTensor_stride(realTH, 3));
+    TensorSizeType sizes(THCudaTensor_size(NULL, realTH, 0),
+                         THCudaTensor_size(NULL, realTH, 1),
+                         THCudaTensor_size(NULL, realTH, 2),
+                         THCudaTensor_size(NULL, realTH, 3));
+    TensorStrideType strides(THCudaTensor_stride(NULL, realTH, 0),
+                             THCudaTensor_stride(NULL, realTH, 1),
+                             THCudaTensor_stride(NULL, realTH, 2),
+                             THCudaTensor_stride(NULL, realTH, 3));
     // Even if we don't use the streamInd to bind a plan to a stream here, we
     // still need to pass it to distringuish between concurrent FFTs.
     // This disambiguates the risk of running concurrent FFTs with the same
@@ -209,7 +209,7 @@ template <int FFTDim> class CuFFTBuffers {
           1});
     auto h = makeTHCudaTensorFull(size, stride);
     // Always fill with zeros
-    THCudaTensor_fill(h.get(), 0.0f);
+    THCudaTensor_fill(NULL, h.get(), 0.0f);
     writeOnlyTensorMap_.emplace(key, std::move(h));
     return writeOnlyTensorMap_[key].get();
   }
@@ -217,10 +217,10 @@ template <int FFTDim> class CuFFTBuffers {
   THCudaTensor* bufferWriteOnlyPadded(
     THCudaTensor* t, int s1, int s2, int s3, int s4) {
     TensorSizeType sizes(s1, s2, s3, s4);
-    TensorStrideType strides(THCudaTensor_stride(t, 0),
-                             THCudaTensor_stride(t, 1),
-                             THCudaTensor_stride(t, 2),
-                             THCudaTensor_stride(t, 3));
+    TensorStrideType strides(THCudaTensor_stride(NULL, t, 0),
+                             THCudaTensor_stride(NULL, t, 1),
+                             THCudaTensor_stride(NULL, t, 2),
+                             THCudaTensor_stride(NULL, t, 3));
     TupleWriteOnlyPaddedType key(sizes, strides, currentDevice());
     if (writeOnlyPaddedTensorMap_.count(key) > 0) {
       DCHECK_EQ(1, writeOnlyPaddedTensorMap_.count(key)); // no collisions
@@ -228,10 +228,10 @@ template <int FFTDim> class CuFFTBuffers {
     }
     vector<long> sz({s1, s2, s3, s4});
     vector<long> st({
-        THCudaTensor_stride(t, 0),
-          THCudaTensor_stride(t, 1),
-          THCudaTensor_stride(t, 2),
-          THCudaTensor_stride(t, 3)});
+        THCudaTensor_stride(NULL, t, 0),
+          THCudaTensor_stride(NULL, t, 1),
+          THCudaTensor_stride(NULL, t, 2),
+          THCudaTensor_stride(NULL, t, 3)});
     auto h = makeAliasedTHCudaTensorFull(t, sz, st);
     writeOnlyPaddedTensorMap_.emplace(key, std::move(h));
     return writeOnlyPaddedTensorMap_[key].get();
@@ -329,12 +329,12 @@ void updateOutputTH(const THParams& p,
   THCudaTensor* bias = p.bias;
 
   // 2-D FFT atm
-  CHECK_EQ(4, THCudaTensor_nDimension(input));
+  CHECK_EQ(4, THCudaTensor_nDimension(NULL, input));
   auto& buffers = CuFFTBuffers<kFFTDims>::singleton();
 
   // Always 4-D when passed to CUDA
-  DCHECK_GE(s.sizes.inputSizeRow, THCudaTensor_size(weight, 2));
-  DCHECK_GE(s.sizes.inputSizeCol, THCudaTensor_size(weight, 3));
+  DCHECK_GE(s.sizes.inputSizeRow, THCudaTensor_size(NULL, weight, 2));
+  DCHECK_GE(s.sizes.inputSizeCol, THCudaTensor_size(NULL, weight, 3));
 
   // Setup types based on strategy, determines which buffers get reused
   auto inputCType = BufferType::InputComplex;
@@ -381,14 +381,14 @@ void updateOutputTH(const THParams& p,
   auto handles = buffers.handles();
 
   // Sanity checks
-  DCHECK_EQ(THCudaTensor_size(inputC, 2), s.sizes.rows());
-  DCHECK_EQ(THCudaTensor_size(inputC, 3),
+  DCHECK_EQ(THCudaTensor_size(NULL, inputC, 2), s.sizes.rows());
+  DCHECK_EQ(THCudaTensor_size(NULL, inputC, 3),
             numHermitianSymmetryCols(s.sizes.cols()));
-  DCHECK_EQ(THCudaTensor_size(weightC, 2), s.sizes.rows());
-  DCHECK_EQ(THCudaTensor_size(weightC, 3),
+  DCHECK_EQ(THCudaTensor_size(NULL, weightC, 2), s.sizes.rows());
+  DCHECK_EQ(THCudaTensor_size(NULL, weightC, 3),
             numHermitianSymmetryCols(s.sizes.cols()));
-  DCHECK_EQ(THCudaTensor_size(outputC, 2), s.sizes.rows());
-  DCHECK_EQ(THCudaTensor_size(outputC, 3),
+  DCHECK_EQ(THCudaTensor_size(NULL, outputC, 2), s.sizes.rows());
+  DCHECK_EQ(THCudaTensor_size(NULL, outputC, 3),
             numHermitianSymmetryCols(s.sizes.cols()));
 
   // Actual run
@@ -418,12 +418,12 @@ void updateOutputTH(const THParams& p,
 
   // See D1581014, storage capacity is larger, we can resize to remove padding
   // resize4d is ok performance-wise since lua reuses buffer too
-  THCudaTensor_resize4d(output,
+  THCudaTensor_resize4d(NULL, output,
                         originalSizes.batchSize,
                         originalSizes.filterSize,
                         originalSizes.outputSizeRow,
                         originalSizes.outputSizeCol);
-  THCudaTensor_copy(output, oTmp2);
+  THCudaTensor_copy(NULL, output, oTmp2);
 }
 
 
@@ -435,14 +435,14 @@ void updateGradInputTH(const THParams& p,
   THCudaTensor* gradOutput = p.output;
 
   // 2-D FFT atm
-  CHECK_EQ(4, THCudaTensor_nDimension(gradOutput));
+  CHECK_EQ(4, THCudaTensor_nDimension(NULL, gradOutput));
   auto& buffers = CuFFTBuffers<kFFTDims>::singleton();
 
   // Always 4-D when passed to CUDA
-  DCHECK_GE(s.sizes.inputSizeRow, THCudaTensor_size(weight, 2));
-  DCHECK_GE(s.sizes.inputSizeCol, THCudaTensor_size(weight, 3));
-  DCHECK_GE(s.sizes.inputSizeRow, THCudaTensor_size(gradOutput, 2));
-  DCHECK_GE(s.sizes.inputSizeCol, THCudaTensor_size(gradOutput, 3));
+  DCHECK_GE(s.sizes.inputSizeRow, THCudaTensor_size(NULL, weight, 2));
+  DCHECK_GE(s.sizes.inputSizeCol, THCudaTensor_size(NULL, weight, 3));
+  DCHECK_GE(s.sizes.inputSizeRow, THCudaTensor_size(NULL, gradOutput, 2));
+  DCHECK_GE(s.sizes.inputSizeCol, THCudaTensor_size(NULL, gradOutput, 3));
 
   // Setup types based on strategy, determines which buffers get reused
   auto inputCType = BufferType::InputComplex;
@@ -516,12 +516,12 @@ void updateGradInputTH(const THParams& p,
 
   // See D1581014, storage capacity is larger, we can resize to remove padding
   // resize4d is ok performance-wise since lua reuses buffer too
-  THCudaTensor_resize4d(gradInput,
+  THCudaTensor_resize4d(NULL, gradInput,
                         originalSizes.batchSize,
                         originalSizes.planeSize,
                         originalSizes.inputSizeRow,
                         originalSizes.inputSizeCol);
-  THCudaTensor_copy(gradInput, giTmp2);
+  THCudaTensor_copy(NULL, gradInput, giTmp2);
 }
 
 void accGradParametersTH(const THParams& p,
@@ -534,7 +534,7 @@ void accGradParametersTH(const THParams& p,
   float scale = p.scale;
 
   // 2-D FFT atm
-  CHECK_EQ(4, THCudaTensor_nDimension(input));
+  CHECK_EQ(4, THCudaTensor_nDimension(NULL, input));
   auto& buffers = CuFFTBuffers<kFFTDims>::singleton();
 
   auto inputCType = BufferType::InputComplex;
@@ -570,12 +570,12 @@ void accGradParametersTH(const THParams& p,
   auto gradWeightCTr = buffers.buffer(gwTmp, probSizes, weightCTrType);
   auto gradOutputCTr = buffers.buffer(gradOutputR, probSizes, outputCTrType);
 
-  DCHECK(THCudaTensor_isContiguous(inputC) > 0);
-  DCHECK(THCudaTensor_isContiguous(gradOutputC) > 0);
-  DCHECK(THCudaTensor_isContiguous(gradWeightC) > 0);
-  DCHECK(THCudaTensor_isContiguous(inputCTr) > 0);
-  DCHECK(THCudaTensor_isContiguous(gradOutputCTr) > 0);
-  DCHECK(THCudaTensor_isContiguous(gradWeightCTr) > 0);
+  DCHECK(THCudaTensor_isContiguous(NULL, inputC) > 0);
+  DCHECK(THCudaTensor_isContiguous(NULL, gradOutputC) > 0);
+  DCHECK(THCudaTensor_isContiguous(NULL, gradWeightC) > 0);
+  DCHECK(THCudaTensor_isContiguous(NULL, inputCTr) > 0);
+  DCHECK(THCudaTensor_isContiguous(NULL, gradOutputCTr) > 0);
+  DCHECK(THCudaTensor_isContiguous(NULL, gradWeightCTr) > 0);
 
   auto planInput = buffers.plan(inputR, inputC, FFTParameters().forward(), 0);
   auto planWeight = buffers.plan(
@@ -611,12 +611,12 @@ void accGradParametersTH(const THParams& p,
 
   // See D1581014, storage capacity is larger, we can resize to remove padding
   // resize4d is ok performance-wise since lua reuses buffer too
-  THCudaTensor_resize4d(gradWeight,
+  THCudaTensor_resize4d(NULL, gradWeight,
                         originalSizes.filterSize,
                         originalSizes.planeSize,
                         originalSizes.weightSizeRow,
                         originalSizes.weightSizeCol);
-  THCudaTensor_copy(gradWeight, gwTmp2);
+  THCudaTensor_copy(NULL, gradWeight, gwTmp2);
 }
 
 void cleanupBuffers() {

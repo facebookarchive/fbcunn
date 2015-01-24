@@ -17,13 +17,13 @@ namespace {
 // that trip our Werr settings for unused typedefs.
 struct HalfTensor {
   explicit HalfTensor(THCudaTensor* floats) {
-    auto sz = THCudaTensor_nElement(floats);
+    auto sz = THCudaTensor_nElement(NULL, floats);
     auto err = cudaMalloc(&devPtr_, sz * sizeof(half_t));
     if (err != cudaSuccess) {
       throw std::runtime_error("failed to cudamalloc HalfTensor");
     }
     size_ = sz;
-    halfprec_ToHalf(THCudaTensor_data(floats), devPtr_, size_);
+    halfprec_ToHalf(THCudaTensor_data(NULL, floats), devPtr_, size_);
   }
 
   HalfTensor()
@@ -36,9 +36,9 @@ struct HalfTensor {
   }
 
   void toFloat(THCudaTensor* dest) {
-    THCudaTensor_resize1d(dest, size_);
+    THCudaTensor_resize1d(NULL, dest, size_);
     assert(size_ > 0);
-    halfprec_ToFloat(devPtr_, THCudaTensor_data(dest), size_);
+    halfprec_ToFloat(devPtr_, THCudaTensor_data(NULL, dest), size_);
   }
 
 private:
@@ -61,17 +61,17 @@ int HalfPrec_destroy(lua_State* l) {
 
 int HalfPrec_toHalfCUDA(lua_State* l) {
   auto input = (THCudaTensor*)luaT_checkudata(l, 1, "torch.CudaTensor");
-  auto cinput = THCudaTensor_newContiguous(input);
+  auto cinput = THCudaTensor_newContiguous(NULL, input);
   auto dest = new HalfTensor(cinput);
 
   luaT_pushudata(l, dest, kLibName);
-  THCudaTensor_free(cinput);
+  THCudaTensor_free(NULL, cinput);
   return 1;
 }
 
 int HalfPrec_toFloatCUDA(lua_State* l) {
   auto input = (HalfTensor*)luaT_checkudata(l, 1, kLibName);
-  auto dest = THCudaTensor_new();
+  auto dest = THCudaTensor_new(NULL);
   input->toFloat(dest);
   luaT_pushudata(l, dest, "torch.CudaTensor");
   return 1;

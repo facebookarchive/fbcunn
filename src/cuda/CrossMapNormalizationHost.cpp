@@ -30,7 +30,7 @@ int updateOutput(lua_State* L) {
   param.scale = luaT_getfieldchecknumber(L, 1, "scale");
   param.power = luaT_getfieldchecknumber(L, 1, "power");
 
-  int ndims = THCudaTensor_nDimension(input);
+  int ndims = THCudaTensor_nDimension(NULL, input);
   if (ndims != 3 && ndims != 4) {
     luaL_error(L, "Invalid input tensor dimension");
   }
@@ -40,31 +40,31 @@ int updateOutput(lua_State* L) {
   }
 
   // Make tensors contiguous
-  input  = THCudaTensor_newContiguous(input);
-  output = THCudaTensor_newContiguous(output);
+  input  = THCudaTensor_newContiguous(NULL, input);
+  output = THCudaTensor_newContiguous(NULL, output);
 
   // Resize derived tensors based on input
-  THCudaTensor_resizeAs(output, input);
-  THCudaTensor_resizeAs(squaredSum, input);
+  THCudaTensor_resizeAs(NULL, output, input);
+  THCudaTensor_resizeAs(NULL, squaredSum, input);
 
   param.batchSize = 1;
   int firstDim = 0;
   if (ndims == 4) {
-    param.batchSize = THCudaTensor_size(input, 0);
+    param.batchSize = THCudaTensor_size(NULL, input, 0);
     firstDim = 1;
   }
 
-  param.numFeatures = THCudaTensor_size(input, firstDim);
-  param.featureSize = THCudaTensor_stride(input, firstDim);
+  param.numFeatures = THCudaTensor_size(NULL, input, firstDim);
+  param.featureSize = THCudaTensor_stride(NULL, input, firstDim);
 
   detail::launchCrossMapNormalizationUpdateOutputKernel(
-      THCudaTensor_data(input),
-      THCudaTensor_data(output),
-      THCudaTensor_data(squaredSum),
+      THCudaTensor_data(NULL, input),
+      THCudaTensor_data(NULL, output),
+      THCudaTensor_data(NULL, squaredSum),
       param);
   lua_pushvalue(L, outputIdx);
-  THCudaTensor_free(input);
-  THCudaTensor_free(output);
+  THCudaTensor_free(NULL, input);
+  THCudaTensor_free(NULL, output);
 
   return 1;
 }
@@ -88,7 +88,7 @@ int updateGradInput(lua_State* L) {
   param.scale = luaT_getfieldchecknumber(L, 1, "scale");
   param.power = luaT_getfieldchecknumber(L, 1, "power");
 
-  int ndims = THCudaTensor_nDimension(input);
+  int ndims = THCudaTensor_nDimension(NULL, input);
   if (ndims != 3 && ndims != 4) {
     luaL_error(L, "Invalid input tensor dimension");
   }
@@ -98,35 +98,35 @@ int updateGradInput(lua_State* L) {
   }
 
   // Make tensors contiguous
-  input = THCudaTensor_newContiguous(input);
-  gradOutput = THCudaTensor_newContiguous(gradOutput);
-  gradInput = THCudaTensor_newContiguous(gradInput);
+  input = THCudaTensor_newContiguous(NULL, input);
+  gradOutput = THCudaTensor_newContiguous(NULL, gradOutput);
+  gradInput = THCudaTensor_newContiguous(NULL, gradInput);
 
   // Resize derived tensors based on input
-  THCudaTensor_resizeAs(gradInput, input);
+  THCudaTensor_resizeAs(NULL, gradInput, input);
 
   param.batchSize = 1;
   int firstDim = 0;
   if (ndims == 4) {
-    param.batchSize = THCudaTensor_size(input, 0);
+    param.batchSize = THCudaTensor_size(NULL, input, 0);
     firstDim = 1;
   }
 
 
-  param.numFeatures = THCudaTensor_size(input, firstDim);
-  param.featureSize = THCudaTensor_stride(input, firstDim);
+  param.numFeatures = THCudaTensor_size(NULL, input, firstDim);
+  param.featureSize = THCudaTensor_stride(NULL, input, firstDim);
 
   detail::launchCrossMapNormalizationUpdateGradInputKernel(
-      THCudaTensor_data(input),
-      THCudaTensor_data(gradOutput),
-      THCudaTensor_data(squaredSum),
-      THCudaTensor_data(gradInput),
+      THCudaTensor_data(NULL, input),
+      THCudaTensor_data(NULL, gradOutput),
+      THCudaTensor_data(NULL, squaredSum),
+      THCudaTensor_data(NULL, gradInput),
       param);
 
   lua_pushvalue(L, gradInputIdx);
-  THCudaTensor_free(gradOutput);
-  THCudaTensor_free(gradInput);
-  THCudaTensor_free(input);
+  THCudaTensor_free(NULL, gradOutput);
+  THCudaTensor_free(NULL, gradInput);
+  THCudaTensor_free(NULL, input);
   return 1;
 }
 

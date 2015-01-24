@@ -39,15 +39,15 @@ int updateOutput(lua_State *L) {
   luaL_argcheck(L, (output->nDimension == 1) && (output->size[0] == 1),
                 1, "output has wrong dimension");
   luaL_argcheck(L, (input->nDimension == 2) && (input->size[0] == batchSize)
-                   && (THCudaTensor_isContiguous(input)),
+                   && (THCudaTensor_isContiguous(NULL, input)),
                 2, "input has wrong dimension");
   luaL_argcheck(L, (targetP->nDimension == 2)
-                   && (THCudaTensor_isContiguous(targetP)),
+                   && (THCudaTensor_isContiguous(NULL, targetP)),
                 3, "targetP has wrong dimension");
   luaL_argcheck(L, (targetIdx->nDimension == 2)
                    && (targetIdx->size[0] == batchSize)
                    && (targetIdx->size[1] == K)
-                   && (THCudaTensor_isContiguous(targetIdx)),
+                   && (THCudaTensor_isContiguous(NULL, targetIdx)),
                 4, "targetIdx has wrong dimension");
 
   auto targetIdxDev = torchToDeviceTensor<float, 2>(targetIdx);
@@ -71,15 +71,15 @@ int updateGradInput(lua_State *L) {
   auto K = targetP->size[1];
   luaL_argcheck(L, (gradInput->nDimension == 2)
                 && (gradInput->size[0] == batchSize)
-                && (THCudaTensor_isContiguous(gradInput)),
+                && (THCudaTensor_isContiguous(NULL, gradInput)),
                 1, "gradInput has wrong dimension");
   luaL_argcheck(L, (targetP->nDimension == 2)
-                && (THCudaTensor_isContiguous(targetP)),
+                && (THCudaTensor_isContiguous(NULL, targetP)),
                 2, "targetP has wrong dimension");
   luaL_argcheck(L, (targetIdx->nDimension == 2)
                 && (targetIdx->size[0] == batchSize)
                 && (targetIdx->size[1] == K)
-                && (THCudaTensor_isContiguous(targetIdx)),
+                && (THCudaTensor_isContiguous(NULL, targetIdx)),
                 3, "targetIdx has wrong dimension");
 
   auto targetIdxDev = torchToDeviceTensor<float, 2>(targetIdx);
