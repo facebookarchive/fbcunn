@@ -43,8 +43,8 @@ int matmult(lua_State* L, bool asComplex = false) {
   auto thB = (THCudaTensor*)luaT_checkudata(L, 3, "torch.CudaTensor");
   auto thC = (THCudaTensor*)luaT_checkudata(L, 4, "torch.CudaTensor");
 
-  CHECK_EQ(THCudaTensor_nDimension(state, thA), THCudaTensor_nDimension(state, thB));
-  CHECK_EQ(THCudaTensor_nDimension(state, thC), THCudaTensor_nDimension(state, thB));
+  CHECK_EQ(THCudaTensor_nDimension(NULL, thA), THCudaTensor_nDimension(NULL, thB));
+  CHECK_EQ(THCudaTensor_nDimension(NULL, thC), THCudaTensor_nDimension(NULL, thB));
 
   std::vector<cublasHandle_t> handles;
   for (auto i = 0; i < numHandles; ++i) {
@@ -60,7 +60,7 @@ int matmult(lua_State* L, bool asComplex = false) {
 
   auto time = 0.0f;
   constexpr long kNumTrials = 5;
-  int dims = THCudaTensor_nDimension(state, thA);
+  int dims = THCudaTensor_nDimension(NULL, thA);
   BLASParameters p;
   auto& params = p.withIterDims(iterDims).withBatchDims(batchDims).
     withComplex(asComplex).withHandles(handles).withStreams(streams);
@@ -84,24 +84,24 @@ int matmult(lua_State* L, bool asComplex = false) {
 
   long iters = 1;
   for (int i = 0; i < iterDims; ++i) {
-    iters *= THCudaTensor_size(state, thA, i);
+    iters *= THCudaTensor_size(NULL, thA, i);
   }
   long batch = 1;
   for (int i = iterDims; i < iterDims + batchDims; ++i) {
-    batch *= THCudaTensor_size(state, thA, i);
+    batch *= THCudaTensor_size(NULL, thA, i);
   }
 
-  auto GOut = (THCudaTensor_size(state, thC, 0) *
-               THCudaTensor_stride(state, thC, 0) *
-               THCudaTensor_size(state, thA, dims - 1)) /
+  auto GOut = (THCudaTensor_size(NULL, thC, 0) *
+               THCudaTensor_stride(NULL, thC, 0) *
+               THCudaTensor_size(NULL, thA, dims - 1)) /
                1e9;
   LOG(INFO) << folly::format(
     "  Running mxm ({}x{}x{}): {} iterations (parallel over streams),"  \
     "  {} batches, GReductions(virtual fmas)/s = {:.5f}"                \
     "  time = {:.2f}ms",
-    THCudaTensor_size(state, thC, dims - 2),
-    THCudaTensor_size(state, thC, dims - 1),
-    THCudaTensor_size(state, thA, dims - 1),
+    THCudaTensor_size(NULL, thC, dims - 2),
+    THCudaTensor_size(NULL, thC, dims - 1),
+    THCudaTensor_size(NULL, thA, dims - 1),
     iters,
     batch,
     (GOut / time) * 1e3,
