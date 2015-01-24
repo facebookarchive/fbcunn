@@ -43,13 +43,13 @@ THParams::THParams(THCudaTensor* in,
     scale(sc) {}
 
 void THParams::free() {
-  THCudaTensor_free(input);
+  THCudaTensor_free(state, input);
   input = nullptr;
-  THCudaTensor_free(weight);
+  THCudaTensor_free(state, weight);
   weight = nullptr;
-  THCudaTensor_free(output);
+  THCudaTensor_free(state, output);
   output = nullptr;
-  THCudaTensor_free(bias);
+  THCudaTensor_free(state, bias);
   bias = nullptr;
 }
 
@@ -58,39 +58,39 @@ ProblemSizes::ProblemSizes(const THParams& params, ConvolutionPass p)  {
   if (pass.pass == ConvolutionPass::kUpdateOutput) {
     // Output is sometimes not allocated here, recover its size from the
     // input sizes
-    batchSize = THCudaTensor_size(params.input, 0);
-    filterSize = THCudaTensor_size(params.weight, 0);
-    planeSize = THCudaTensor_size(params.input, 1);
-    inputSizeRow = THCudaTensor_size(params.input, 2);
-    inputSizeCol = THCudaTensor_size(params.input, 3);
-    weightSizeRow = THCudaTensor_size(params.weight, 2);
-    weightSizeCol = THCudaTensor_size(params.weight, 3);
+    batchSize = THCudaTensor_size(state, params.input, 0);
+    filterSize = THCudaTensor_size(state, params.weight, 0);
+    planeSize = THCudaTensor_size(state, params.input, 1);
+    inputSizeRow = THCudaTensor_size(state, params.input, 2);
+    inputSizeCol = THCudaTensor_size(state, params.input, 3);
+    weightSizeRow = THCudaTensor_size(state, params.weight, 2);
+    weightSizeCol = THCudaTensor_size(state, params.weight, 3);
     outputSizeRow = (inputSizeRow - weightSizeRow) + 1;
     outputSizeCol = (inputSizeCol - weightSizeCol) + 1;
   } else if (pass.pass == ConvolutionPass::kUpdateGradInput) {
     // Input is sometimes not allocated here, recover its size from the
     // output sizes
-    batchSize = THCudaTensor_size(params.output, 0);
-    filterSize = THCudaTensor_size(params.output, 1);
-    planeSize = THCudaTensor_size(params.weight, 1);
-    outputSizeRow = THCudaTensor_size(params.output, 2);
-    outputSizeCol = THCudaTensor_size(params.output, 3);
-    weightSizeRow = THCudaTensor_size(params.weight, 2);
-    weightSizeCol = THCudaTensor_size(params.weight, 3);
+    batchSize = THCudaTensor_size(state, params.output, 0);
+    filterSize = THCudaTensor_size(state, params.output, 1);
+    planeSize = THCudaTensor_size(state, params.weight, 1);
+    outputSizeRow = THCudaTensor_size(state, params.output, 2);
+    outputSizeCol = THCudaTensor_size(state, params.output, 3);
+    weightSizeRow = THCudaTensor_size(state, params.weight, 2);
+    weightSizeCol = THCudaTensor_size(state, params.weight, 3);
     inputSizeRow = (outputSizeRow - 1) + weightSizeRow;
     inputSizeCol = (outputSizeCol - 1) + weightSizeCol;
   } else {
     // All 3 tensors are allocated here
     CHECK(pass.pass == ConvolutionPass::kAccGradParameters);
-    batchSize = THCudaTensor_size(params.input, 0);
-    filterSize = THCudaTensor_size(params.weight, 0);
-    planeSize = THCudaTensor_size(params.input, 1);
-    inputSizeRow = THCudaTensor_size(params.input, 2);
-    inputSizeCol = THCudaTensor_size(params.input, 3);
-    weightSizeRow = THCudaTensor_size(params.weight, 2);
-    weightSizeCol = THCudaTensor_size(params.weight, 3);
-    outputSizeRow = THCudaTensor_size(params.output, 2);
-    outputSizeCol = THCudaTensor_size(params.output, 3);
+    batchSize = THCudaTensor_size(state, params.input, 0);
+    filterSize = THCudaTensor_size(state, params.weight, 0);
+    planeSize = THCudaTensor_size(state, params.input, 1);
+    inputSizeRow = THCudaTensor_size(state, params.input, 2);
+    inputSizeCol = THCudaTensor_size(state, params.input, 3);
+    weightSizeRow = THCudaTensor_size(state, params.weight, 2);
+    weightSizeCol = THCudaTensor_size(state, params.weight, 3);
+    outputSizeRow = THCudaTensor_size(state, params.output, 2);
+    outputSizeCol = THCudaTensor_size(state, params.output, 3);
   }
   expandedSizeRow = std::max(std::max(inputSizeRow, outputSizeRow),
                              weightSizeRow);

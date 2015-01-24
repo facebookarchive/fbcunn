@@ -6,7 +6,7 @@ using namespace thpp;
 
 void
 CudaTensorDeleter::operator()(THCudaTensor* t) {
-  THCudaTensor_free(t);
+  THCudaTensor_free(state, t);
 }
 
 namespace facebook { namespace deeplearning { namespace torch {
@@ -31,7 +31,7 @@ makeTHCudaTensorFull(const vector<long>& sizes,
 
   auto storage = THCudaStorage_newWithSize(size);
 
-  auto tensor = THCudaTensor_new();
+  auto tensor = THCudaTensor_new(state, );
   tensor->storage = storage;
   tensor->storageOffset = 0;
   tensor->nDimension = sizes.size();
@@ -53,7 +53,7 @@ makeTHCudaTensorFull(const vector<long>& sizes,
     memcpy(tensor->stride, tmpStrides.data(), sizeof(long) * tmpStrides.size());
   }
 
-  THCudaTensor_fill(tensor, 0.0f);
+  THCudaTensor_fill(state, tensor, 0.0f);
   return unique_ptr<THCudaTensor, CudaTensorDeleter>(tensor);
 }
 
@@ -110,7 +110,7 @@ makeAliasedTHCudaTensorFull(THCudaTensor* in,
     makeMutable(LongRange(stridesTH, sizes.size()))).moveAsTH();
   SCOPE_EXIT { THLongStorage_free(strTH); };
 
-  auto tensor = THCudaTensor_newWithStorage(
+  auto tensor = THCudaTensor_newWithStorage(state, 
     in->storage,
     in->storageOffset,
     szTH,
@@ -163,7 +163,7 @@ copyToCuda(Tensor<float>& tensor) {
   THCudaStorage_copyFloat(cudaStorageTH, storageTH);
 
   return unique_ptr<THCudaTensor, CudaTensorDeleter>(
-    THCudaTensor_newWithStorage(
+    THCudaTensor_newWithStorage(state, 
       cudaStorageTH, tensor.storageOffset(), sizeTH, strideTH));
 }
 
