@@ -52,7 +52,7 @@ bash install.sh
 echo "export PATH=~/torch-distro/install/bin:\$PATH; export LD_LIBRARY_PATH=~/torch-distro/install/lib:\$LD_LIBRARY_PATH; " >>~/.bashrc && source ~/.bashrc
 ```
 
-If you want to uninstall torch, you can use the command: rm -rf ~/torch-distro
+If you want to uninstall torch, you can use the command: `rm -rf ~/torch-distro`
 
 Install Folly, fbthrift, thpp and fblualib
 ============================================
