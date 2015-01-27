@@ -45,11 +45,8 @@ curl -sk https://raw.githubusercontent.com/torch/ezinstall/master/install-deps |
 Install Torch in a local folder
 ================================
 ```bash
-cd ~/
-git clone https://github.com/soumith/torch-distro.git
-cd torch-distro
-bash install.sh
-echo "export PATH=~/torch-distro/install/bin:\$PATH; export LD_LIBRARY_PATH=~/torch-distro/install/lib:\$LD_LIBRARY_PATH; " >>~/.bashrc && source ~/.bashrc
+git clone https://github.com/torch/distro.git ~/torch --recursive
+cd ~/torch; ./install.sh
 ```
 
 If you want to uninstall torch, you can use the command: `rm -rf ~/torch-distro`
