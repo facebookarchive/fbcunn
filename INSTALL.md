@@ -49,7 +49,7 @@ git clone https://github.com/torch/distro.git ~/torch --recursive
 cd ~/torch; ./install.sh
 ```
 
-If you want to uninstall torch, you can use the command: `rm -rf ~/torch-distro`
+If you want to uninstall torch, you can use the command: `rm -rf ~/torch`
 
 Install Folly, fbthrift, thpp and fblualib
 ============================================
