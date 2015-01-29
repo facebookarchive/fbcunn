@@ -1,3 +1,5 @@
+require 'fbcunn'
+
 function createModel(nGPU)
    assert(nGPU == 1, 'Only 1-GPU supported for OverFeat')
    local features = nn.Sequential()

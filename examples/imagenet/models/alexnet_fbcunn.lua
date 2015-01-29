@@ -1,9 +1,12 @@
+require 'fbcunn'
+
 function createModel(nGPU)
    assert(nGPU == 1 or nGPU == 2, '1-GPU or 2-GPU supported for AlexNet')
    local features
    if nGPU == 1 then
       features = nn.Concat(2)
    else
+      require 'fbnn'
       features = nn.ModelParallel(2)
    end
 

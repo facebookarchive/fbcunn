@@ -9,7 +9,6 @@
 require 'nn'
 require 'cunn'
 require 'cudnn'
-require 'fbcunn'
 require 'optim'
 
 --[[
