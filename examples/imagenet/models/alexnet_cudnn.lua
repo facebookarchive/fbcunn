@@ -5,6 +5,7 @@ function createModel(nGPU)
       features = nn.Concat(2)
    else
       require 'fbnn'
+      require 'fbcunn'
       features = nn.ModelParallel(2)
    end
 
