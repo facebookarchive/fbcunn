@@ -64,3 +64,9 @@ git clone https://github.com/torch/nn && cd nn && git checkout getParamsByDevice
 git clone https://github.com/facebook/fbcunn.git
 cd fbcunn && luarocks make rocks/fbcunn-scm-1.rockspec # go get a coffee
 ```
+
+If you want to run the imagenet example, you need fbnn
+```bash
+git clone https://github.com/facebook/fbnn.git && cd fbnn
+luarocks make rocks/fbnn-scm-1.rockspec
+```
