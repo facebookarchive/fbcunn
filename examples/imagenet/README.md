@@ -3,7 +3,7 @@
 In this concise example (1200 lines including a general-purpose and highly scalable data loader for images), we showcase:
 - train [AlexNet](http://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks) or [Overfeat](http://arxiv.org/abs/1312.6229) on ImageNet
 - showcase multiple backends: CuDNN, CuNN, FBCuNN
-- use nn.ModelParallel to speedup training over multiple GPUs
+- use nn.ModelParallel and nn.DataParallel to speedup training over multiple GPUs
 - use nn.SpatialConvolutionCuFFT to speedup training even more
 - multithreaded data-loading from disk (showcases sending tensors from one thread to another without serialization)
 
@@ -53,6 +53,9 @@ Using 'fbcunn' will run faster, at the expense of a little extra memory
 You can also alternatively train OverFeat using this following command:
 ```bash
 th main.lua --data [imagenet-folder with train and val folders] -netType overfeat
+
+# multi-GPU overfeat (let's say 2-GPU)
+th main.lua --data [imagenet-folder with train and val folders] -netType overfeat -nGPU 2
 ```
 
 The training script prints the current Top-1 and Top-5 error as well as the objective loss at every mini-batch.
