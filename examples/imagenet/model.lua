@@ -8,7 +8,6 @@
 --
 require 'nn'
 require 'cunn'
-require 'cudnn'
 require 'optim'
 
 --[[
