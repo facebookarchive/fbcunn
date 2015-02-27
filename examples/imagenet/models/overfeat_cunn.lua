@@ -1,5 +1,4 @@
 function createModel(nGPU)
-   assert(nGPU == 1, 'Only 1-GPU supported for OverFeat')
 
    local features = nn.Sequential()
 
@@ -36,6 +35,18 @@ function createModel(nGPU)
    classifier:add(nn.LogSoftMax())
 
    -- 1.4. Combine 1.2 and 1.3 to produce final model
+   if nGPU > 1 then
+      assert(nGPU <= cutorch.getDeviceCount(), 'number of GPUs less than nGPU specified')
+      local features_single = features
+      require 'fbcunn'
+      features = nn.DataParallel(1)
+      for i=1,nGPU do
+         cutorch.withDevice(i, function()
+                               features:add(features_single:clone())
+         end)
+      end
+   end
+
    local model = nn.Sequential():add(features):add(classifier)
 
    return model
