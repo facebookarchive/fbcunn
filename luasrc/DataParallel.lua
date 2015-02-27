@@ -2,9 +2,7 @@
 -- [[This file defines an example class]]
 require('cutorch')
 local withDevice = cutorch.withDevice
-local dprintL = (require 'fb.util.dbg').new('parallel')
 local dprint = function(...)
-    return dprintL(1, ...)
 end
 local pl = require('pl.import_into')()
 
