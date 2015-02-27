@@ -1,4 +1,5 @@
 function createModel(nGPU)
+   require 'cudnn'
    assert(nGPU == 1 or nGPU == 2, '1-GPU or 2-GPU supported for AlexNet')
    local features
    if nGPU == 1 then

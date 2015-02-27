@@ -1,4 +1,5 @@
 function createModel(nGPU)
+   require 'cudnn'
    assert(nGPU == 1, 'Only 1-GPU supported for OverFeat')
 
    local features = nn.Sequential()
