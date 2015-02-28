@@ -1,4 +1,5 @@
 require 'fbcunn'
+require 'cudnn'
 
 function createModel(nGPU)
    assert(nGPU == 1 or nGPU == 2, '1-GPU or 2-GPU supported for AlexNet')
