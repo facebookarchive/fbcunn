@@ -131,6 +131,25 @@ function train()
 
    -- save model
    collectgarbage()
+
+   -- clear the intermediate states in the model before saving to disk
+   -- this saves lots of disk space
+   local function sanitize(net)
+      net:for_each(function (val)
+            for name,field in pairs(val) do
+               if torch.type(field) == 'cdata' then val[name] = nil end
+               if name == 'homeGradBuffers' then val[name] = nil end
+               if name == 'input_gpu' then val['input_gpu'] = {} end
+               if name == 'gradOutput_gpu' then val['gradOutput_gpu'] = {} end
+               if name == 'gradInput_gpu' then val['gradInput_gpu'] = {} end
+               if (name == 'output' or name == 'gradInput')
+               and torch.type(field) == 'torch.CudaTensor' then
+                  cutorch.withDevice(field:getDevice(), function() val[name] = field.new() end)
+               end
+            end
+      end)
+   end
+   sanitize(model)
    torch.save(paths.concat(opt.save, 'model_' .. epoch .. '.t7'), model)
    torch.save(paths.concat(opt.save, 'optimState_' .. epoch .. '.t7'), optimState)
 end -- of train()
