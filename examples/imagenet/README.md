@@ -31,6 +31,12 @@ wget -qO- https://raw.githubusercontent.com/soumith/imagenetloader.torch/master/
 
 Now you are all set!
 
+If your imagenet dataset is on HDD or a slow SSD, run this command to resize all the images such that the smaller dimension is 256 and the aspect ratio is intact.
+This helps with loading the data from disk faster.
+```bash
+find . -name "*.JPEG" | xargs -I {} convert {} -resize "256^>" {}
+```
+
 ### Running
 The training scripts come with several options which can be listed by running the script with the flag --help
 ```bash
