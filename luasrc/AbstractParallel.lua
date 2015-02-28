@@ -2,7 +2,6 @@
 
 
 require('cutorch')
-local tablex = require 'pl.tablex'
 
 local withDevice = cutorch.withDevice
 
@@ -22,27 +21,6 @@ See `nn.DataParallel` and `nn.ModelParallel` for examples of usage.
 ]]
 local AbstractParallel, parent = torch.class('nn.AbstractParallel',
                                              'nn.Container')
-
--- Iterates over all key/value pairs in a table, in reverse order.
--- Equivalent to ipairs(t) in reverse.  See
--- http://lua-users.org/wiki/IteratorsTutorial for more detail.
-local function ripairs(t)
-    local max = 1
-    while t[max] ~= nil do
-        max = max + 1
-    end
-
-    local function ripairs_it(t, i)
-        i = i-1
-        local v = t[i]
-        if v ~= nil then
-            return i,v
-        else
-            return nil
-        end
-    end
-    return ripairs_it, t, max
-end
 
 function AbstractParallel:__init(dimension)
     if not dimension then
@@ -190,11 +168,8 @@ function AbstractParallel:updateOutput(input)
     return self.output
 end
 
-function AbstractParallel:updateGradInput(_input, gradOutput)
+function AbstractParallel:_distributeGradOutput(_input, gradOutput)
     local container_gpuid = cutorch.getDevice()
-
-    -- gradOutput for each module on its appropriate gpu
-    self.gradInput:resizeAs(self.input_gpu[container_gpuid])
 
     -- distribute gradOutput chunks to modules
     local offset = 1
@@ -206,11 +181,9 @@ function AbstractParallel:updateGradInput(_input, gradOutput)
             -- get the gradOutput chunk for this module
             local currentGradOutput =
             gradOutput:narrow(self.dimension, offset,
-            currentOutput:size(self.dimension))
+                              currentOutput:size(self.dimension))
 
-            if not self.gradOutput_gpu[i] then
-                self.gradOutput_gpu[i] = torch.CudaTensor()
-            end
+            self.gradOutput_gpu[i] = self.gradOutput_gpu[i] or torch.CudaTensor()
             self.gradOutput_gpu[i]:resizeAs(currentGradOutput)
             if gpuid == container_gpuid then
                 self.gradOutput_gpu[i]:copy(currentGradOutput)
@@ -222,40 +195,10 @@ function AbstractParallel:updateGradInput(_input, gradOutput)
             offset = offset + currentOutput:size(self.dimension)
         end)
     end
+end
 
-    -- update gradInput for each module
-    for i,module in ipairs(self.modules) do
-        local gpuid = self.gpu_assignments[i]
-        withDevice(gpuid, function()
-            module:updateGradInput(self.input_gpu[gpuid],
-                                   self.gradOutput_gpu[i])
-        end)
-    end
-
-    -- add gradInputs
-    for i, module in ripairs(self.modules) do
-        if module.gradInput then
-            if i == 1 then
-                self.gradInput:copy(module.gradInput)
-                return self.gradInput
-            end
-
-            local parent_module_idx = math.floor(i / 2)
-            local parent_gpuid = self.gpu_assignments[parent_module_idx]
-            withDevice(parent_gpuid, function()
-                           if not self.gradInput_gpu[i] then
-                               self.gradInput_gpu[i] = torch.CudaTensor()
-                           end
-
-                           self.gradInput_gpu[i]:resizeAs(module.gradInput)
-                           self:gpuSend(self.gradInput_gpu[i], module.gradInput)
-                           self.modules[parent_module_idx].gradInput:add(
-                               self.gradInput_gpu[i])
-            end)
-        end
-    end
-
-    return self.gradInput
+function AbstractParallel:updateGradInput(_input, gradOutput)
+   error('Not implemented')
 end
 
 function AbstractParallel:accGradParameters(_input, _gradOutput, scale)
@@ -268,6 +211,10 @@ function AbstractParallel:accGradParameters(_input, _gradOutput, scale)
             scale)
         end)
     end
+    -- Combine gradients for data parallel models
+    if self._mixGrads then
+        self:_mixGrads()
+    end
 end
 
 function AbstractParallel:accUpdateGradParameters(_input, _gradOutput, lr)
@@ -276,6 +223,10 @@ function AbstractParallel:accUpdateGradParameters(_input, _gradOutput, lr)
         withDevice(gpuid, function()
             module:accUpdateGradParameters(self.input_gpu[gpuid], self.gradOutput_gpu[i], lr)
         end)
+    end
+    -- Combine gradients for data parallel models
+    if self._mixGrads then
+       self:_mixGrads()
     end
 end
 
@@ -312,4 +263,3 @@ function AbstractParallel:reset(stdv)
         end)
     end
 end
-

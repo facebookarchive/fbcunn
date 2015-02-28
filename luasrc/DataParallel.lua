@@ -2,7 +2,9 @@
 -- [[This file defines an example class]]
 require('cutorch')
 local withDevice = cutorch.withDevice
+local dprintL = (require 'fb.util.dbg').new('parallel')
 local dprint = function(...)
+    return dprintL(1, ...)
 end
 local pl = require('pl.import_into')()
 
@@ -48,8 +50,7 @@ local DataParallel, _ = torch.class('nn.DataParallel',
 -- and copies each portion into each child module.
 function DataParallel:_distributeInput(input)
     local container_gpuid = cutorch.getDevice()
-    dprint("_distributeInput: ", input)
-    local outerDim = input:size()[self.dimension]
+    local outerDim = input:size(self.dimension)
     if outerDim % #self.modules ~= 0 then
         error("cannot evenly divide " .. outerDim .. " inputs to " ..
               #self.modules .. " modules")
@@ -58,31 +59,24 @@ function DataParallel:_distributeInput(input)
 
     local function inputSlice(i)
         local rangeStart = (i - 1) * eltsPerMod + 1
-        local rangeEnd = rangeStart + eltsPerMod - 1
-        local retval = input[{ {rangeStart, rangeEnd} }]
-        dprintL(5, "inputSlice", i, {rangeStart, rangeEnd}, retval )
+        local retval = input:narrow(self.dimension, rangeStart, eltsPerMod)
         return retval
     end
 
     assert(torch.typename(input) == 'torch.CudaTensor')
     for i, module in ipairs(self.modules) do
         local gpuid = self.gpu_assignments[i]
-        dprintL(2, "collecting module for gpu", gpuid)
         withDevice(gpuid, function()
             local slice = inputSlice(i)
-            assert(torch.typename(slice) == 'torch.CudaTensor')
             if gpuid == container_gpuid then
-                dprintL(2, "already on container_gpuid!", self.input_gpu, gpuid)
                 self.input_gpu[gpuid] = slice
                 return
             end
-            dprintL(2, "setting remote gpuid!", self.input_gpu[gpuid], gpuid)
             self.input_gpu[gpuid] = self.input_gpu[gpuid] or torch.CudaTensor()
             self.input_gpu[gpuid]:resizeAs(slice)
             self:gpuSend(self.input_gpu[gpuid], slice)
         end)
     end
-    dprint("after DataParallel:_distributeInput", self.input_gpu)
 end
 
 -- `_mixGrads` applies the `_combineAcrossColumns` operator (e.g. averaging)
@@ -123,24 +117,23 @@ function DataParallel:_combine_gradients(row_idx, grad_idx, gradients)
     local homeTensor = gradients[1]
     local homeDevice = gradients[1]:getDevice()
 
-    -- Build a table of the tensors on each GPU.
-    local tempTensors = { homeTensor }
+    self.homeGradBuffers = self.homeGradBuffers or {}
+
     -- First compute the average; copy everything onto one GPU
     -- and add it up.
     withDevice(homeDevice, function()
-                   for j = 2, #gradients do
-                       table.insert(tempTensors,
-                                    torch.CudaTensor(homeTensor:size()))
-                       self:gpuSend(tempTensors[#tempTensors], gradients[j])
-                   end
+       -- put in separate for-loops so that the GPU gathers are overlapped
+       for j = 2, #gradients do
+          self.homeGradBuffers[j] = self.homeGradBuffers[j] or homeTensor.new()
+          self.homeGradBuffers[j]:resizeAs(homeTensor)
+          self:gpuSend(self.homeGradBuffers[j], gradients[j])
+       end
+       for j = 2, #gradients do
+          homeTensor:add(self.homeGradBuffers[j])
+       end
     end)
-    for j = 2, #tempTensors do
-        dprint("about to add", j, gradients[1], tempTensors[j])
-        gradients[1]:add(tempTensors[j])
-    end
-    gradients[1]:div(#gradients)
 
-    -- Now copy it everywhere
+    -- Now copy it back to each GPU
     for j = 2, #gradients do
         self:gpuSend(gradients[j], gradients[1])
     end
@@ -165,4 +158,42 @@ end
 
 function DataParallel:name()
     return 'DataParallel'
+end
+
+function DataParallel:updateGradInput(_input, gradOutput)
+   self:_distributeGradOutput(_input, gradOutput)
+
+    -- update gradInput for each module
+    for i,module in ipairs(self.modules) do
+        local gpuid = self.gpu_assignments[i]
+        withDevice(gpuid, function()
+            module:updateGradInput(self.input_gpu[gpuid],
+                                   self.gradOutput_gpu[i])
+        end)
+    end
+
+    -- gradInput for each module on its appropriate gpu
+    if not self.gradInput then return end -- if gradInput is nil, do nothing
+
+    self.gradInput:resizeAs(_input)
+    local elementsPerSlice = self.input_gpu[1]:size(self.dimension)
+    -- add gradInputs
+    for i, module in ipairs(self.modules) do
+        if module.gradInput then
+           local parent_gpuid = self.gpu_assignments[i]
+           withDevice(parent_gpuid, function()
+                         self.gradInput_gpu[i] = self.gradInput_gpu[i]
+                            or torch.CudaTensor()
+                         self.gradInput_gpu[i]:resizeAs(module.gradInput)
+                         self:gpuSend(self.gradInput_gpu[i], module.gradInput)
+                         self.gradInput:narrow(
+                            self.dimension,
+                            (i - 1) * elementsPerSlice + 1,
+                            elementsPerSlice):copy(self.gradInput_gpu[i]
+                                                  )
+           end)
+        end
+    end
+
+    return self.gradInput
 end

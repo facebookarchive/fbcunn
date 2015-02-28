@@ -120,3 +120,62 @@ function ModelParallel:__tostring__()
     str = str .. line .. '}'
     return str
 end
+
+-- Iterates over all key/value pairs in a table, in reverse order.
+-- Equivalent to ipairs(t) in reverse.  See
+-- http://lua-users.org/wiki/IteratorsTutorial for more detail.
+local function ripairs(t)
+    local max = 1
+    while t[max] ~= nil do
+        max = max + 1
+    end
+
+    local function ripairs_it(t, i)
+        i = i-1
+        local v = t[i]
+        if v ~= nil then
+            return i,v
+        else
+            return nil
+        end
+    end
+    return ripairs_it, t, max
+end
+
+function ModelParallel:updateGradInput(_input, gradOutput)
+   self:_distributeGradOutput(_input, gradOutput)
+
+   -- update gradInput for each module
+    for i,module in ipairs(self.modules) do
+        local gpuid = self.gpu_assignments[i]
+        withDevice(gpuid, function()
+            module:updateGradInput(self.input_gpu[gpuid],
+                                   self.gradOutput_gpu[i])
+        end)
+    end
+
+    -- add gradInputs
+    for i, module in ripairs(self.modules) do
+        if module.gradInput then
+            if i == 1 then
+                self.gradInput:copy(module.gradInput)
+                return self.gradInput
+            end
+
+            local parent_module_idx = math.floor(i / 2)
+            local parent_gpuid = self.gpu_assignments[parent_module_idx]
+            withDevice(parent_gpuid, function()
+                           if not self.gradInput_gpu[i] then
+                               self.gradInput_gpu[i] = torch.CudaTensor()
+                           end
+
+                           self.gradInput_gpu[i]:resizeAs(module.gradInput)
+                           self:gpuSend(self.gradInput_gpu[i], module.gradInput)
+                           self.modules[parent_module_idx].gradInput:add(
+                               self.gradInput_gpu[i])
+            end)
+        end
+    end
+
+    return self.gradInput
+end
