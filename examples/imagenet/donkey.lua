@@ -8,6 +8,7 @@
 --
 local gm = assert(require 'graphicsmagick')
 paths.dofile('dataset.lua')
+paths.dofile('util.lua')
 ffi=require 'ffi'
 
 -- This file contains the data-loading logic and details.

@@ -46,7 +46,7 @@ local optimator = nn.Optim(model, optimState)
 --    diff to apply to optimState,
 --    true IFF this is the first epoch of a new regime
 local function paramsForEpoch(epoch)
-    if opt.LR ~= 0.0 then
+    if opt.LR ~= 0.0 then -- if manually specified
         return { }
     end
     local regimes = {
@@ -100,15 +100,14 @@ function train()
          -- the job callback (runs in data-worker thread)
          function()
             local inputs, labels = trainLoader:sample(opt.batchSize)
-            local i_stg =  tonumber(ffi.cast('intptr_t', torch.pointer(inputs:storage())))
-            local l_stg =  tonumber(ffi.cast('intptr_t', torch.pointer(labels:storage())))
-            inputs:cdata().storage = nil
-            labels:cdata().storage = nil
-            return i_stg, l_stg
+            return sendTensor(inputs), sendTensor(labels)
          end,
          -- the end callback (runs in the main thread)
          trainBatch
       )
+      if i % 10 == 0 then
+         donkeys:synchronize()
+      end
    end
 
    donkeys:synchronize()
@@ -156,25 +155,25 @@ end -- of train()
 -------------------------------------------------------------------------------------------
 -- create tensor buffers in main thread and deallocate their storages.
 -- the thread loaders will push their storages to these buffers when done loading
-local inputsCPU = torch.Tensor(opt.batchSize, 3, 224, 224)
-local labelsCPU = torch.LongTensor(opt.batchSize)
+local inputsCPU = torch.FloatTensor()
+local labelsCPU = torch.LongTensor()
 
 -- GPU inputs (preallocate)
-local inputs = torch.CudaTensor(opt.batchSize, 3, 224, 224)
-local labels = torch.CudaTensor(opt.batchSize)
+local inputs = torch.CudaTensor()
+local labels = torch.CudaTensor()
 
 local timer = torch.Timer()
 -- 4. trainBatch - Used by train() to train a single batch after the data is loaded.
-function trainBatch(dataPointer, labelPointer)
+function trainBatch(inputsThread, labelsThread)
    cutorch.synchronize()
    timer:reset()
    -- set the data and labels to the main thread tensor buffers (free any existing storage)
-   setFloatStorage(inputsCPU, dataPointer)
-   setLongStorage(labelsCPU, labelPointer)
+   receiveTensor(inputsThread, inputsCPU)
+   receiveTensor(labelsThread, labelsCPU)
 
    -- transfer over to GPU
-   inputs:copy(inputsCPU)
-   labels:copy(labelsCPU)
+   inputs:resize(inputsCPU:size()):copy(inputsCPU)
+   labels:resize(labelsCPU:size()):copy(labelsCPU)
 
    local err, outputs = optimator:optimize(
        optim.sgd,
