@@ -39,15 +39,15 @@ function test()
          -- work to be done by donkey thread
          function()
             local inputs, labels = testLoader:get(indexStart, indexEnd)
-            local i_stg =  tonumber(ffi.cast('intptr_t', torch.pointer(inputs:storage())))
-            local l_stg =  tonumber(ffi.cast('intptr_t', torch.pointer(labels:storage())))
-            inputs:cdata().storage = nil
-            labels:cdata().storage = nil
-            return i_stg, l_stg
+            return sendTensor(inputs), sendTensor(labels)
          end,
          -- callback that is run in the main thread once the work is done
          testBatch
       )
+      if i % 5 == 0 then
+         donkeys:synchronize()
+         collectgarbage()
+      end
    end
 
    donkeys:synchronize()
@@ -77,19 +77,20 @@ function test()
 
 end -- of test()
 -----------------------------------------------------------------------------
-local inputsCPU = torch.Tensor(opt.testBatchSize*10, 3, 224, 224)
-local labelsCPU = torch.LongTensor(opt.testBatchSize*10)
-local inputs = torch.CudaTensor(opt.testBatchSize*10, 3, 224, 224)
-local labels = torch.CudaTensor(opt.testBatchSize*10)
+local inputsCPU = torch.FloatTensor()
+local labelsCPU = torch.LongTensor()
+local inputs = torch.CudaTensor()
+local labels = torch.CudaTensor()
 
-function testBatch(dataPointer, labelPointer)
+function testBatch(inputsThread, labelsThread)
    batchNumber = batchNumber + opt.testBatchSize
 
-   setFloatStorage(inputsCPU, dataPointer)
-   setLongStorage(labelsCPU, labelPointer)
+   receiveTensor(inputsThread, inputsCPU)
+   receiveTensor(labelsThread, labelsCPU)
+   inputs:resize(inputsCPU:size()):copy(inputsCPU)
+   labels:resize(labelsCPU:size()):copy(labelsCPU)
 
-   inputs:copy(inputsCPU)
-   labels:copy(labelsCPU)
+
    local outputs = model:forward(inputs)
    local err = criterion:forward(outputs, labels)
    cutorch.synchronize()
@@ -128,5 +129,9 @@ function testBatch(dataPointer, labelPointer)
       local top1,top5,ans = topstats(tencrop, g)
       top1_10crop = top1_10crop + top1
       top5_10crop = top5_10crop + top5
+   end
+   if batchNumber % 64 == 0 then
+      print(('Epoch: Testing [%d][%d/%d]'):format(
+               epoch, batchNumber, nTest))
    end
 end

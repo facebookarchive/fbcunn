@@ -105,7 +105,7 @@ function train()
          -- the end callback (runs in the main thread)
          trainBatch
       )
-      if i % 10 == 0 then
+      if i % 5 == 0 then
          donkeys:synchronize()
       end
    end

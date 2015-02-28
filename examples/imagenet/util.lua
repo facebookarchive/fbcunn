@@ -47,6 +47,8 @@ function receiveTensor(obj, buffer)
       setFloatStorage(buffer, pointer)
    elseif ttype == 'torch.LongTensor' then
       setLongStorage(buffer, pointer)
+   else
+      error('Unknown type')
    end
    return buffer
 end
