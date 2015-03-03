@@ -201,6 +201,9 @@ function AbstractParallel:updateGradInput(_input, gradOutput)
    error('Not implemented')
 end
 
+function AbstractParallel:_mixGrads()
+end
+
 function AbstractParallel:accGradParameters(_input, _gradOutput, scale)
     scale = scale or 1
     for i,module in ipairs(self.modules) do
@@ -212,9 +215,7 @@ function AbstractParallel:accGradParameters(_input, _gradOutput, scale)
         end)
     end
     -- Combine gradients for data parallel models
-    if self._mixGrads then
-        self:_mixGrads()
-    end
+    self:_mixGrads()
 end
 
 function AbstractParallel:accUpdateGradParameters(_input, _gradOutput, lr)
@@ -223,10 +224,6 @@ function AbstractParallel:accUpdateGradParameters(_input, _gradOutput, lr)
         withDevice(gpuid, function()
             module:accUpdateGradParameters(self.input_gpu[gpuid], self.gradOutput_gpu[i], lr)
         end)
-    end
-    -- Combine gradients for data parallel models
-    if self._mixGrads then
-       self:_mixGrads()
     end
 end
 

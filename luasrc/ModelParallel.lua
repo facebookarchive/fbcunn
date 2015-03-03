@@ -154,6 +154,9 @@ function ModelParallel:updateGradInput(_input, gradOutput)
         end)
     end
 
+    if not self.gradInput then return end -- if gradInput is nil, do nothing
+    self.gradInput:resizeAs(self.input_gpu[self.container_gpuid])
+
     -- add gradInputs
     for i, module in ripairs(self.modules) do
         if module.gradInput then

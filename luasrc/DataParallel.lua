@@ -79,57 +79,48 @@ function DataParallel:_distributeInput(input)
     end
 end
 
--- `_mixGrads` applies the `_combineAcrossColumns` operator (e.g. averaging)
+-- `_mixGrads` applies the _combineGradients operator
 -- for each row in the DataParallel module.
 function DataParallel:_mixGrads()
-    -- [column][submodule][grads]
-    local subModToGrads = pl.tablex.map(
-        function(module)
-            local submod_grads = {}
-            module:for_each(
-                function(submod)
-                    local params, grads = submod:parameters()
-                    if params then
-                        assert(grads)
-                        assert(#grads > 1)
-                        table.insert(submod_grads, grads)
-                    end
-                end
-            )
-            return submod_grads
-        end,
-        self.modules
-    )
+   local gradients = {}
+   for i=1,#self.modules do
+      local _,g = self.modules[i]:parameters()
+      gradients[i] = g
+   end
+   -- if no parameters then do nothing
+   if #gradients == 0 or #gradients[1] == 0 then return end
 
-    -- [submodule][column][grads]
-    local gradsPerSubMod = pl.tablex.zip(table.unpack(subModToGrads))
-
-    -- Now combine them all
-    pl.tablex.foreachi(
-        gradsPerSubMod,
-        function(row, row_idx)
-            return self:_combineAcrossColumns(row_idx, row)
-        end
-    )
+   -- for each entry in "parameters",
+   -- create a table with the equivalent parameters
+   -- from all GPUs for that entry and send it to _combine_gradients
+   for i=1,#gradients[1] do
+      local t = {}
+      for j=1,#gradients do
+         t[j] = gradients[j][i]
+      end
+      self:_combine_gradients(i, t)
+   end
 end
 
-function DataParallel:_combine_gradients(row_idx, grad_idx, gradients)
-    local homeTensor = gradients[1]
-    local homeDevice = gradients[1]:getDevice()
+function DataParallel:_combine_gradients(row, gradients)
+   local homeTensor = gradients[1]
+   local homeDevice = gradients[1]:getDevice()
 
     self.homeGradBuffers = self.homeGradBuffers or {}
+    self.homeGradBuffers[row] = self.homeGradBuffers[row] or {}
+    local homeGradBuffer = self.homeGradBuffers[row]
 
-    -- First compute the average; copy everything onto one GPU
+    -- First compute the sum; copy everything onto one GPU
     -- and add it up.
     withDevice(homeDevice, function()
        -- put in separate for-loops so that the GPU gathers are overlapped
        for j = 2, #gradients do
-          self.homeGradBuffers[j] = self.homeGradBuffers[j] or homeTensor.new()
-          self.homeGradBuffers[j]:resizeAs(homeTensor)
-          self:gpuSend(self.homeGradBuffers[j], gradients[j])
+          homeGradBuffer[j] = homeGradBuffer[j] or homeTensor.new()
+          homeGradBuffer[j]:resizeAs(homeTensor)
+          self:gpuSend(homeGradBuffer[j], gradients[j])
        end
        for j = 2, #gradients do
-          homeTensor:add(self.homeGradBuffers[j])
+          homeTensor:add(homeGradBuffer[j])
        end
     end)
 
@@ -139,25 +130,12 @@ function DataParallel:_combine_gradients(row_idx, grad_idx, gradients)
     end
 end
 
--- This helper destructively averages N parallel tables of tensors,
--- possibly on different GPUs.  All the tensors are modified in place.
-function DataParallel:_combineAcrossColumns(row_idx, row_gradients)
-    assert(row_gradients)
-    assert(#row_gradients >= 1)
-    assert(#row_gradients[1] >= 1)
-    assert(type(row_gradients[1]) == 'table')
-    assert(type(row_gradients) == 'table')
-    assert(torch.typename(row_gradients[1][1]) == 'torch.CudaTensor')
-
-    for grad_idx = 1,#row_gradients[1] do
-        local gradients =
-            pl.tablex.map(function(sg) return sg[grad_idx] end, row_gradients)
-        self:_combine_gradients(row_idx, grad_idx, gradients)
-    end
-end
-
 function DataParallel:name()
     return 'DataParallel'
+end
+
+function DataParallel:__tostring__()
+   return self:name() .. '\n' .. self.modules[1]:__tostring__()
 end
 
 function DataParallel:updateGradInput(_input, gradOutput)
@@ -174,6 +152,7 @@ function DataParallel:updateGradInput(_input, gradOutput)
 
     -- gradInput for each module on its appropriate gpu
     if not self.gradInput then return end -- if gradInput is nil, do nothing
+    self.gradInput:resizeAs(self.input_gpu[self.container_gpuid])
 
     self.gradInput:resizeAs(_input)
     local elementsPerSlice = self.input_gpu[1]:size(self.dimension)
@@ -196,4 +175,10 @@ function DataParallel:updateGradInput(_input, gradOutput)
     end
 
     return self.gradInput
+end
+
+function DataParallel:accUpdateGradParameters(_input, _gradOutput, lr)
+   -- to implement this, you have to write a function called _mixWeights, that
+   -- like mixGrads, averages the weights across all GPUs
+   error('accUpdateGradParameters not implemented for: ' .. torch.type(self))
 end
