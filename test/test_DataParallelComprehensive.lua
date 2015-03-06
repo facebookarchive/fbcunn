@@ -19,7 +19,7 @@ local test = {}
 
 function copyTable(x)  -- Shallow copy
   local ret = {}
-  for i = 1, #x do ret[i] = x[i] end
+  for k,v in pairs(x) do ret[k] = v end
   return ret
 end
 
