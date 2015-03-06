@@ -12,9 +12,8 @@ torch.setnumthreads(8)
 cutorch.setDevice(base_gpu)
 
 -- Create an instance of the test framework
-local precision = 1e-5
+local precision = 5e-4
 local mytester = torch.Tester()
-local jac = nn.Jacobian
 local test = {}
 
 function copyTable(x)  -- Shallow copy
@@ -48,8 +47,8 @@ function test.DataParallel()
   local feat = 8
   local filt = 5
   local num_convs = 2
-  local num_sgd_steps = 10
-  local sync_gpu_cpu_params_every = 4
+  local num_sgd_steps = 2
+  local sync_gpu_cpu_params_every = 1
   local batch_size = 2 * num_gpus
   
   -- Build a CPU model
@@ -71,15 +70,8 @@ function test.DataParallel()
  
   -- Set up an MSE optimizer on the GPU and CPU
   local optim_state_cpu = {
-    learningRate = 100,  -- Artificially big learning rate
+    learningRate = 1,  -- Artificially big learning rate
     weightDecay = 0,
-    momentum = 0.9,
-    dampening = 0,
-    learningRateDecay = 0,
-    nesterov = true,
-    maxgain = 100.0,
-    mingain = 0.1,
-    filterWeight = 0.9, 
   }
   local optim_state_gpu = copyTable(optim_state_cpu)
   local opt_cpu = nn.Optim(cpu_net, optim_state_cpu)
