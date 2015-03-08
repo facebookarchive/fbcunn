@@ -8,7 +8,7 @@ In this concise example (1200 lines including a general-purpose and highly scala
 - multithreaded data-loading from disk (showcases sending tensors from one thread to another without serialization)
 
 ### Requirements
-- Install everything needed using the commands here: [INSTALL.md](../INSTALL.md)
+- Install everything needed using the commands here: [INSTALL.md](../../INSTALL.md)
 - Download Imagenet-12 dataset from http://image-net.org/download-images . It has 1000 classes and 1.2 million images.
 
 ### Data processing
