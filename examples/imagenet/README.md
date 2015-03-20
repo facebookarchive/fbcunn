@@ -46,22 +46,22 @@ th main.lua --help
 To run the training, simply run main.lua
 By default, the script runs 1-GPU AlexNet with the CuDNN backend and 2 data-loader threads.
 ```bash
-th main.lua --data [imagenet-folder with train and val folders]
+th main.lua -data [imagenet-folder with train and val folders]
 ```
 
 For 2-GPU model parallel AlexNet + CuDNN, you can run it this way:
 ```bash
-th main.lua --data [imagenet-folder with train and val folders] -nGPU 2 -backend cudnn -netType alexnet
+th main.lua -data [imagenet-folder with train and val folders] -nGPU 2 -backend cudnn -netType alexnet
 ```
 Similarly, you can switch the backends to 'fbcunn' or 'cunn' to use a different set of CUDA kernels.
 Using 'fbcunn' will run faster, at the expense of a little extra memory
 
 You can also alternatively train OverFeat using this following command:
 ```bash
-th main.lua --data [imagenet-folder with train and val folders] -netType overfeat
+th main.lua -data [imagenet-folder with train and val folders] -netType overfeat
 
 # multi-GPU overfeat (let's say 2-GPU)
-th main.lua --data [imagenet-folder with train and val folders] -netType overfeat -nGPU 2
+th main.lua -data [imagenet-folder with train and val folders] -netType overfeat -nGPU 2
 ```
 
 The training script prints the current Top-1 and Top-5 error as well as the objective loss at every mini-batch.
