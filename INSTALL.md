@@ -28,7 +28,7 @@ Restart your computer
 
 Install CuDNN
 - Go to https://developer.nvidia.com/cuDNN and use the Download button (you have to register and login to download. no way around that.)
-- Download cuDNN 6.5 R2 for Linux. You will download a file cudnn-6.5-linux-x64-v2-rc2.tgz
+- Download cuDNN 6.5 R2 for Linux. You will download a file cudnn-6.5-linux-x64-v2.tgz
 then use the commands:
 ```bash
 tar -xvf cudnn-6.5-linux-x64-v2.tgz
