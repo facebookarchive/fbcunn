@@ -4,6 +4,9 @@
 #include "DeviceTensorUtils.h"
 #include "util/Misc.h"
 #include "Utils.h"
+#include "lua.h"
+#include "luaT.h"
+#include "THC.h"
 
 using namespace facebook::cuda;
 using namespace facebook::deeplearning::torch;

@@ -3,7 +3,7 @@
 #include "SpatialConvolutionCuFFTTuner.h"
 
 #include "cuda/KernelTimer.h"
-#include "deeplearning/torch/cutorch/lib/THC/THC.h"
+#include "THC.h"
 #include "CuFFTStrategy.h"
 #include "SpatialConvolutionCuFFT.h"
 

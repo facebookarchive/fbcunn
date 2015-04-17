@@ -30,6 +30,7 @@ FILE(GLOB luasrc fbcunn/*.lua)
 ########################################################
 SET(src-cuda
   src/init.cu
+  src/Utils.cpp
   )
 CUDA_ADD_LIBRARY(fbcunn MODULE ${src-cuda})
 TARGET_LINK_LIBRARIES(fbcunn luaT THC TH  fbcunnlayers_cuda)
@@ -53,22 +54,33 @@ SET(src-layers-cuda
   src/OneBitQuantization.cu
   src/SparseNLLCriterion.cu
   src/TemporalKMaxPooling.cu
+  # src/TemporalMaxPooling.cu this is included directly in init.cu
+
   src/ConvolutionBias.cu
-  src/util/Transform.cu
-  src/util/Misc.cpp
+
   src/fft/CuFFTWrapper.cu
   src/fft/FBFFTDevice.cu
-  src/fft/CuFFTConvolution_AccGradParameters.cu
-  src/fft/CuFFTConvolution.cpp
   src/fft/CuFFTConvolution_UpdateOutput.cu
   src/fft/CuFFTConvolution_UpdateGradInput.cu
   src/fft/CuFFTConvolution_AccGradParameters.cu
+  src/fft/CuFFTConvolution.cpp
   src/fft/SpatialConvolutionCuFFT.cpp
   src/fft/SpatialConvolutionCuFFTTuner.cpp
+
+  src/LocallyConnectedAccGradParameters.cu
+  src/LocallyConnectedUpdateGradInput.cu
+  src/LocallyConnectedUpdateOutput.cu
+
+  src/MM.cu
+
+  src/util/Transform.cu
+  src/util/Misc.cpp
+
   src/CudaTensorUtils.cpp
   src/CuBLASWrapper.cpp
   src/BLASParameters.cpp
   cuda/KernelTimer.cpp
+  src/fft/FBFFTHost.cpp
   )
 
 CUDA_ADD_LIBRARY(fbcunnlayers_cuda SHARED ${src-layers-cuda})
@@ -90,6 +102,9 @@ SET(src-layers-cpp
   src/fft/SpatialConvolutionCuFFTHost.cpp
   src/fft/FFTWrapperLua.cpp
   src/CuBLASWrapperLua.cpp
+
+  src/LocallyConnectedHost.cpp
+  src/Utils.cpp
 )
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")

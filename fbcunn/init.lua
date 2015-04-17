@@ -2,14 +2,14 @@ require 'nn'
 require 'fbnn'
 require 'cunn'
 require 'libfbcunn'
-require 'fbcunn.cuda_ext'
+require 'libfbcunnlayers'
 
 include('AbstractParallel.lua')
 include('CuBLASWrapper.lua')
 include('DataParallel.lua')
 include('FeatureLPPooling.lua')
 include('FFTWrapper.lua')
-include('HalfPrecision.lua')
+-- include('HalfPrecision.lua')
 include('LookupTableGPU.lua')
 include('ModelParallel.lua')
 include('OneBitDataParallel.lua')

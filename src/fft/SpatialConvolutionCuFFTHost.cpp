@@ -1,6 +1,7 @@
 // Copyright 2014 Facebook
 
 #include "Utils.h"
+#include "../Utils.h"
 #include "CudaTensorUtils.h"
 #include "CuFFTStrategy.h"
 #include "SpatialConvolutionCuFFT.h"

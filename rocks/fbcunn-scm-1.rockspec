@@ -16,7 +16,8 @@ description = {
 dependencies = {
    "torch >= 7.0",
    "nn >= 1.0",
-   "cutorch >= 1.0"
+   "cutorch >= 1.0",
+   "multikey"
 }
 
 build = {

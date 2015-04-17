@@ -3,8 +3,8 @@
 #pragma once
 
 #include "cuda/DeviceTensor.cuh"
-#include "deeplearning/torch/cutorch/lib/THC/THC.h"
-#include "deeplearning/torch/cutorch/lib/THC/THCTensor.h"
+#include "THC.h"
+#include "THCTensor.h"
 
 #include <cublas_v2.h>
 #include <cuda_runtime.h>

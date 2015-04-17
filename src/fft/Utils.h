@@ -6,7 +6,6 @@
 #include "THCTensor.h"
 #include "CudaTensorUtils.h"
 
-#include <common/strings/StringUtil.h>
 #include <glog/logging.h>
 #include <vector>
 

@@ -6,6 +6,7 @@
 #include "THCTensor.h"
 #include "cuda/fbfft/FBFFT.h"
 #include "Utils.h"
+#include "../Utils.h"
 #include "CuFFTWrapper.cuh"
 #include "FBFFTHost.h"
 #include "DeviceTensorUtils.h"

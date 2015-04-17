@@ -24,7 +24,7 @@ void initSpatialConvolutionCuFFT(lua_State *L);
 
 using namespace facebook::deeplearning::torch;
 
-extern "C" int LUAOPEN(lua_State* L) {
+extern "C" int luaopen_libfbcunnlayers(lua_State* L) {
   initCrossMapNormalizationCuda(L);
   initLocallyConnectedCuda(L);
   initLookupTableGPUCuda(L);
