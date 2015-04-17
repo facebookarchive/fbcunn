@@ -1,17 +1,17 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "torch/fb/fbcunn/src/fft/CuFFTConvolution.cuh"
+#include "CuFFTConvolution.cuh"
 
 #include "THCTensor.h"
 #include "cuda/DeviceTensor.cuh"
-#include "torch/fb/fbcunn/src/CuBLASWrapper.h"
-#include "torch/fb/fbcunn/src/DeviceTensorUtils.h"
-#include "torch/fb/fbcunn/src/MM.h"
-#include "torch/fb/fbcunn/src/fft/CuFFTStrategy.h"
-#include "torch/fb/fbcunn/src/fft/CuFFTWrapper.cuh"
-#include "torch/fb/fbcunn/src/fft/FBFFTHost.h"
-#include "torch/fb/fbcunn/src/fft/Utils.cuh"
-#include "torch/fb/fbcunn/src/fft/Utils.h"
+#include "CuBLASWrapper.h"
+#include "DeviceTensorUtils.h"
+#include "MM.h"
+#include "CuFFTStrategy.h"
+#include "CuFFTWrapper.cuh"
+#include "FBFFTHost.h"
+#include "Utils.cuh"
+#include "Utils.h"
 
 #include <cublas_v2.h>
 #include <cuda_runtime.h>

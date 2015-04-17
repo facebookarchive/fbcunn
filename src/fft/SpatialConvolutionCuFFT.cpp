@@ -1,15 +1,15 @@
 // Copyright 2014 Facebook
 
 #include "THCTensor.h"
-#include "torch/fb/fbcunn/src/DeviceTensorUtils.h"
-#include "torch/fb/fbcunn/src/fft/CuFFTConvolution.cuh"
-#include "torch/fb/fbcunn/src/fft/CuFFTConvolution_UpdateOutput.cuh"
-#include "torch/fb/fbcunn/src/fft/CuFFTConvolution_AccGradParameters.cuh"
-#include "torch/fb/fbcunn/src/fft/CuFFTConvolution_UpdateGradInput.cuh"
-#include "torch/fb/fbcunn/src/fft/CuFFTStrategy.h"
-#include "torch/fb/fbcunn/src/fft/CuFFTWrapper.cuh"
-#include "torch/fb/fbcunn/src/fft/Utils.h"
-#include "torch/fb/fbcunn/src/util/Misc.h"
+#include "DeviceTensorUtils.h"
+#include "CuFFTConvolution.cuh"
+#include "CuFFTConvolution_UpdateOutput.cuh"
+#include "CuFFTConvolution_AccGradParameters.cuh"
+#include "CuFFTConvolution_UpdateGradInput.cuh"
+#include "CuFFTStrategy.h"
+#include "CuFFTWrapper.cuh"
+#include "Utils.h"
+#include "util/Misc.h"
 
 #include <folly/Format.h>
 #include <folly/ScopeGuard.h>

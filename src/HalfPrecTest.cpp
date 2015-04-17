@@ -1,4 +1,4 @@
-#include <torch/fb/fbcunn/src/HalfPrec.h>
+#include <HalfPrec.h>
 #include <gtest/gtest.h>
 #include <common/math/Float16.h>
 #include <cuda.h>

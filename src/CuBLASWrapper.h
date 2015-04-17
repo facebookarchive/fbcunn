@@ -3,7 +3,7 @@
 
 #include "cuda/DeviceTensor.cuh"
 
-#include "torch/fb/fbcunn/src/BLASParameters.h"
+#include "BLASParameters.h"
 
 #include "cublas_v2.h"
 #include <iostream>

@@ -1,15 +1,15 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "torch/fb/fbcunn/src/fft/CuFFTConvolution_UpdateGradInput.cuh"
+#include "CuFFTConvolution_UpdateGradInput.cuh"
 
 #include "cuda/CudaUtils.cuh"
 #include "cuda/DeviceTensor.cuh"
-#include "torch/fb/fbcunn/src/DeviceTensorUtils.h"
+#include "DeviceTensorUtils.h"
 #include "THCTensor.h"
-#include "torch/fb/fbcunn/src/CuBLASWrapper.h"
-#include "torch/fb/fbcunn/src/fft/CuFFTWrapper.cuh"
-#include "torch/fb/fbcunn/src/fft/CuFFTConvolution.cuh"
-#include "torch/fb/fbcunn/src/fft/Utils.cuh"
+#include "CuBLASWrapper.h"
+#include "CuFFTWrapper.cuh"
+#include "CuFFTConvolution.cuh"
+#include "Utils.cuh"
 
 #include <cublas_v2.h>
 #include <cuda_runtime.h>

@@ -5,11 +5,11 @@
 #include "THC.h"
 #include "THCTensor.h"
 #include "cuda/fbfft/FBFFT.h"
-#include "torch/fb/fbcunn/src/Utils.h"
-#include "torch/fb/fbcunn/src/fft/CuFFTWrapper.cuh"
-#include "torch/fb/fbcunn/src/fft/FBFFTHost.h"
-#include "torch/fb/fbcunn/src/DeviceTensorUtils.h"
-#include "torch/fb/fbcunn/src/util/Misc.h"
+#include "Utils.h"
+#include "CuFFTWrapper.cuh"
+#include "FBFFTHost.h"
+#include "DeviceTensorUtils.h"
+#include "util/Misc.h"
 
 #include <cublas_v2.h>
 #include <cuda_runtime.h>

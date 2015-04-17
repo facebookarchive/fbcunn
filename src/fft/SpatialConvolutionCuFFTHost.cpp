@@ -1,10 +1,10 @@
 // Copyright 2014 Facebook
 
-#include "torch/fb/fbcunn/src/Utils.h"
-#include "torch/fb/fbcunn/src/CudaTensorUtils.h"
-#include "torch/fb/fbcunn/src/fft/CuFFTStrategy.h"
-#include "torch/fb/fbcunn/src/fft/SpatialConvolutionCuFFT.h"
-#include "torch/fb/fbcunn/src/fft/SpatialConvolutionCuFFTTuner.h"
+#include "Utils.h"
+#include "CudaTensorUtils.h"
+#include "CuFFTStrategy.h"
+#include "SpatialConvolutionCuFFT.h"
+#include "SpatialConvolutionCuFFTTuner.h"
 
 #include <luaT.h>
 #include <lua.hpp>

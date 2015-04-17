@@ -3,13 +3,13 @@
  * @author Tudor Bosman (tudorb@fb.com)
  */
 
-#include "torch/fb/fbcunn/src/util/GlobalAsyncCopier.h"
+#include "util/GlobalAsyncCopier.h"
 
 #include <cstdlib>
 #include <folly/Conv.h>
 #include <folly/Memory.h>
 
-#include "torch/fb/fbcunn/src/util/AsyncCopier.h"
+#include "util/AsyncCopier.h"
 
 using namespace facebook::CUDAUtil;
 

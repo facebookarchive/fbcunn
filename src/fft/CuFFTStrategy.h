@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "torch/fb/fbcunn/src/fft/CuFFTConvolution.cuh"
-#include "torch/fb/fbcunn/src/fft/CuFFTWrapper.cuh"
+#include "CuFFTConvolution.cuh"
+#include "CuFFTWrapper.cuh"
 
 #include <algorithm>
 #include <glog/logging.h>

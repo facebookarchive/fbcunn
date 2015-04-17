@@ -3,8 +3,8 @@
  * @author Tudor Bosman (tudorb@fb.com)
  */
 
-#include "torch/fb/fbcunn/src/util/AsyncCopier.h"
-#include "torch/fb/fbcunn/src/util/Misc.h"
+#include "util/AsyncCopier.h"
+#include "util/Misc.h"
 #include <exception>
 #include <folly/Format.h>
 #include <glog/logging.h>

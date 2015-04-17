@@ -1,11 +1,11 @@
 // Copyright 2014 Facebook
 
-#include "torch/fb/fbcunn/src/fft/SpatialConvolutionCuFFTTuner.h"
+#include "SpatialConvolutionCuFFTTuner.h"
 
 #include "cuda/KernelTimer.h"
 #include "deeplearning/torch/cutorch/lib/THC/THC.h"
-#include "torch/fb/fbcunn/src/fft/CuFFTStrategy.h"
-#include "torch/fb/fbcunn/src/fft/SpatialConvolutionCuFFT.h"
+#include "CuFFTStrategy.h"
+#include "SpatialConvolutionCuFFT.h"
 
 #include <cublas_v2.h>
 #include <cuda_runtime.h>

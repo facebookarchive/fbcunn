@@ -1,6 +1,6 @@
 // Copyright 2004-, Facebook, Inc. All Rights Reserved.
 
-#include "torch/fb/fbcunn/src/util/Misc.h"
+#include "util/Misc.h"
 #include <folly/Format.h>
 #include <folly/Memory.h>
 #include <mutex>

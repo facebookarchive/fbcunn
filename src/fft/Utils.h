@@ -4,7 +4,7 @@
 
 #include "thpp/Tensor.h"
 #include "THCTensor.h"
-#include "torch/fb/fbcunn/src/CudaTensorUtils.h"
+#include "CudaTensorUtils.h"
 
 #include <common/strings/StringUtil.h>
 #include <glog/logging.h>

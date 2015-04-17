@@ -1,5 +1,5 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
-#include "torch/fb/fbcunn/src/CudaTensorUtils.h"
+#include "CudaTensorUtils.h"
 #include "THC.h"
 
 using namespace std;

@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "torch/fb/fbcunn/src/fft/CuFFTWrapper.cuh"
+#include "CuFFTWrapper.cuh"
 
 #include "cuda/DeviceTensor.cuh"
 #include "THCTensor.h"

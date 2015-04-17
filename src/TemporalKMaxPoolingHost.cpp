@@ -1,10 +1,10 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "cuda/DeviceTensor.cuh"
-#include "torch/fb/fbcunn/src/Utils.h"
-#include "torch/fb/fbcunn/src/DeviceTensorUtils.h"
+#include "Utils.h"
+#include "DeviceTensorUtils.h"
 #include "THC.h"
-#include "torch/fb/fbcunn/src/TemporalKMaxPooling.cuh"
+#include "TemporalKMaxPooling.cuh"
 
 #include <folly/ScopeGuard.h>
 #include <lua.hpp>

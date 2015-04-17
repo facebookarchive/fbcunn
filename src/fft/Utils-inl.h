@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "torch/fb/fbcunn/src/fft/Utils.cuh"
+#include "Utils.cuh"
 #include "THC.h"
 
 namespace facebook { namespace deeplearning { namespace torch {

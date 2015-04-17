@@ -3,7 +3,7 @@
  * @author Michael Mathieu (myrhev@fb.com)
  */
 
-#include "torch/fb/fbcunn/src/Utils.h"
+#include "Utils.h"
 #include <lua.hpp>
 #include <TH.h>
 #include "THC.h"

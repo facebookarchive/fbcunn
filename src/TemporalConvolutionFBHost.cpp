@@ -3,11 +3,11 @@
 #include "cuda/DeviceTensor.cuh"
 #include "THC.h"
 #include "THCTensor.h"
-#include "torch/fb/fbcunn/src/Utils.h"
-#include "torch/fb/fbcunn/src/CuBLASWrapper.h"
-#include "torch/fb/fbcunn/src/ConvolutionBias.cuh"
-#include "torch/fb/fbcunn/src/DeviceTensorUtils.h"
-#include "torch/fb/fbcunn/src/util/Misc.h"
+#include "Utils.h"
+#include "CuBLASWrapper.h"
+#include "ConvolutionBias.cuh"
+#include "DeviceTensorUtils.h"
+#include "util/Misc.h"
 
 #include <cublas_v2.h>
 #include <cuda_runtime.h>

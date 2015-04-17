@@ -1,13 +1,13 @@
 // Copyright 2004-, Facebook, Inc. All Rights Reserved.
 
-#include "torch/fb/fbcunn/src/HalfPrec.h"
+#include "HalfPrec.h"
 
 #include <string>
 #include <assert.h>
 #include <lua.hpp>
-#include "torch/fb/fbcunn/src/Utils.h"
-#include "torch/fb/fbcunn/src/Tensor.h"
-#include "torch/fb/fbcunn/src/LuaUtils.h"
+#include "Utils.h"
+#include "Tensor.h"
+#include "LuaUtils.h"
 #include "THC.h"
 
 using namespace std;

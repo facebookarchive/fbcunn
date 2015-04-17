@@ -1,11 +1,11 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "torch/fb/fbcunn/src/FeatureLPPooling.cuh"
+#include "FeatureLPPooling.cuh"
 #include "cuda/DeviceTensor.cuh"
 #include "cuda/CudaStaticAssert.cuh"
 #include "cuda/CudaUtils.cuh"
 #include "cuda/RegisterUtils.cuh"
-#include "torch/fb/fbcunn/src/util/Misc.h"
+#include "util/Misc.h"
 #include "THC.h"
 
 #include <boost/preprocessor/repetition/repeat.hpp>

@@ -4,8 +4,8 @@
  */
 
 #include "cuda/DeviceTensor.cuh"
-#include "torch/fb/fbcunn/src/Utils.h"
-#include "torch/fb/fbcunn/src/DeviceTensorUtils.h"
+#include "Utils.h"
+#include "DeviceTensorUtils.h"
 #include "THC.h"
 
 #include <lua.hpp>

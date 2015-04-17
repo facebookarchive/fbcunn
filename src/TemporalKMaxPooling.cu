@@ -3,7 +3,7 @@
 #include "cuda/DeviceTensor.cuh"
 #include "cuda/TopKElements.cuh"
 #include "cuda/DeviceTensor.cuh"
-#include "torch/fb/fbcunn/src/util/Misc.h"
+#include "util/Misc.h"
 #include "THC.h"
 
 using namespace facebook::cuda;

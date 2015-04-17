@@ -3,7 +3,7 @@
  * @author Tudor Bosman (tudorb@fb.com)
  */
 
-#include "torch/fb/fbcunn/src/CrossMapNormalization.cuh"
+#include "CrossMapNormalization.cuh"
 
 
 namespace facebook { namespace deeplearning { namespace torch {

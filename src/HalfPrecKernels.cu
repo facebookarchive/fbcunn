@@ -4,8 +4,8 @@
 #include <stdexcept>
 #include <cuda.h>
 
-#include "torch/fb/fbcunn/src/HalfPrec.h"
-#include "torch/fb/fbcunn/src/util/Transform.cuh"
+#include "HalfPrec.h"
+#include "util/Transform.cuh"
 
 using namespace facebook::CUDAUtil;
 void halfprec_ToHalf(cudaStream_t stream,

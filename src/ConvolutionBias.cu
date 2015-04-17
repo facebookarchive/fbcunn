@@ -1,13 +1,13 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "torch/fb/fbcunn/src/ConvolutionBias.cuh"
+#include "ConvolutionBias.cuh"
 
 #include "cuda/ComputeCapabilities.cuh"
 #include "cuda/CudaUtils.cuh"
 #include "cuda/DeviceTensor.cuh"
 #include "cuda/WarpReductions.cuh"
-#include "torch/fb/fbcunn/src/DeviceTensorUtils.h"
-#include "torch/fb/fbcunn/src/util/Misc.h"
+#include "DeviceTensorUtils.h"
+#include "util/Misc.h"
 
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <glog/logging.h>

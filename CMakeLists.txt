@@ -23,13 +23,13 @@ INCLUDE_DIRECTORIES("${Torch_INSTALL_INCLUDE}/THC")
 LINK_DIRECTORIES("${Torch_INSTALL_LIB}")
 
 INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}")
-INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/src/cuda")
+INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/src")
 
-FILE(GLOB luasrc luasrc/*.lua)
+FILE(GLOB luasrc fbcunn/*.lua)
 
 ########################################################
 SET(src-cuda
-  src/cuda/init.cu
+  src/init.cu
   )
 CUDA_ADD_LIBRARY(fbcunn MODULE ${src-cuda})
 TARGET_LINK_LIBRARIES(fbcunn luaT THC TH  fbcunnlayers_cuda)
@@ -45,29 +45,29 @@ INSTALL(TARGETS fbcunn
 
 #######################
 SET(src-layers-cuda
-  src/cuda/CrossMapNormalization.cu
-  src/cuda/FeatureLPPooling.cu
-  src/cuda/HalfPrecKernels.cu
-  src/cuda/HSM.cu
-  src/cuda/LookupTableGPU.cu
-  src/cuda/OneBitQuantization.cu
-  src/cuda/SparseNLLCriterion.cu
-  src/cuda/TemporalKMaxPooling.cu
-  src/cuda/bias/ConvolutionBias.cu
-  src/cuda/util/Transform.cu
-  src/cuda/util/Misc.cpp
-  src/cuda/fft/CuFFTWrapper.cu
-  src/cuda/fft/FBFFT.cu
-  src/cuda/fft/CuFFTConvolution_AccGradParameters.cu
-  src/cuda/fft/CuFFTConvolution.cpp
-  src/cuda/fft/CuFFTConvolution_UpdateOutput.cu
-  src/cuda/fft/CuFFTConvolution_UpdateGradInput.cu
-  src/cuda/fft/CuFFTConvolution_AccGradParameters.cu
-  src/cuda/fft/SpatialConvolutionCuFFT.cpp
-  src/cuda/fft/SpatialConvolutionCuFFTTuner.cpp
-  src/cuda/CudaTensorUtils.cpp
-  src/cuda/CuBLASWrapper.cpp
-  src/cuda/BLASParameters.cpp
+  src/CrossMapNormalization.cu
+  src/FeatureLPPooling.cu
+  src/HalfPrecKernels.cu
+  src/HSM.cu
+  src/LookupTableGPU.cu
+  src/OneBitQuantization.cu
+  src/SparseNLLCriterion.cu
+  src/TemporalKMaxPooling.cu
+  src/ConvolutionBias.cu
+  src/util/Transform.cu
+  src/util/Misc.cpp
+  src/fft/CuFFTWrapper.cu
+  src/fft/FBFFTDevice.cu
+  src/fft/CuFFTConvolution_AccGradParameters.cu
+  src/fft/CuFFTConvolution.cpp
+  src/fft/CuFFTConvolution_UpdateOutput.cu
+  src/fft/CuFFTConvolution_UpdateGradInput.cu
+  src/fft/CuFFTConvolution_AccGradParameters.cu
+  src/fft/SpatialConvolutionCuFFT.cpp
+  src/fft/SpatialConvolutionCuFFTTuner.cpp
+  src/CudaTensorUtils.cpp
+  src/CuBLASWrapper.cpp
+  src/BLASParameters.cpp
   cuda/KernelTimer.cpp
   )
 
@@ -78,18 +78,18 @@ INSTALL(TARGETS fbcunnlayers_cuda
   LIBRARY DESTINATION "${Torch_INSTALL_LUA_CPATH_SUBDIR}")
 
 SET(src-layers-cpp
-  src/cuda/InitCuda.cpp
-  src/cuda/CrossMapNormalizationHost.cpp
-  src/cuda/LookupTableGPUHost.cpp
-  src/cuda/HSMHost.cpp
-  src/cuda/TemporalConvolutionFBHost.cpp
-  src/cuda/TemporalKMaxPoolingHost.cpp
-  src/cuda/OneBitQuantizationHost.cpp
-  src/cuda/SparseNLLCriterionHost.cpp
-  src/cuda/FeatureLPPoolingHost.cpp
-  src/cuda/fft/SpatialConvolutionCuFFTHost.cpp
-  src/cuda/fft/FFTWrapperLua.cpp
-  src/cuda/CuBLASWrapperLua.cpp
+  src/InitCuda.cpp
+  src/CrossMapNormalizationHost.cpp
+  src/LookupTableGPUHost.cpp
+  src/HSMHost.cpp
+  src/TemporalConvolutionFBHost.cpp
+  src/TemporalKMaxPoolingHost.cpp
+  src/OneBitQuantizationHost.cpp
+  src/SparseNLLCriterionHost.cpp
+  src/FeatureLPPoolingHost.cpp
+  src/fft/SpatialConvolutionCuFFTHost.cpp
+  src/fft/FFTWrapperLua.cpp
+  src/CuBLASWrapperLua.cpp
 )
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")

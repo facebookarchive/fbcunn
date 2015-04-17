@@ -1,10 +1,10 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "torch/fb/fbcunn/src/CuBLASWrapper.h"
+#include "CuBLASWrapper.h"
 
 #include "cuda/DeviceTensor.cuh"
 #include "THCTensor.h"
-#include "torch/fb/fbcunn/src/BLASParameters.h"
+#include "BLASParameters.h"
 
 #include <cublas_v2.h>
 #include <cuda_runtime.h>

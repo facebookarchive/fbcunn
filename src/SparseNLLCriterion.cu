@@ -5,7 +5,7 @@
 
 #include "cuda/CudaUtils.cuh"
 #include "cuda/WarpReductions.cuh"
-#include "torch/fb/fbcunn/src/util/Misc.h"
+#include "util/Misc.h"
 
 #include "SparseNLLCriterion.cuh"
 

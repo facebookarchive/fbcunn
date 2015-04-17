@@ -4,7 +4,7 @@
  */
 
 #include "THC.h"
-#include "torch/fb/fbcunn/src/Utils.h"
+#include "Utils.h"
 #include "LocallyConnected.cuh"
 #include <luaT.h>
 #include <lua.hpp>

@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <assert.h>
 
-#include "torch/fb/fbcunn/src/util/Transform.cuh"
+#include "util/Transform.cuh"
 
 namespace facebook { namespace CUDAUtil {
 

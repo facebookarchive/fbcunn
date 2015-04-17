@@ -3,7 +3,7 @@
 
 #include "cuda/DeviceTensor.cuh"
 #include "cuda/fbfft/FBFFT.h"
-#include "torch/fb/fbcunn/src/fft/Utils.cuh"
+#include "Utils.cuh"
 
 #include <cufft.h>
 

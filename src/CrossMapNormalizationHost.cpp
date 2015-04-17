@@ -4,8 +4,8 @@
  */
 
 #include "THC.h"
-#include "torch/fb/fbcunn/src/CrossMapNormalization.cuh"
-#include "torch/fb/fbcunn/src/Utils.h"
+#include "CrossMapNormalization.cuh"
+#include "Utils.h"
 #include <luaT.h>
 #include <lua.hpp>
 
