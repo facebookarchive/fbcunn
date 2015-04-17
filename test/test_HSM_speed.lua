@@ -2,6 +2,7 @@
 -- Author: Michael Mathieu <myrhev@fb.com>
 
 require 'fbcunn'
+require 'fbnn'
 require 'math'
 require 'nn'
 require 'os'
@@ -9,6 +10,7 @@ require 'sys'
 
 torch.setdefaulttensortype('torch.DoubleTensor')
 torch.manualSeed(111)
+local debugger = require 'fb.debugger'
 
 local numIters = 10000
 local dimInput = 1000

@@ -1,6 +1,5 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
 require('fb.luaunit')
-require 'cunn'
 require('fbcunn')
 
 local num_tries = 2
@@ -104,7 +103,7 @@ local function runFPropTest(dims, width, stride, pow, batch_mode)
    end
 
    input = input:cuda()
-   local output = pool:forward(input):clone():float()
+   local output = pool:forward(input):float()
 
    -- Each output feature o(k) (k zero based) for L1 is:
    -- sum(i((k - 1) * s), i((k - 1) * s + 1), ..., i((k - 1) * s + w - 1))
@@ -233,6 +232,20 @@ function testForwardLp()
             end
          end
       end
+   end
+end
+
+function testZeroBProp()
+   local pool = nn.FeatureLPPooling(3, 1, 2.0, false):cuda()
+
+   local input = torch.CudaTensor(100):zero()
+   pool:forward(input)
+
+   local gradOutput = torch.CudaTensor(98):zero()
+   local gradInput = pool:backward(input, gradOutput, 1.0)
+
+   for i = 1, gradInput:size(1) do
+      assertTrue(gradInput[i] == 0)
    end
 end
 

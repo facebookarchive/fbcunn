@@ -1,8 +1,8 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #include "cuda/DeviceTensor.cuh"
-#include "DeviceTensorUtils.h"
+#include "torch/fb/fbcunn/src/DeviceTensorUtils.h"
 
-#include "util/Misc.h"
+#include "torch/fb/fbcunn/src/util/Misc.h"
 
 #include <cuda.h>
 
@@ -16,8 +16,9 @@ __global__ void testAssignment1dKernel(DeviceTensor<float, 1> tensor) {
   tensor[threadIdx.x] = threadIdx.x;
 }
 
-bool testAssignment1d(THCudaTensor* t) {
-  DeviceTensor<float, 1> tensor = torchToDeviceTensor<float, 1>(t);
+bool testAssignment1d(THCState* state, THCudaTensor* t) {
+  DeviceTensor<float, 1> tensor =
+    torchToDeviceTensor<float, 1>(state, t);
 
   const cudaDeviceProp& deviceProp = getDeviceProperties(0);
 
@@ -39,8 +40,8 @@ __global__ void testAssignment3dKernel(DeviceTensor<float, 3> tensor) {
     tensor.getSize(2) * threadIdx.x;
 }
 
-bool testAssignment3d(THCudaTensor* t) {
-  DeviceTensor<float, 3> tensor = torchToDeviceTensor<float, 3>(t);
+bool testAssignment3d(THCState* state, THCudaTensor* t) {
+  DeviceTensor<float, 3> tensor = torchToDeviceTensor<float, 3>(state, t);
 
   const cudaDeviceProp& deviceProp = getDeviceProperties(0);
 
@@ -86,8 +87,8 @@ bool verifyUpcast(DeviceTensor<float, NewDim> up,
   return true;
 }
 
-bool testUpcast(THCudaTensor* t) {
-  DeviceTensor<float, 3> tensor = torchToDeviceTensor<float, 3>(t);
+bool testUpcast(THCState* state, THCudaTensor* t) {
+  DeviceTensor<float, 3> tensor = torchToDeviceTensor<float, 3>(state, t);
 
   if (!verifyUpcast(tensor.upcastOuter<4>(), tensor)) {
     return false;
@@ -98,9 +99,9 @@ bool testUpcast(THCudaTensor* t) {
   return true;
 }
 
-bool testDowncastTo2d(THCudaTensor* t) {
-  DeviceTensor<float, 3> tensor = torchToDeviceTensor<float, 3>(t);
-  DeviceTensor<float, 2> downTensor = tensor.downcast<2>();
+bool testDowncastTo2d(THCState* state, THCudaTensor* t) {
+  DeviceTensor<float, 3> tensor = torchToDeviceTensor<float, 3>(state, t);
+  DeviceTensor<float, 2> downTensor = tensor.downcastOuter<2>();
 
   if (downTensor.getSize(0) !=
       tensor.getSize(0) * tensor.getSize(1)) {
@@ -119,9 +120,9 @@ bool testDowncastTo2d(THCudaTensor* t) {
   return true;
 }
 
-bool testDowncastTo1d(THCudaTensor* t) {
-  DeviceTensor<float, 3> tensor = torchToDeviceTensor<float, 3>(t);
-  DeviceTensor<float, 1> downTensor = tensor.downcast<1>();
+bool testDowncastTo1d(THCState* state, THCudaTensor* t) {
+  DeviceTensor<float, 3> tensor = torchToDeviceTensor<float, 3>(state, t);
+  DeviceTensor<float, 1> downTensor = tensor.downcastOuter<1>();
 
   if (downTensor.getSize(0) !=
       tensor.getSize(0) * tensor.getSize(1) * tensor.getSize(2)) {
@@ -139,9 +140,9 @@ __global__ void testDowncastWritesKernel(DeviceTensor<float, 1> tensor) {
   tensor[threadIdx.x] = 1.0f;
 }
 
-bool testDowncastWrites(THCudaTensor* t) {
-  DeviceTensor<float, 3> tensor = torchToDeviceTensor<float, 3>(t);
-  DeviceTensor<float, 1> downTensor = tensor.downcast<1>();
+bool testDowncastWrites(THCState* state, THCudaTensor* t) {
+  DeviceTensor<float, 3> tensor = torchToDeviceTensor<float, 3>(state, t);
+  DeviceTensor<float, 1> downTensor = tensor.downcastOuter<1>();
 
   testDowncastWritesKernel<<<1, downTensor.getSize(0)>>>(downTensor);
   return (cudaGetLastError() == cudaSuccess);

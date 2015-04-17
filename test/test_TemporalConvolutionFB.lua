@@ -1,9 +1,12 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
-require('fb.luaunit')
+
+require 'math'
 require 'cunn'
 require 'cutorch'
-require 'math'
 require 'fbcunn'
+
+require('fb.luaunit')
+local torch = require('fbtorch')
 
 torch.setnumthreads(6)
 torch.setdefaulttensortype('torch.FloatTensor')

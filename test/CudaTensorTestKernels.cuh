@@ -10,15 +10,15 @@ struct THCudaTensor;
 namespace facebook { namespace deeplearning { namespace torch {
 
 /// Assign values to the tensor via CudaTensor based on position
-bool testAssignment1d(THCudaTensor* tensor);
-bool testAssignment3d(THCudaTensor* tensor);
+bool testAssignment1d(THCState* state, THCudaTensor* tensor);
+bool testAssignment3d(THCState* state, THCudaTensor* tensor);
 
 /// Test upcasting to a higher-dimensional tensor
-bool testUpcast(THCudaTensor* tensor);
+bool testUpcast(THCState* state, THCudaTensor* tensor);
 
 /// Downcast tests
-bool testDowncastTo2d(THCudaTensor* tensor);
-bool testDowncastTo1d(THCudaTensor* tensor);
-bool testDowncastWrites(THCudaTensor* tensor);
+bool testDowncastTo2d(THCState* state, THCudaTensor* tensor);
+bool testDowncastTo1d(THCState* state, THCudaTensor* tensor);
+bool testDowncastWrites(THCState* state, THCudaTensor* tensor);
 
 } } } // namespace

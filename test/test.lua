@@ -1,6 +1,7 @@
 require 'cunn'
 require 'fbcunn'
 require 'nn'
+require 'fbnn'
 
 local mytester = torch.Tester()
 local fbcunntest = {}
@@ -118,8 +119,7 @@ end
 
 function fbcunntest.Optim()
     require 'cunn'
-    require 'fbnn'
-    require 'optim'
+    local fboptim = require 'fboptim'
 
     -- Goofy artificial problem that tests that the optim module
     -- works.
@@ -166,7 +166,7 @@ function fbcunntest.Optim()
     local err = 0.0
     for i=1,1000 do
         local inp, outp = getTrainingBatch(1024)
-        err = PO:optimize(optim.sgd, inp, outp, crit)
+        err = PO:optimize(fboptim.sgd, inp, outp, crit)
     end
     assert(err < 1.0)
 end

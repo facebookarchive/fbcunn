@@ -1,8 +1,8 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
 
-require 'torch'
 require 'cunn'
 require 'fb.luaunit'
+require 'fbtorch'
 require 'fbcunn'
 
 local tester = torch.Tester()
@@ -34,6 +34,7 @@ local function nonBatchTest(elements, nInput, nOutput, features_in_dim_2)
    gpu_dw:zero()
    cpu_emb:accGradParameters(cpu_input, cpu_gradOutput)
    gpu_emb:accGradParameters(gpu_input, gpu_gradOutput)
+
    tester:assertlt((cpu_dw - gpu_dw:double()):abs():max(), kTolerance)
 
    cpu_dw:normal()
@@ -160,6 +161,44 @@ function LookupTableTest.featureDim2Test()
       local nOutput = torch.random(200)
       FeatureDim2Test(batch_size, elements, nInput, nOutput)
       FeatureDim2Test(nil, elements, nInput, nOutput)
+   end
+end
+
+local function exactEquality(a, b)
+   for i = 1, a:size(1) do
+      for j = 1, a:size(2) do
+         if (a[i][j] ~= b[i][j]) then
+            print('Diff ' .. string.format('%.9f', a[i][j]) .. ' ' ..
+                     string.format('%.9f', b[i][j]))
+         end
+      end
+   end
+end
+
+function LookupTableTest.determinismTest()
+   -- Test for determistic outputs in accGradParameters
+   local batch_size = 30
+   local elements = 60
+   local classes = 50
+   local dim = 50
+
+   local m = nn.LookupTableGPU(classes, dim):cuda()
+   local input = torch.rand(batch_size, elements):cuda():mul(classes):ceil()
+   local gradOutput = torch.randn(batch_size, elements, dim):cuda()
+
+   -- Create baseline
+   m:forward(input)
+   m.gradWeight:zero()
+   m:backward(input, gradOutput)
+
+   local baseGradWeight = m.gradWeight:clone():float()
+
+   for i = 1, 10 do
+      m.gradWeight:zero()
+      m:backward(input, gradOutput)
+
+      -- Compare new updated gradient with baseline
+      exactEquality(baseGradWeight, m.gradWeight:float());
    end
 end
 

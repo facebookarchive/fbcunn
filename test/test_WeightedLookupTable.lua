@@ -1,7 +1,7 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
 
+require('fbtorch')
 require('fb.luaunit')
-
 require('fbcunn')
 
 require('nn')

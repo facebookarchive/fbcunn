@@ -1,6 +1,9 @@
 require('fb.luaunit')
+require('fbtorch')
 require('fbcunn')
-local TU = require('test_util')
+require('fbnn')
+local TU = require('test.test_Util')
+local fboptim = require('fboptim')
 
 local function dp()
     return nn.OneBitDataParallel(
@@ -89,7 +92,7 @@ function testDataParallelOnOptimLearns()
     for round = 1,sim.opts.num_opt_rounds do
         local inputs, targets = sim:gen_wide_example()
         local _outputs = model:forward(inputs)
-        opt:optimize(optim.sgd, inputs, targets, criterion)
+        opt:optimize(fboptim.sgd, inputs, targets, criterion)
         local out = model:forward(inputs)
         print(out)
         local err = criterion:forward(out, targets)

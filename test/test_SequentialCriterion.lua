@@ -4,6 +4,7 @@
 require 'fb.luaunit'
 require 'nn'
 require 'fbcunn'
+require 'fbnn'
 
 local test_repeats = 100
 

@@ -1,5 +1,6 @@
 require 'nn'
 require 'cunn'
+require 'fbtorch'
 require 'fbcunn'
 
 local mytester = torch.Tester()

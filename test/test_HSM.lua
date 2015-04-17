@@ -1,8 +1,8 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
 -- Author: Michael Mathieu <myrhev@fb.com>
 
-require 'fbcunn.layers.HSM'
-require 'fbcunn.layers.cpu'
+require 'fbcunn'
+require 'fbnn'
 
 local function test_finite_diff_gradInput(model, input, target)
     local eps = 1e-3

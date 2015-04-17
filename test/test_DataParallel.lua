@@ -1,3 +1,4 @@
+local fboptim = require('fboptim')
 -- Copyright 2004-present Facebook. All Rights Reserved.
 
 local dprintL = (require 'fb.util.dbg').new('parallel')
@@ -5,9 +6,9 @@ local dprint = function(...)
     return dprintL(1, ...)
 end
 require 'optim'
-require 'cunn'
 require 'fbcunn'
-require 'fbnn'
+print 'Requiring cunn. This will take a while. Talk amongst yourselves.'
+require 'cunn'
 
 -- Hyper-params. We're targeting a toy problem that computes
 -- some function of its inputs.
@@ -138,17 +139,33 @@ local optimState = {
     learningRateDecay = 1e-7
 }
 
+local timer = torch.Timer()
 local opt = nn.Optim(dp, optimState)
 local criterion = nn.MSECriterion():cuda()
-for i=1, 10 do
+
+local num_iteration = 10
+timer:reset()
+for i=1, num_iteration do
     local inputs, targets = genWideExample()
     local outputs = dp:forward(inputs)
     syncCPUModels()
     checkWideResult(inputs, outputs)
-    opt:optimize(optim.sgd, inputs, targets, criterion)
+    opt:optimize(fboptim.sgd, inputs, targets, criterion)
     local out = dp:forward(inputs)
     local err = criterion:forward(out, targets)
     print(i, err)
 end
+print(string.format("Total time spent = %f", timer:time().real / num_iteration))
 checkCPUModelsAreEquivalent()
 print('} optim test done ')
+
+-- Check only the speed for forward/backward.
+timer:reset();
+for i=1, num_iteration do
+    local inputs, targets = genWideExample()
+    dp:forward(inputs)
+    opt:optimize(fboptim.sgd, inputs, targets, criterion)
+end
+print(string.format(
+    "Speedtest: Total time spent = %f",
+        timer:time().real / num_iteration));

@@ -8,8 +8,8 @@ require('fbtorch')
 
 require('nn')
 
-require('fbcunn.layers.cpu')
-require('fbcunn.layers.KMaxPooling')
+require('fbcunn')
+require('fbnn')
 
 local n_test_repeats = 1
 

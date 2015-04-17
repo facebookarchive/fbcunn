@@ -4,6 +4,7 @@ require('fb.luaunit')
 
 require('math')
 require('nn')
+require('fbtorch')
 require('fbcunn')
 
 local tester = torch.Tester()
@@ -25,11 +26,11 @@ local function runUpdateOutput(batch, n, d, k)
    local kmax = nn.TemporalKMaxPooling(k)
 
    local output = kmax:updateOutput(input)
-   tester:assert(output == kmax.output)
+   assert(output == kmax.output)
 
    if batch then
-      tester:assert(kmax.output:size(2) == k)
-      tester:assert(kmax.output:size(3) == input:size(3))
+      assert(kmax.output:size(2) == k)
+      assert(kmax.output:size(3) == input:size(3))
 
       for i = 1, batch do
          local kth_max = torch.min(kmax.output[i]:double(), 1)
@@ -38,19 +39,19 @@ local function runUpdateOutput(batch, n, d, k)
          local count_at_least_kth_max =
             torch.le(kth_max, input[i]:double()):sum(1)
 
-         tester:assert(torch.eq(count_at_least_kth_max, math.min(n, k)):sum() == d)
+         assert(torch.eq(count_at_least_kth_max, math.min(n, k)):sum() == d)
       end
 
    else
-      tester:assert(kmax.output:size(1) == k)
-      tester:assert(kmax.output:size(2) == input:size(2))
+      assert(kmax.output:size(1) == k)
+      assert(kmax.output:size(2) == input:size(2))
 
       local kth_max = torch.min(kmax.output:double(), 1)
       local kth_max = kth_max:expand(input:size(1), input:size(2));
 
       local count_at_least_kth_max = torch.le(kth_max, input:double()):sum(1)
 
-      tester:assert(torch.eq(count_at_least_kth_max, math.min(n, k)):sum() == d)
+      assert(torch.eq(count_at_least_kth_max, math.min(n, k)):sum() == d)
    end
 end
 
@@ -73,26 +74,26 @@ local function runUpdateGradInput(batch, n, d, k)
    local delta = torch.randn(output:size()):cuda()
 
    local gradInput = kmax:updateGradInput(input, delta)
-   tester:assert(gradInput == kmax.gradInput)
+   assert(gradInput == kmax.gradInput)
 
    if batch then
-      tester:assert(kmax.gradInput:size(2) == input:size(2))
-      tester:assert(kmax.gradInput:size(3) == input:size(3))
+      assert(kmax.gradInput:size(2) == input:size(2))
+      assert(kmax.gradInput:size(3) == input:size(3))
 
       for i = 1, batch do
          local grad_input_sum = torch.sum(kmax.gradInput[i]:double())
          local delta_sum = torch.sum(delta[i]:double()[{{1, math.min(n,k)}}])
 
-         tester:assert(math.abs(grad_input_sum - delta_sum) < 1e-6)
+         assert(math.abs(grad_input_sum - delta_sum) < 1e-6)
       end
    else
-      tester:assert(kmax.gradInput:size(1) == input:size(1))
-      tester:assert(kmax.gradInput:size(2) == input:size(2))
+      assert(kmax.gradInput:size(1) == input:size(1))
+      assert(kmax.gradInput:size(2) == input:size(2))
 
       local grad_input_sum = torch.sum(kmax.gradInput:double())
       local delta_sum = torch.sum(delta:double()[{{1, math.min(n,k)}}])
 
-      tester:assert(math.abs(grad_input_sum - delta_sum) < 1e-6)
+      assert(math.abs(grad_input_sum - delta_sum) < 1e-6)
    end
 end
 
@@ -154,7 +155,7 @@ function TemporalKMaxPoolingTest.sequential()
    local kmax_output = kmax:updateOutput(input)
    local seq_output = seq:updateOutput(input)
    local output_matches = torch.eq(kmax_output:double(), seq_output:double())
-   tester:assert (output_matches:sum() == output_matches:numel())
+   assert (output_matches:sum() == output_matches:numel())
 
    local delta = torch.randn(kmax.output:size()):cuda()
 
@@ -162,7 +163,7 @@ function TemporalKMaxPoolingTest.sequential()
    local seq_gradInput = kmax:updateGradInput(input, delta)
    local gradInput_matches =
       torch.eq(kmax_gradInput:double(), seq_gradInput:double())
-   tester:assert (gradInput_matches:sum() == gradInput_matches:numel())
+   assert (gradInput_matches:sum() == gradInput_matches:numel())
 end
 
 tester:add(TemporalKMaxPoolingTest)

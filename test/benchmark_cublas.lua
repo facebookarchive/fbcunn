@@ -2,6 +2,7 @@
 require('fb.luaunit')
 
 require 'cunn'
+
 require 'fbcunn'
 
 torch.setdefaulttensortype('torch.FloatTensor')

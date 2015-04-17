@@ -2,7 +2,7 @@
 -- Train simple 1 hidden layer neural net on MNIST using the hierarchical
 -- softmax layer (with the option to test also the regular flat softmax as well)
 require('fb.luaunit')
-require 'torch'
+local torch = require('fbtorch')
 require('nn')
 require('fbcunn')
 require('os')

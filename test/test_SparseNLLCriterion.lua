@@ -4,8 +4,8 @@
 require 'fb.luaunit'
 require 'cutorch'
 require 'nn'
-require 'fbcunn.layers.cpu'
-require 'fbcunn.layers.cuda'
+require 'fbcunn'
+require 'fbnn'
 
 local test_repeats = 5
 

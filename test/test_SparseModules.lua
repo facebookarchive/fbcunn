@@ -4,7 +4,7 @@ require('fb.luaunit')
 local torch = require('fbtorch')
 
 require('nn')
-require('fbcunn.layers.nn_layers')
+require('fbcunn')
 local sparse = require('sparse')
 torch.setdefaulttensortype('torch.FloatTensor')
 local precision = 1e-5
@@ -40,7 +40,7 @@ function testSparseConverter()
   local dim = math.random(10,1000)
   local nonzeros = math.random(1,dim/2)
   local d,s = make_sparse_vector(dim,nonzeros)
-  -- Test dense to sparse in fprop. 
+  -- Test dense to sparse in fprop.
   local model = nn.SparseConverter('DtoS','StoD',dim)
   local y = model:forward(d)
   local err = torch.max(torch.abs(y-s))
@@ -48,7 +48,7 @@ function testSparseConverter()
   local x = model:updateGradInput(d,y)
   err = torch.max(torch.abs(x-d))
   assert(err < precision, 'error in SparseConverter')
-  -- Test sparse to dense. 
+  -- Test sparse to dense.
   local model = nn.SparseConverter('StoD','DtoS',dim)
   local y = model:forward(s)
   local err = torch.max(torch.abs(y-d))
@@ -64,7 +64,7 @@ function testSparseSum()
   local nonzeros = math.random(1,dim/2)
   local denseInput = torch.Tensor(nSamples,dim)
   local sparseInput = torch.Tensor(nSamples,nonzeros,2)
-  
+
   for i = 1,nSamples do
     local d,s = make_sparse_vector(dim,nonzeros)
     denseInput[i]:copy(d)
@@ -82,7 +82,7 @@ function testSparseSum()
   local sparseGradInput = sparseModel:updateGradInput(sparseInput,sparseOutput)
   local denseGradInput = denseModel:updateGradInput(denseInput,denseOutput)
   for i = 1,nSamples do
-    local err = 
+    local err =
       torch.max(torch.abs(denseGradInput[i]-to_dense(sparseGradInput[i],dim)))
     assert(err < precision,'error in updateGradInput for SparseSum')
   end
@@ -94,7 +94,7 @@ function testSparseThreshold()
   local nonzeros = math.random(1,dim/2)
   local denseInput = torch.Tensor(nSamples,dim)
   local sparseInput = torch.Tensor(nSamples,nonzeros,2)
-  
+
   for i = 1,nSamples do
     local d,s = make_sparse_vector(dim,nonzeros)
     denseInput[i]:copy(d)
@@ -107,7 +107,7 @@ function testSparseThreshold()
   local sparseOutput = sparseModel:forward(sparseInput)
   local denseOutput = denseModel:forward(denseInput)
   for i = 1,nSamples do
-    local err = 
+    local err =
       torch.max(torch.abs(denseOutput[i]-to_dense(sparseOutput[i],dim)))
     assert(err < precision,'error in fprop for SparseThreshold')
   end
@@ -115,13 +115,13 @@ function testSparseThreshold()
   local sparseGradInput = sparseModel:updateGradInput(sparseInput,sparseOutput)
   local denseGradInput = denseModel:updateGradInput(denseInput,denseOutput)
   for i = 1,nSamples do
-    local err = 
+    local err =
       torch.max(torch.abs(denseGradInput[i]-to_dense(sparseGradInput[i],dim)))
     assert(err < precision,'error in updateGradInput for SparseThreshold')
   end
 end
 
--- Test a combination of lookup table, sum and threshold. 
+-- Test a combination of lookup table, sum and threshold.
 function testSparseModules()
   local dim = math.random(10,1000)
   local num_entities = math.random(50,200)
@@ -162,7 +162,7 @@ function testSparseModules()
   local err = torch.max(torch.abs(denseOutput-to_dense(sparseOutput,dim)))
   assert(err < precision, 'error in updateOutput')
 
-  -- Make some gradients. 
+  -- Make some gradients.
   -- Note that these must have the same indices as the outputs.
   local denseGrad = denseOutput:clone()
   local sparseGrad = sparseOutput:clone()
@@ -178,7 +178,7 @@ function testSparseModules()
   local denseWeights = denseModel:get(1).weight
   local sparseWeights = sparseModel:get(1).weight
   for i = 1,num_entities do
-    local err = 
+    local err =
       torch.max(torch.abs(denseWeights[i]-to_dense(sparseWeights[i],dim)))
     assert(err < precision, 'error in accUpdateGradParameters')
   end
@@ -246,7 +246,7 @@ function testSparseKmax()
   denseModel:add(nn.WeightedLookupTable(num_entities,inputSize))
   denseModel:add(nn.Linear(inputSize,outputSize))
   denseModel:get(2).bias:zero()
-  
+
   local sparseModel =
     nn.SparseKmax(num_entities,inputSize,outputSize,k,nCandidates)
   sparseModel.denseEmbedding.weight:copy(denseModel:get(1).weight)
@@ -343,12 +343,3 @@ function testAllInLoop()
 end
 
 LuaUnit:main()
-
-
-
-
-
-
-
-
-

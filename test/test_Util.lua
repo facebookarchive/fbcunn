@@ -1,4 +1,5 @@
 require('fb.luaunit')
+require('fbtorch')
 require('cunn')
 require('optim')
 

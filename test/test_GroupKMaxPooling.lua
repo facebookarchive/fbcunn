@@ -8,8 +8,8 @@ require('fbtorch')
 
 require('nn')
 
-require('fbcunn.layers.cpu')
-require('fbcunn.layers.GroupKMaxPooling')
+require('fbcunn')
+require('fbnn')
 
 function run_GroupKMaxPooling_updateOutput(n, d, k)
     -- n = number of words

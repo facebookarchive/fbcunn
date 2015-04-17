@@ -3,6 +3,9 @@
 
 require 'cutorch'
 require 'fbcunn'
+require 'fbnn'
+
+cutorch.setDevice(4)
 
 print("Timing")
 local n_iter = 100
