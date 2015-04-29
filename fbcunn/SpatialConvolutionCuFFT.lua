@@ -243,15 +243,15 @@ function SpatialConvolutionCuFFT:prepareBuffers(inputSize)
 end
 
 function getBuffer(OperationType, tensorType, tensorSizes)
-   d1 = tensorSizes[1]
-   d2 = tensorSizes[2]
+   local d1 = tensorSizes[1]
+   local d2 = tensorSizes[2]
    -- Preemptively resize to d1 . d2 . 2^x . 2^y
-   d3 = math.max(nextPowerOf2(tensorSizes[3]), nextPowerOf2(tensorSizes[4]))
-   d4 = d3
+   local d3 = math.max(nextPowerOf2(tensorSizes[3]), nextPowerOf2(tensorSizes[4]))
+   local d4 = d3
    assert(d3 == d4, 'Squared fft convolution to support fbfft')
-   numElements = d1 * d2 * d3 * (d4 / 2 + 1) * 2
+   local numElements = d1 * d2 * d3 * (d4 / 2 + 1) * 2
 
-   storage = torch.LongStorage(5)
+   local storage = torch.LongStorage(5)
 
    storage[1] = d1
    storage[2] = d2
@@ -275,7 +275,7 @@ function getBuffer(OperationType, tensorType, tensorSizes)
    else
       -- Storage already exists but may need resizing.
       -- If resizing means expanding, make sure we have enough space
-      t = mk.get(cudaTensorBuffers, OperationType, tensorType, cutorch.getDevice())
+      local t = mk.get(cudaTensorBuffers, OperationType, tensorType, cutorch.getDevice())
       if numElements > t:nElement() then
          -- Don't call cuda API unless really needed
          local free_bytes, total_bytes = cutorch.getMemoryUsage()
@@ -286,8 +286,7 @@ function getBuffer(OperationType, tensorType, tensorSizes)
       t:resize(storage)
    end
 
-   t = mk.get(cudaTensorBuffers, OperationType, tensorType, cutorch.getDevice())
-   return t
+   return mk.get(cudaTensorBuffers, OperationType, tensorType, cutorch.getDevice())
 end
 
 function freeBuffer(OperationType, tensorType, tensorSizes)
