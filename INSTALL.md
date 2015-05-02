@@ -61,6 +61,10 @@ Install fbcunn
 ==============
 ```bash
 git clone https://github.com/torch/nn && cd nn && git checkout getParamsByDevice && luarocks make rocks/nn-scm-1.rockspec
+
+git clone https://github.com/facebook/fbnn.git
+cd fbnn && luarocks make rocks/fbnn-scm-1.rockspec
+
 git clone https://github.com/facebook/fbcunn.git
 cd fbcunn && luarocks make rocks/fbcunn-scm-1.rockspec # go get a coffee
 ```
