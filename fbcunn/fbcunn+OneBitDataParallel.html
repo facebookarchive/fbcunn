@@ -1,0 +1,20 @@
+<p><a name="fbcunn.OneBitDataParallel.dok"></a></p>
+
+<h2>fbcunn.OneBitDataParallel</h2>
+
+<p>OneBitDataParallel implements the &quot;1-Bit Stochastic Gradient
+Descent and Application to Data-Parallel Distributed Training of
+Speech DNNs&quot; paper of Frank Seide, Hao Fu, Jasha Droppo, Gang Li, and
+Dong Yu.</p>
+
+<p>The implementation is similar to a vanilla DataParallel module, except we replace the averaging gradient step with a quantize-copy-merge-broadcast procedure.</p>
+
+<p><a href="http://research.microsoft.com/apps/pubs/?id=230137">http://research.microsoft.com/apps/pubs/?id=230137</a></p>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.OneBitDataParallel"></a></p>
+
+<ul>
+<li><code>fbcunn.OneBitDataParallel(dimension, config)</code></li>
+</ul>

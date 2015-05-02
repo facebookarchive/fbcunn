@@ -1,0 +1,54 @@
+<h3>DataParallel.lua</h3>
+
+<p>Copyright 2004-present Facebook. All Rights Reserved.
+This file defines an example class</p>
+
+<p><a name="fbcunn.DataParallel.dok"></a></p>
+
+<h2>fbcunn.DataParallel</h2>
+
+<p>DataParallel splits the input along separate columns, that run the
+same models on distinct partitions of the input.</p>
+
+<p>Pictorially</p>
+
+<pre><code>                        +--------+
+        column 1        |        |         column 3
+           +------------+  Input +-------------+
+           |            |        |             |
+           |            +----+---+             |
+           |                 |                 |
+           |                 |                 |
+      +----+---+        +----+---+        +----+---+
+      |        |        |        |        |        |
+      | Linear |        | Linear |        | Linear |       row 1
+      |        |        |        |        |        |
+      +----+---+        +----+---+        +----+---+
+           |                 |                 |
+           |                 |                 |
+      +----+---+        +----+---+        +----+---+
+      |        |        |        |        |        |
+      |  Tanh  |        |  Tanh  |        |  Tanh  |       row 2
+      |        |        |        |        |        |
+      +----+---+        +----+---+        +----+---+
+           |                 |                 |
+           |                 |                 |
+           |                 |                 |
+           |            +----+---+             |
+           |            |        |             |
+           +------------+ Output +-------------+
+                        |        |
+                        +--------+
+</code></pre>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.DataParallel:name"></a></p>
+
+<ul>
+<li><code>fbcunn.DataParallel:name()</code>
+<a name="fbcunn.DataParallel:updateGradInput"></a></li>
+<li><code>fbcunn.DataParallel:updateGradInput(_input, gradOutput)</code>
+<a name="fbcunn.DataParallel:accUpdateGradParameters"></a></li>
+<li><code>fbcunn.DataParallel:accUpdateGradParameters(_input, _gradOutput, lr)</code></li>
+</ul>

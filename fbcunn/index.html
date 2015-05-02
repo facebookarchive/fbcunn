@@ -1,0 +1,969 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="style.css">
+<title>fbcunn - Documentation</title>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          skipTags: ['script', 'noscript', 'style', 'textarea'],
+          displayMath: [['$${', '}$$']],
+          inlineMath: [['${', '}$']]
+      }
+  });
+  MathJax.Hub.Queue(function() {
+      // Fix <code> tags after MathJax finishes running. This is a
+      // hack to overcome a shortcoming of Markdown. Discussion at
+      // https://github.com/mojombo/jekyll/issues/199
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i = 0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        $('pre code').each(function(i, e) {
+            var par = $(e).closest('pre');
+            if (! $(par).hasClass('has-jax')) {
+                hljs.highlightBlock(e);
+            }
+        });
+    });
+</script>
+
+
+
+<script src="../search.js"></script>
+<script type="text/javascript"> addSearchFormHeader(); </script>
+<script type="text/javascript">
+$(document).ready(function() {
+    /* Fix up any badly formed anchors */
+    $("a").each(function(i, e) {
+        if (!e.href) {
+            $(e).addClass('anchor');
+            var inner = $(e).html();
+            $(e).html("");
+            $(e).after(inner);
+        }
+    })
+})
+</script>
+</head>
+<body>
+<header>
+<ul>Navigation:
+<li><a href="../index.html">research-docs</a></li>
+<li><a href="https://github.com/facebook/fbcunn">fbcunn github</a></li>
+<li><a href="#">top of this page</a></li>
+</ul>
+</header>
+<div class="wrapper">
+<div id="navcontainer"><ul>
+<li>
+<ul>
+<li><a href="#fbcunn.INSTALL.Install_CUDA">Install CUDA</a></li>
+<li><a href="#fbcunn.INSTALL.Install_Torch_Dependencies">Install Torch Dependencies</a></li>
+<li><a href="#fbcunn.INSTALL.Install_Torch_in_a_local_folder">Install Torch in a local folder</a></li>
+<li><a href="#fbcunn.INSTALL.Install_Folly__fbthrift__thpp_and_fblualib">Install Folly, fbthrift, thpp and fblualib</a></li>
+<li><a href="#fbcunn.INSTALL.Install_fbcunn">Install fbcunn</a></li>
+</ul>
+</li>
+<li>
+<ul>
+<li><a href="#fbcunn.README.`fbcunn`___Deep_Learning_CUDA_Extensions_from_Facebook_AI_Research_">`fbcunn` - Deep Learning CUDA Extensions from Facebook AI Research.</a>
+    <ul>
+    <li><a href="#fbcunn.README.What_">What?</a></li>
+    <li><a href="#fbcunn.README.Why_">Why?</a></li>
+    <li><a href="#fbcunn.README.Who_is_this_for_">Who is this for?</a></li>
+    <li><a href="#fbcunn.README.How_to_install_them_">How to install them?</a></li>
+    <li><a href="#fbcunn.README.How_to_use_them_">How to use them?</a></li>
+    <li><a href="#fbcunn.README.I_want_exact_details_of_everything___">I want exact details of everything...</a></li>
+    <li><a href="#fbcunn.README.License">License</a></li>
+    </ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li><a href="#fbcunn.README.`fbcuda`">`fbcuda`</a>
+    <ul>
+    <li><a href="#fbcunn.README.License">License</a></li>
+    </ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+    <ul>
+    <li><a href="#fbcunn.README.Training_an_Object_Classifier_in_Torch_7_on_multiple_GPUs_over__ImageNet__http___image_net_org_download_images_">Training an Object Classifier in Torch-7 on multiple GPUs over [ImageNet](http://image-net.org/download-images)</a>
+        <ul>
+        <li><a href="#fbcunn.README.Requirements">Requirements</a></li>
+        <li><a href="#fbcunn.README.Data_processing">Data processing</a></li>
+        <li><a href="#fbcunn.README.Running">Running</a></li>
+        <li><a href="#fbcunn.README.Code_Description">Code Description</a></li>
+        </ul>
+    </li>
+    </ul>
+</li>
+</ul>
+</li>
+<hr>
+       <li><a href="#fbcunn.examples.dok">examples</a>
+       <ul>
+              <li><a href="#fbcunn.examples.imagenet.dok">imagenet</a>
+              <ul>
+                     <li><a href="#fbcunn.examples.imagenet.data.dok">data</a></li>
+                     <li><a href="#fbcunn.examples.imagenet.dataset.dok">dataset</a></li>
+                     <li><a href="#fbcunn.examples.imagenet.donkey.dok">donkey</a></li>
+                     <li><a href="#fbcunn.examples.imagenet.main.dok">main</a></li>
+                     <li><a href="#fbcunn.examples.imagenet.model.dok">model</a></li>
+                     <li><a href="#fbcunn.examples.imagenet.models.dok">models</a>
+                     <ul>
+                            <li><a href="#fbcunn.examples.imagenet.models.alexnet_ccn2.dok">alexnet_ccn2</a></li>
+                            <li><a href="#fbcunn.examples.imagenet.models.alexnet_cudnn.dok">alexnet_cudnn</a></li>
+                            <li><a href="#fbcunn.examples.imagenet.models.alexnet_cunn.dok">alexnet_cunn</a></li>
+                            <li><a href="#fbcunn.examples.imagenet.models.alexnet_fbcunn.dok">alexnet_fbcunn</a></li>
+                            <li><a href="#fbcunn.examples.imagenet.models.alexnetowt_ccn2.dok">alexnetowt_ccn2</a></li>
+                            <li><a href="#fbcunn.examples.imagenet.models.alexnetowt_cudnn.dok">alexnetowt_cudnn</a></li>
+                            <li><a href="#fbcunn.examples.imagenet.models.overfeat_cudnn.dok">overfeat_cudnn</a></li>
+                            <li><a href="#fbcunn.examples.imagenet.models.overfeat_cunn.dok">overfeat_cunn</a></li>
+                            <li><a href="#fbcunn.examples.imagenet.models.overfeat_fbcunn.dok">overfeat_fbcunn</a></li>
+                            <li><a href="#fbcunn.examples.imagenet.models.vgg_cudnn.dok">vgg_cudnn</a></li>
+                     </ul>
+                     </li>
+                     <li><a href="#fbcunn.examples.imagenet.opts.dok">opts</a></li>
+                     <li><a href="#fbcunn.examples.imagenet.train.dok">train</a></li>
+                     <li><a href="#fbcunn.examples.imagenet.util.dok">util</a></li>
+       </ul>
+       </li>
+              </ul>
+              </li>
+       <li><a href="#fbcunn.fbcunn.dok">fbcunn</a>
+       <ul>
+              <li><a href="#fbcunn.fbcunn.AbstractParallel.dok">AbstractParallel</a></li>
+              <li><a href="#fbcunn.fbcunn.CuBLASWrapper.dok">CuBLASWrapper</a></li>
+              <li><a href="#fbcunn.fbcunn.DataParallel.dok">DataParallel</a></li>
+              <li><a href="#fbcunn.fbcunn.FFTWrapper.dok">FFTWrapper</a></li>
+              <li><a href="#fbcunn.fbcunn.FeatureLPPooling.dok">FeatureLPPooling</a></li>
+              <li><a href="#fbcunn.fbcunn.HalfPrecision.dok">HalfPrecision</a></li>
+              <li><a href="#fbcunn.fbcunn.LookupTableGPU.dok">LookupTableGPU</a></li>
+              <li><a href="#fbcunn.fbcunn.ModelParallel.dok">ModelParallel</a></li>
+              <li><a href="#fbcunn.fbcunn.OneBitDataParallel.dok">OneBitDataParallel</a></li>
+              <li><a href="#fbcunn.fbcunn.OneBitQuantization.dok">OneBitQuantization</a></li>
+              <li><a href="#fbcunn.fbcunn.OneBitSGD.dok">OneBitSGD</a></li>
+              <li><a href="#fbcunn.fbcunn.SpatialConvolutionCuFFT.dok">SpatialConvolutionCuFFT</a></li>
+              <li><a href="#fbcunn.fbcunn.TemporalConvolutionFB.dok">TemporalConvolutionFB</a></li>
+              <li><a href="#fbcunn.fbcunn.TemporalKMaxPooling.dok">TemporalKMaxPooling</a></li>
+       </ul>
+       </li>
+</ul>
+</div>
+<section>
+<div class='docSection'><a name="fbcunn.INSTALL.dok"></a><ul>
+<li>Find a machine with <a href="http://www.ubuntu.com/">Ubuntu 14.04+</a> and an NVIDIA GPU with compute capability 3.5 or above</li>
+</ul>
+
+<p>Then, install everything that is needed by using the instructions below:</p>
+
+<h1>Install CUDA</h1>
+
+<pre><code class="bash">sudo apt-get install build-essential
+</code></pre>
+
+<p>If you are using a Virtual Machine (like Amazon EC2 instances), install:</p>
+
+<pre><code class="bash">sudo apt-get update
+sudo apt-get install linux-generic
+</code></pre>
+
+<p>Download the CUDA .deb file for Linux Ubuntu 14.04 64-bit from this page: <a href="https://developer.nvidia.com/cuda-downloads">https://developer.nvidia.com/cuda-downloads</a><br>
+It would be a file named similar this: cuda-repo-ubuntu1404_6.5-14_amd64.deb<br>
+Now, install it using:</p>
+
+<pre><code class="bash">sudo dpkg -i cuda-repo-ubuntu1404_6.5-14_amd64.deb
+sudo apt-get update
+sudo apt-get install cuda
+echo &quot;export PATH=/usr/local/cuda/bin/:\$PATH; export LD_LIBRARY_PATH=/usr/local/cuda/lib64/:\$LD_LIBRARY_PATH; &quot; &gt;&gt;~/.bashrc &amp;&amp; source ~/.bashrc
+</code></pre>
+
+<p>Restart your computer</p>
+
+<p>Install CuDNN</p>
+
+<ul>
+<li>Go to <a href="https://developer.nvidia.com/cuDNN">https://developer.nvidia.com/cuDNN</a> and use the Download button (you have to register and login to download. no way around that.)</li>
+<li>Download cuDNN 6.5 R2-rc2 for Linux. You will download a file cudnn-6.5-linux-x64-v2-rc2.tgz
+then use the commands:
+<code>bash
+tar -xvf cudnn-6.5-linux-x64-v2-rc2.tgz
+sudo cp cudnn-6.5-linux-x64-v2-rc2/*.h /usr/local/cuda/include
+sudo cp cudnn-6.5-linux-x64-v2-rc2/*.so* /usr/local/cuda/lib64
+</code></li>
+</ul>
+
+<h1>Install Torch Dependencies</h1>
+
+<pre><code class="bash">curl -sk https://raw.githubusercontent.com/torch/ezinstall/master/install-deps | bash
+</code></pre>
+
+<h1>Install Torch in a local folder</h1>
+
+<pre><code class="bash">git clone https://github.com/torch/distro.git ~/torch --recursive
+cd ~/torch; ./install.sh
+</code></pre>
+
+<p>If you want to uninstall torch, you can use the command: <code>rm -rf ~/torch</code></p>
+
+<h1>Install Folly, fbthrift, thpp and fblualib</h1>
+
+<pre><code class="bash">curl -sk https://raw.githubusercontent.com/soumith/fblualib/master/install_all.sh | bash
+</code></pre>
+
+<h1>Install fbcunn</h1>
+
+<pre><code class="bash">git clone https://github.com/torch/nn &amp;&amp; cd nn &amp;&amp; git checkout getParamsByDevice &amp;&amp; luarocks make rocks/nn-scm-1.rockspec
+git clone https://github.com/facebook/fbcunn.git
+cd fbcunn &amp;&amp; luarocks make rocks/fbcunn-scm-1.rockspec # go get a coffee
+</code></pre>
+
+<p>If you want to run the imagenet example, you need fbnn</p>
+
+<pre><code class="bash">git clone https://github.com/facebook/fbnn.git &amp;&amp; cd fbnn
+luarocks make rocks/fbnn-scm-1.rockspec
+</code></pre>
+</div><div class='docSection'><a name="fbcunn.README.dok"></a><p><a id="fbcunn.README.`fbcunn`___Deep_Learning_CUDA_Extensions_from_Facebook_AI_Research_"></a></p>
+
+<h1><code>fbcunn</code> - Deep Learning CUDA Extensions from Facebook AI Research.</h1>
+
+<p><a id="fbcunn.README.What_"></a></p>
+
+<h2>What?</h2>
+
+<p><a href="http://en.wikipedia.org/wiki/Deep_learning">Deep Learning</a> is a popular kid in machine learning these days.
+At <a href="http://research.facebook.com/ai/">Facebook AI Research</a> we&#39;ve been doing quite a bit of deep learning research.
+This repository contains our highly engineered deep learning modules for GPUs, to accelerate your own deep learning endeavors.
+It plugs into the <a href="https://github.com/torch/torch7/wiki/Cheatsheet">Torch-7</a> framework and installs seamlessly via <code>luarocks</code>, 
+and is fully compatible with torch&#39;s <a href="https://github.com/torch/nn">nn</a> package.</p>
+
+<p>In summary, we&#39;re releasing fast nn modules for Convnets and neural networks in general:</p>
+
+<ul>
+<li>Fast spatial convolution modules that use FFT to accelerate convolutions. <a href="http://arxiv.org/abs/1412.7580">We wrote a paper about them</a> if you&#39;d like to read more.</li>
+<li>Fast Temporal convolutions that are 1.5x to 10x faster compared to Torch&#39;s cunn implementations.</li>
+<li>nn.DataParallel and nn.ModelParallel containers. Plug your model in them and see it accelerate over multiple GPUs</li>
+<li>Wrappers to use FFT/IFFT as nn modules.</li>
+<li>Fast LookupTable that is used for Neural Language Models and word embeddings. Much faster than the one in torch/nn</li>
+<li>Hierarchical SoftMax module, now classifying 1 million classes is a practically viable strategy</li>
+<li>LP and Max Pooling over feature maps (usable for MaxOut).</li>
+<li>more goodies. Full documentation and spec is here: <a href="https://facebook.github.io/fbcunn/fbcunn/">https://facebook.github.io/fbcunn/fbcunn/</a></li>
+</ul>
+
+<p>Examples:</p>
+
+<ul>
+<li>Training an imagenet based classifier in Torch-7 using multiple GPUs (showcasing our FFT convolutions as well as our ModelParallel container)</li>
+</ul>
+
+<p><a id="fbcunn.README.Why_"></a></p>
+
+<h2>Why?</h2>
+
+<p>We know that science and technology progress faster when researchers exchange ideas and tools. Making significant progress in AI will take the participation of the entire research community, and We want to do what we can to make the field progress faster. That is why we love open science and open source. We publish our research with open access, very often on <a href="http://arxiv.org">Arxiv</a>, on <a href="http://research.facebook.com/ai">our members&#39; web sites</a>, and eventually on the <a href="https://research.facebook.com/publications/ai/">FAIR publications page</a>. And we share our code right here!</p>
+
+<p><a id="fbcunn.README.Who_is_this_for_"></a></p>
+
+<h2>Who is this for?</h2>
+
+<p>This will help you if you want to train large-scale deep learning systems (particularly convolutional nets) for image recognition, NLP, or other applications. This will help you particularly well if already are a Torch user.</p>
+
+<p><a id="fbcunn.README.How_to_install_them_"></a></p>
+
+<h2>How to install them?</h2>
+
+<p>You will find step-by-step and detailed installation instructions in <strong><a href="#fbcunn.INSTALL.dok">INSTALL.md</a></strong></p>
+
+<p>We&#39;ve worked hard to make the install as pain-free as possible. If you have an issue, use github issues, we&#39;ll try our best to help.</p>
+
+<p><a id="fbcunn.README.How_to_use_them_"></a></p>
+
+<h2>How to use them?</h2>
+
+<ul>
+<li><p>The DataParallel and ModelParallel modules are super-simple to use. The unit-test doubles as both an example as well as a test. There is also a practical example of ModelParallel in examples/imagenet. If you want more examples, please do ask.</p>
+
+<pre><code class="lua">m = nn.DataParallel():add(nn.SpatialConvolution(...)):add(nn.ReLU()) -- see, so simple
+</code></pre></li>
+<li><p>Convolution modules are even simpler to use. They are fully API compatible with their <a href="#fbcunn.https://github.com/torch/nn/blob/master/doc/convolution.dok">nn equivalents</a>. For an example, look at examples/imagenet</p>
+
+<pre><code class="lua">conv = nn.SpatialConvolutionCuFFT(...) -- fast spatial convolutions!
+conv = nn.TemporalConvolutionFB(...) -- fast temporal convolutions!
+</code></pre></li>
+<li><p>LookupTable is named <code>nn.LookupTableGPU</code> and Hierarchical SoftMax as <code>nn.HSM</code>, they are super-simple to use as well, check the docs out.</p></li>
+</ul>
+
+<p><a href="https://facebook.github.io/fbcunn/fbcunn/">https://facebook.github.io/fbcunn/fbcunn/</a></p>
+
+<p>The unit tests in the test/ folder also double as examples! If you have a question, do ask.</p>
+
+<p><a id="fbcunn.README.I_want_exact_details_of_everything___"></a></p>
+
+<h2>I want exact details of everything...</h2>
+
+<p>API docs, generated with <a href="https://github.com/deepmind/torch-dokx">torch-dokx</a>, are available at <a href="http://facebook.github.io/fbcunn/fbcunn/">http://facebook.github.io/fbcunn/fbcunn/</a></p>
+
+<p>Some of the unit tests need <a href="https://github.com/facebook/fbnn">fbnn</a></p>
+
+<p><a id="fbcunn.README.License"></a></p>
+
+<h2>License</h2>
+
+<p><code>fbcunn</code> is BSD-licensed. We also provide an additional patent
+grant.</p>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.data.dok"></a><h3>data.lua</h3>
+
+<p>Copyright (c) 2014, Facebook, Inc.
+All rights reserved.
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree. An additional grant
+of patent rights can be found in the PATENTS file in the same directory.</p>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.donkeys:addjob"></a></p>
+
+<ul>
+<li><code>fbcunn.donkeys:addjob(f1, f2)</code>
+<a name="fbcunn.donkeys:synchronize"></a></li>
+<li><code>fbcunn.donkeys:synchronize()</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.dataset.dok"></a><p><a name="fbcunn.dataLoader.dok"></a></p>
+
+<h2>fbcunn.dataLoader</h2>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/examples/imagenet/dataset.lua#L292">[src]</a>
+<a name="fbcunn.dataset:size"></a></p>
+
+<h3>fbcunn.dataset:size(class, list)</h3>
+
+<p>size(), size(class)</p>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/examples/imagenet/dataset.lua#L304">[src]</a>
+<a name="fbcunn.dataset:sizeTrain"></a></p>
+
+<h3>fbcunn.dataset:sizeTrain(class)</h3>
+
+<p>size(), size(class)</p>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/examples/imagenet/dataset.lua#L316">[src]</a>
+<a name="fbcunn.dataset:sizeTest"></a></p>
+
+<h3>fbcunn.dataset:sizeTest(class)</h3>
+
+<p>size(), size(class)</p>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/examples/imagenet/dataset.lua#L328">[src]</a>
+<a name="fbcunn.dataset:defaultSampleHook"></a></p>
+
+<h3>fbcunn.dataset:defaultSampleHook(imgpath)</h3>
+
+<p>by default, just load the image and return it</p>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/examples/imagenet/dataset.lua#L335">[src]</a>
+<a name="fbcunn.dataset:getByClass"></a></p>
+
+<h3>fbcunn.dataset:getByClass(class)</h3>
+
+<p>getByClass</p>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/examples/imagenet/dataset.lua#L369">[src]</a>
+<a name="fbcunn.dataset:sample"></a></p>
+
+<h3>fbcunn.dataset:sample(quantity)</h3>
+
+<p>sampler, samples from the training set.</p>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.dataset"></a></p>
+
+<ul>
+<li><code>fbcunn.dataset(...)</code>
+<a name="fbcunn.dataset:get"></a></li>
+<li><code>fbcunn.dataset:get(i1, i2)</code>
+<a name="fbcunn.dataset:test"></a></li>
+<li><code>fbcunn.dataset:test(quantity)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.donkey.dok"></a><h3>donkey.lua</h3>
+
+<p>Copyright (c) 2014, Facebook, Inc.
+All rights reserved.
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree. An additional grant
+of patent rights can be found in the PATENTS file in the same directory.</p>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.main.dok"></a><h3>main.lua</h3>
+
+<p>Copyright (c) 2014, Facebook, Inc.
+All rights reserved.
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree. An additional grant
+of patent rights can be found in the PATENTS file in the same directory.</p>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.model.dok"></a><h3>model.lua</h3>
+
+<p>Copyright (c) 2014, Facebook, Inc.
+All rights reserved.
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree. An additional grant
+of patent rights can be found in the PATENTS file in the same directory.</p>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.models.alexnet_ccn2.dok"></a><h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.createModel"></a></p>
+
+<ul>
+<li><code>fbcunn.createModel(nGPU)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.models.alexnet_cudnn.dok"></a><h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.createModel"></a></p>
+
+<ul>
+<li><code>fbcunn.createModel(nGPU)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.models.alexnet_cunn.dok"></a><h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.createModel"></a></p>
+
+<ul>
+<li><code>fbcunn.createModel(nGPU)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.models.alexnet_fbcunn.dok"></a><h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.createModel"></a></p>
+
+<ul>
+<li><code>fbcunn.createModel(nGPU)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.models.alexnetowt_ccn2.dok"></a><h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.createModel"></a></p>
+
+<ul>
+<li><code>fbcunn.createModel(nGPU)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.models.alexnetowt_cudnn.dok"></a><h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.createModel"></a></p>
+
+<ul>
+<li><code>fbcunn.createModel(nGPU)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.models.overfeat_cudnn.dok"></a><h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.createModel"></a></p>
+
+<ul>
+<li><code>fbcunn.createModel(nGPU)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.models.overfeat_cunn.dok"></a><h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.createModel"></a></p>
+
+<ul>
+<li><code>fbcunn.createModel(nGPU)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.models.overfeat_fbcunn.dok"></a><h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.createModel"></a></p>
+
+<ul>
+<li><code>fbcunn.createModel(nGPU)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.models.vgg_cudnn.dok"></a><h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.createModel"></a></p>
+
+<ul>
+<li><code>fbcunn.createModel(nGPU)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.opts.dok"></a><h3>opts.lua</h3>
+
+<p>Copyright (c) 2014, Facebook, Inc.
+All rights reserved.
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree. An additional grant
+of patent rights can be found in the PATENTS file in the same directory.</p>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.M.parse"></a></p>
+
+<ul>
+<li><code>fbcunn.M.parse(arg)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.train.dok"></a><h3>train.lua</h3>
+
+<p>Copyright (c) 2014, Facebook, Inc.
+All rights reserved.
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree. An additional grant
+of patent rights can be found in the PATENTS file in the same directory.</p>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/examples/imagenet/train.lua#L74">[src]</a>
+<a name="fbcunn.train"></a></p>
+
+<h3>fbcunn.train()</h3>
+
+<ol>
+<li>train - this function handles the high-level training loop,
+i.e. load data, train model, save model and state to disk</li>
+</ol>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/examples/imagenet/train.lua#L168">[src]</a>
+<a name="fbcunn.trainBatch"></a></p>
+
+<h3>fbcunn.trainBatch(inputsThread, labelsThread)</h3>
+
+<ol>
+<li>trainBatch - Used by train() to train a single batch after the data is loaded.</li>
+</ol>
+</div><div class='docSection'><a name="fbcunn.examples.imagenet.util.dok"></a><h3>util.lua</h3>
+
+<p>Some FFI stuff used to pass storages between threads --------------</p>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.setFloatStorage"></a></p>
+
+<ul>
+<li><code>fbcunn.setFloatStorage(tensor, storage_p)</code>
+<a name="fbcunn.setLongStorage"></a></li>
+<li><code>fbcunn.setLongStorage(tensor, storage_p)</code>
+<a name="fbcunn.sendTensor"></a></li>
+<li><code>fbcunn.sendTensor(inputs)</code>
+<a name="fbcunn.receiveTensor"></a></li>
+<li><code>fbcunn.receiveTensor(obj, buffer)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.fbcunn.AbstractParallel.dok"></a><h3>AbstractParallel.lua</h3>
+
+<p>Copyright 2004-present Facebook. All Rights Reserved.</p>
+
+<p><a name="fbcunn.AbstractParallel.dok"></a></p>
+
+<h2>fbcunn.AbstractParallel</h2>
+
+<p><code>nn.AbstractParallel</code> is the base class for modules controlling
+data/model-parallel behaviour in Torch.</p>
+
+<p>The key concept is that data/model-parallelism <em>splits</em> along a
+dimension, and this class controls the distribution of input and
+merging of output along this dimension.</p>
+
+<p>To extend this class, override <code>_distributeInput</code> as appropriate.</p>
+
+<p>See <code>nn.DataParallel</code> and <code>nn.ModelParallel</code> for examples of usage.</p>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/fbcunn/AbstractParallel.lua#L52">[src]</a>
+<a name="fbcunn.AbstractParallel:nextGPU"></a></p>
+
+<h3>fbcunn.AbstractParallel:nextGPU()</h3>
+
+<p>This function yields the GPU id for the module to be added.</p>
+
+<p>It can be used for load balancing. It assumes all GPUs are available.</p>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/fbcunn/AbstractParallel.lua#L83">[src]</a>
+<a name="fbcunn.AbstractParallel:gpuSend"></a></p>
+
+<h3>fbcunn.AbstractParallel:gpuSend(dest, source)</h3>
+
+<p>Asynchronous copy from dest to source.</p>
+
+<p>Use with caution; there needs to be some sort of external synchronization to
+prevent source from being modified after this copy is enqueued.</p>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.AbstractParallel"></a></p>
+
+<ul>
+<li><code>fbcunn.AbstractParallel(dimension)</code>
+<a name="fbcunn.AbstractParallel:add"></a></li>
+<li><code>fbcunn.AbstractParallel:add(module, gpuid)</code>
+<a name="fbcunn.AbstractParallel:get"></a></li>
+<li><code>fbcunn.AbstractParallel:get(index)</code>
+<a name="fbcunn.AbstractParallel:updateOutput"></a></li>
+<li><code>fbcunn.AbstractParallel:updateOutput(input)</code>
+<a name="fbcunn.AbstractParallel:updateGradInput"></a></li>
+<li><code>fbcunn.AbstractParallel:updateGradInput(_input, gradOutput)</code>
+<a name="fbcunn.AbstractParallel:accGradParameters"></a></li>
+<li><code>fbcunn.AbstractParallel:accGradParameters(_input, _gradOutput, scale)</code>
+<a name="fbcunn.AbstractParallel:accUpdateGradParameters"></a></li>
+<li><code>fbcunn.AbstractParallel:accUpdateGradParameters(_input, _gradOutput, lr)</code>
+<a name="fbcunn.AbstractParallel:zeroGradParameters"></a></li>
+<li><code>fbcunn.AbstractParallel:zeroGradParameters()</code>
+<a name="fbcunn.AbstractParallel:updateParameters"></a></li>
+<li><code>fbcunn.AbstractParallel:updateParameters(learningRate)</code>
+<a name="fbcunn.AbstractParallel:share"></a></li>
+<li><code>fbcunn.AbstractParallel:share(mlp,...)</code>
+<a name="fbcunn.AbstractParallel:clone"></a></li>
+<li><code>fbcunn.AbstractParallel:clone()</code>
+<a name="fbcunn.AbstractParallel:reset"></a></li>
+<li><code>fbcunn.AbstractParallel:reset(stdv)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.fbcunn.CuBLASWrapper.dok"></a><p><a name="fbcunn.CuBLASWrapper.dok"></a></p>
+
+<h2>fbcunn.CuBLASWrapper</h2>
+
+<p>Copyright 2004-present Facebook. All Rights Reserved.</p>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.CuBLASWrapper"></a></p>
+
+<ul>
+<li><code>fbcunn.CuBLASWrapper()</code>
+<a name="fbcunn.CuBLASWrapper:matmult"></a></li>
+<li><code>fbcunn.CuBLASWrapper:matmult(A, B, C, iterDims, batchDims, handles, streams)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.fbcunn.DataParallel.dok"></a><h3>DataParallel.lua</h3>
+
+<p>Copyright 2004-present Facebook. All Rights Reserved.
+This file defines an example class</p>
+
+<p><a name="fbcunn.DataParallel.dok"></a></p>
+
+<h2>fbcunn.DataParallel</h2>
+
+<p>DataParallel splits the input along separate columns, that run the
+same models on distinct partitions of the input.</p>
+
+<p>Pictorially</p>
+
+<pre><code>                        +--------+
+        column 1        |        |         column 3
+           +------------+  Input +-------------+
+           |            |        |             |
+           |            +----+---+             |
+           |                 |                 |
+           |                 |                 |
+      +----+---+        +----+---+        +----+---+
+      |        |        |        |        |        |
+      | Linear |        | Linear |        | Linear |       row 1
+      |        |        |        |        |        |
+      +----+---+        +----+---+        +----+---+
+           |                 |                 |
+           |                 |                 |
+      +----+---+        +----+---+        +----+---+
+      |        |        |        |        |        |
+      |  Tanh  |        |  Tanh  |        |  Tanh  |       row 2
+      |        |        |        |        |        |
+      +----+---+        +----+---+        +----+---+
+           |                 |                 |
+           |                 |                 |
+           |                 |                 |
+           |            +----+---+             |
+           |            |        |             |
+           +------------+ Output +-------------+
+                        |        |
+                        +--------+
+</code></pre>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.DataParallel:name"></a></p>
+
+<ul>
+<li><code>fbcunn.DataParallel:name()</code>
+<a name="fbcunn.DataParallel:updateGradInput"></a></li>
+<li><code>fbcunn.DataParallel:updateGradInput(_input, gradOutput)</code>
+<a name="fbcunn.DataParallel:accUpdateGradParameters"></a></li>
+<li><code>fbcunn.DataParallel:accUpdateGradParameters(_input, _gradOutput, lr)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.fbcunn.FFTWrapper.dok"></a><p><a name="fbcunn.FFTWrapper.dok"></a></p>
+
+<h2>fbcunn.FFTWrapper</h2>
+
+<p>Copyright 2004-present Facebook. All Rights Reserved.</p>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.FFTWrapper"></a></p>
+
+<ul>
+<li><code>fbcunn.FFTWrapper(cufft)</code>
+<a name="fbcunn.FFTWrapper:fft"></a></li>
+<li><code>fbcunn.FFTWrapper:fft(time, frequency, batchDims)</code>
+<a name="fbcunn.FFTWrapper:ffti"></a></li>
+<li><code>fbcunn.FFTWrapper:ffti(time, frequency, batchDims)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.fbcunn.FeatureLPPooling.dok"></a><h3>FeatureLPPooling.lua</h3>
+
+<p>Copyright 2004-present Facebook. All Rights Reserved.</p>
+
+<p><a name="fbcunn.FeatureLPPooling.dok"></a></p>
+
+<h2>fbcunn.FeatureLPPooling</h2>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/fbcunn/FeatureLPPooling.lua#L32">[src]</a>
+<a name="fbcunn.FeatureLPPooling"></a></p>
+
+<h3>fbcunn.FeatureLPPooling(width, stride, power, batch_mode)</h3>
+
+<p>Possible inputs that we handle:</p>
+
+<h4><code>batch_mode = false</code></h4>
+
+<p>The dimensionality of the input chooses between the following modes:</p>
+
+<pre><code>[feature dim]
+[feature dim][opt dim 1]
+[feature dim][opt dim 1][opt dim 2]
+</code></pre>
+
+<h4><code>batch_mode = true</code></h4>
+
+<p>The dimensionality of the input chooses between the following modes:</p>
+
+<pre><code>[batch dim][feature dim]
+[batch dim][feature dim][opt dim 1]
+[batch dim][feature dim][opt dim 1][opt dim 2]
+</code></pre>
+
+<p>The output has the same number of dimensions as the input, except the feature
+dimension size is reduced to ((<code>input</code> - <code>width</code>) / <code>stride</code>) + 1</p>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.FeatureLPPooling:updateOutput"></a></p>
+
+<ul>
+<li><code>fbcunn.FeatureLPPooling:updateOutput(input)</code>
+<a name="fbcunn.FeatureLPPooling:updateGradInput"></a></li>
+<li><code>fbcunn.FeatureLPPooling:updateGradInput(input, gradOutput)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.fbcunn.HalfPrecision.dok"></a><h3>HalfPrecision.lua</h3>
+
+<p>Copyright 2004-present Facebook. All Rights Reserved.</p>
+
+<p><a name="fbcunn.HalfPrecision.dok"></a></p>
+
+<h2>fbcunn.HalfPrecision</h2>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.HalfPrecision"></a></p>
+
+<ul>
+<li><code>fbcunn.HalfPrecision()</code>
+<a name="fbcunn.HalfPrecision:updateOutput"></a></li>
+<li><code>fbcunn.HalfPrecision:updateOutput(input)</code>
+<a name="fbcunn.HalfPrecision:updateGradInput"></a></li>
+<li><code>fbcunn.HalfPrecision:updateGradInput(input, gradOutput)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.fbcunn.LookupTableGPU.dok"></a><h3>LookupTableGPU.lua</h3>
+
+<p>Copyright 2004-present Facebook. All Rights Reserved.
+Author: Michael Mathieu <a href="mailto:myrhev@fb.com">myrhev@fb.com</a></p>
+
+<p><a name="fbcunn.LookupTableGPU.dok"></a></p>
+
+<h2>fbcunn.LookupTableGPU</h2>
+
+<p>Fast lookup table, supporting both CPU and GPU modes.</p>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/fbcunn/LookupTableGPU.lua#L17">[src]</a>
+<a name="fbcunn.LookupTableGPU"></a></p>
+
+<h3>fbcunn.LookupTableGPU(nInput, nOutput, featuresInDim2)</h3>
+
+<p>If <code>featuresInDim2</code> is <code>true</code>, an input of dimension <code>batchSize</code> <code>${\times}$</code> <code>N</code> will produce an output of size <code>batchSize</code> <code>${\times}$</code> <code>nOutput</code> <code>${\times}$</code> <code>N</code>. If it is set to <code>false</code> (default) it will produce an output
+of size <code>batchSize</code> <code>${\times}$</code> <code>N</code> <code>${\times}$</code> <code>nOutput</code>.</p>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/fbcunn/LookupTableGPU.lua#L40">[src]</a>
+<a name="fbcunn.LookupTableGPU:updateOutput"></a></p>
+
+<h3>fbcunn.LookupTableGPU:updateOutput(input)</h3>
+
+<p>input should be a 1d (size N) or 2d (size batchSize x N)
+tensor of byte or long on CPU, cudaTensor on GPU.
+It contains the indices of the lookup.</p>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.LookupTableGPU:reset"></a></p>
+
+<ul>
+<li><code>fbcunn.LookupTableGPU:reset(stdv)</code>
+<a name="fbcunn.LookupTableGPU:parameters"></a></li>
+<li><code>fbcunn.LookupTableGPU:parameters()</code>
+<a name="fbcunn.LookupTableGPU:updateGradInput"></a></li>
+<li><code>fbcunn.LookupTableGPU:updateGradInput(input, gradOutput)</code>
+<a name="fbcunn.LookupTableGPU:accGradParameters"></a></li>
+<li><code>fbcunn.LookupTableGPU:accGradParameters(input, gradOutput, scale)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.fbcunn.ModelParallel.dok"></a><h3>ModelParallel.lua</h3>
+
+<p>Copyright 2004-present Facebook. All Rights Reserved.</p>
+
+<p><a name="fbcunn.ModelParallel.dok"></a></p>
+
+<h2>fbcunn.ModelParallel</h2>
+
+<p><code>ModelParallel</code> copies inputs to all child modules, and runs
+disjoint parts of the model on separate devices.</p>
+
+<p>For example, consider a convolutional layer with a large number of
+filter banks. ModelParallel will split the model along the given
+<code>dimension</code> (e.g. 2 if we lay the input out as <code>BDWH</code>), copy the input
+to each device, and then merge the outputs across the device.</p>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.ModelParallel"></a></p>
+
+<ul>
+<li><code>fbcunn.ModelParallel(dimension)</code>
+<a name="fbcunn.ModelParallel:nextGPU"></a></li>
+<li><code>fbcunn.ModelParallel:nextGPU()</code>
+<a name="fbcunn.ModelParallel:add"></a></li>
+<li><code>fbcunn.ModelParallel:add(module, gpuid)</code>
+<a name="fbcunn.ModelParallel:get"></a></li>
+<li><code>fbcunn.ModelParallel:get(index)</code>
+<a name="fbcunn.ModelParallel:name"></a></li>
+<li><code>fbcunn.ModelParallel:name()</code>
+<a name="fbcunn.ModelParallel:updateGradInput"></a></li>
+<li><code>fbcunn.ModelParallel:updateGradInput(_input, gradOutput)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.fbcunn.OneBitDataParallel.dok"></a><p><a name="fbcunn.OneBitDataParallel.dok"></a></p>
+
+<h2>fbcunn.OneBitDataParallel</h2>
+
+<p>OneBitDataParallel implements the &quot;1-Bit Stochastic Gradient
+Descent and Application to Data-Parallel Distributed Training of
+Speech DNNs&quot; paper of Frank Seide, Hao Fu, Jasha Droppo, Gang Li, and
+Dong Yu.</p>
+
+<p>The implementation is similar to a vanilla DataParallel module, except we replace the averaging gradient step with a quantize-copy-merge-broadcast procedure.</p>
+
+<p><a href="http://research.microsoft.com/apps/pubs/?id=230137">http://research.microsoft.com/apps/pubs/?id=230137</a></p>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.OneBitDataParallel"></a></p>
+
+<ul>
+<li><code>fbcunn.OneBitDataParallel(dimension, config)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.fbcunn.OneBitQuantization.dok"></a><h3>OneBitQuantization.lua</h3>
+
+<p>Copyright 2004-present Facebook. All Rights Reserved.</p>
+
+<p><a name="fbcunn.OneBitQuantization.dok"></a></p>
+
+<h2>fbcunn.OneBitQuantization</h2>
+
+<p>CUDA implementation of the quantize/unquantize methods used by <code>nn.OneBitDataParallel</code>.</p>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.OneBitQuantization"></a></p>
+
+<ul>
+<li><code>fbcunn.OneBitQuantization()</code>
+<a name="fbcunn.OneBitQuantization:reset"></a></li>
+<li><code>fbcunn.OneBitQuantization:reset()</code>
+<a name="fbcunn.OneBitQuantization:quantize"></a></li>
+<li><code>fbcunn.OneBitQuantization:quantize(non_quantized_input)</code>
+<a name="fbcunn.OneBitQuantization:dequantize"></a></li>
+<li><code>fbcunn.OneBitQuantization:dequantize(quantized_input,
+                                   avg_pos, avg_neg, num_orig_cols)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.fbcunn.OneBitSGD.dok"></a><h3>OneBitSGD.lua</h3>
+
+<p>OneBitSGD contains various utility functions for use in OneBitDataParallel, exported for unit testing purposes.</p>
+</div><div class='docSection'><a name="fbcunn.fbcunn.SpatialConvolutionCuFFT.dok"></a><h3>SpatialConvolutionCuFFT.lua</h3>
+
+<p>Copyright 2004-present Facebook. All Rights Reserved.</p>
+
+<p><a name="fbcunn.SpatialConvolutionCuFFT.dok"></a></p>
+
+<h2>fbcunn.SpatialConvolutionCuFFT</h2>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.SpatialConvolutionCuFFT"></a></p>
+
+<ul>
+<li><code>fbcunn.SpatialConvolutionCuFFT(nInputPlane, nOutputPlane,
+                                    kW, kH, dW, dH)</code>
+<a name="fbcunn.SpatialConvolutionCuFFT:reset"></a></li>
+<li><code>fbcunn.SpatialConvolutionCuFFT:reset(stdv)</code>
+<a name="fbcunn.SpatialConvolutionCuFFT:updateOutput"></a></li>
+<li><code>fbcunn.SpatialConvolutionCuFFT:updateOutput(input)</code>
+<a name="fbcunn.SpatialConvolutionCuFFT:explorePerformance"></a></li>
+<li><code>fbcunn.SpatialConvolutionCuFFT:explorePerformance(input, batches,
+  inputs, planes, inputRows, inputCols, kernelRows, kernelCols)</code>
+<a name="fbcunn.SpatialConvolutionCuFFT:cleanupBuffers"></a></li>
+<li><code>fbcunn.SpatialConvolutionCuFFT:cleanupBuffers(input)</code>
+<a name="fbcunn.SpatialConvolutionCuFFT:updateGradInput"></a></li>
+<li><code>fbcunn.SpatialConvolutionCuFFT:updateGradInput(input, gradOutput)</code>
+<a name="fbcunn.SpatialConvolutionCuFFT:accGradParameters"></a></li>
+<li><code>fbcunn.SpatialConvolutionCuFFT:accGradParameters(input, gradOutput, scale)</code>
+<a name="fbcunn.SpatialConvolutionCuFFT:prepareBuffers"></a></li>
+<li><code>fbcunn.SpatialConvolutionCuFFT:prepareBuffers(inputSize)</code>
+<a name="fbcunn.getBuffer"></a></li>
+<li><code>fbcunn.getBuffer(OperationType, tensorType, tensorSizes)</code>
+<a name="fbcunn.freeBuffer"></a></li>
+<li><code>fbcunn.freeBuffer(OperationType, tensorType, tensorSizes)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.fbcunn.TemporalConvolutionFB.dok"></a><h3>TemporalConvolutionFB.lua</h3>
+
+<p>Copyright 2004-present Facebook. All Rights Reserved.</p>
+
+<p><a name="fbcunn.TemporalConvolutionFB.dok"></a></p>
+
+<h2>fbcunn.TemporalConvolutionFB</h2>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.TemporalConvolutionFB"></a></p>
+
+<ul>
+<li><code>fbcunn.TemporalConvolutionFB(inputFrameSize, outputFrameSize, kW, dW)</code>
+<a name="fbcunn.TemporalConvolutionFB:reset"></a></li>
+<li><code>fbcunn.TemporalConvolutionFB:reset(stdv)</code>
+<a name="fbcunn.TemporalConvolutionFB:updateOutput"></a></li>
+<li><code>fbcunn.TemporalConvolutionFB:updateOutput(input)</code>
+<a name="fbcunn.TemporalConvolutionFB:updateGradInput"></a></li>
+<li><code>fbcunn.TemporalConvolutionFB:updateGradInput(input, gradOutput)</code>
+<a name="fbcunn.TemporalConvolutionFB:accGradParameters"></a></li>
+<li><code>fbcunn.TemporalConvolutionFB:accGradParameters(input, gradOutput, scale)</code></li>
+</ul>
+</div><div class='docSection'><a name="fbcunn.fbcunn.TemporalKMaxPooling.dok"></a><h3>TemporalKMaxPooling.lua</h3>
+
+<p>Copyright 2004-present Facebook. All Rights Reserved.</p>
+
+<p><a name="fbcunn.TemporalKMaxPooling.dok"></a></p>
+
+<h2>fbcunn.TemporalKMaxPooling</h2>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.TemporalKMaxPooling"></a></p>
+
+<ul>
+<li><code>fbcunn.TemporalKMaxPooling(k, k_dynamic)</code>
+<a name="fbcunn.TemporalKMaxPooling:updateOutput"></a></li>
+<li><code>fbcunn.TemporalKMaxPooling:updateOutput(input)</code>
+<a name="fbcunn.TemporalKMaxPooling:updateGradInput"></a></li>
+<li><code>fbcunn.TemporalKMaxPooling:updateGradInput(input, gradOutput)</code></li>
+</ul>
+</div>
+</section>
+</div>
+</body>
+</html>

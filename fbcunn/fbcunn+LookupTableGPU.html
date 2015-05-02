@@ -1,0 +1,41 @@
+<h3>LookupTableGPU.lua</h3>
+
+<p>Copyright 2004-present Facebook. All Rights Reserved.
+Author: Michael Mathieu <a href="mailto:myrhev@fb.com">myrhev@fb.com</a></p>
+
+<p><a name="fbcunn.LookupTableGPU.dok"></a></p>
+
+<h2>fbcunn.LookupTableGPU</h2>
+
+<p>Fast lookup table, supporting both CPU and GPU modes.</p>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/fbcunn/LookupTableGPU.lua#L17">[src]</a>
+<a name="fbcunn.LookupTableGPU"></a></p>
+
+<h3>fbcunn.LookupTableGPU(nInput, nOutput, featuresInDim2)</h3>
+
+<p>If <code>featuresInDim2</code> is <code>true</code>, an input of dimension <code>batchSize</code> <code>${\times}$</code> <code>N</code> will produce an output of size <code>batchSize</code> <code>${\times}$</code> <code>nOutput</code> <code>${\times}$</code> <code>N</code>. If it is set to <code>false</code> (default) it will produce an output
+of size <code>batchSize</code> <code>${\times}$</code> <code>N</code> <code>${\times}$</code> <code>nOutput</code>.</p>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/fbcunn/LookupTableGPU.lua#L40">[src]</a>
+<a name="fbcunn.LookupTableGPU:updateOutput"></a></p>
+
+<h3>fbcunn.LookupTableGPU:updateOutput(input)</h3>
+
+<p>input should be a 1d (size N) or 2d (size batchSize x N)
+tensor of byte or long on CPU, cudaTensor on GPU.
+It contains the indices of the lookup.</p>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.LookupTableGPU:reset"></a></p>
+
+<ul>
+<li><code>fbcunn.LookupTableGPU:reset(stdv)</code>
+<a name="fbcunn.LookupTableGPU:parameters"></a></li>
+<li><code>fbcunn.LookupTableGPU:parameters()</code>
+<a name="fbcunn.LookupTableGPU:updateGradInput"></a></li>
+<li><code>fbcunn.LookupTableGPU:updateGradInput(input, gradOutput)</code>
+<a name="fbcunn.LookupTableGPU:accGradParameters"></a></li>
+<li><code>fbcunn.LookupTableGPU:accGradParameters(input, gradOutput, scale)</code></li>
+</ul>

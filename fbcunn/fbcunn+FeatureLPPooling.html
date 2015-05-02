@@ -1,0 +1,45 @@
+<h3>FeatureLPPooling.lua</h3>
+
+<p>Copyright 2004-present Facebook. All Rights Reserved.</p>
+
+<p><a name="fbcunn.FeatureLPPooling.dok"></a></p>
+
+<h2>fbcunn.FeatureLPPooling</h2>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/fbcunn/FeatureLPPooling.lua#L32">[src]</a>
+<a name="fbcunn.FeatureLPPooling"></a></p>
+
+<h3>fbcunn.FeatureLPPooling(width, stride, power, batch_mode)</h3>
+
+<p>Possible inputs that we handle:</p>
+
+<h4><code>batch_mode = false</code></h4>
+
+<p>The dimensionality of the input chooses between the following modes:</p>
+
+<pre><code>[feature dim]
+[feature dim][opt dim 1]
+[feature dim][opt dim 1][opt dim 2]
+</code></pre>
+
+<h4><code>batch_mode = true</code></h4>
+
+<p>The dimensionality of the input chooses between the following modes:</p>
+
+<pre><code>[batch dim][feature dim]
+[batch dim][feature dim][opt dim 1]
+[batch dim][feature dim][opt dim 1][opt dim 2]
+</code></pre>
+
+<p>The output has the same number of dimensions as the input, except the feature
+dimension size is reduced to ((<code>input</code> - <code>width</code>) / <code>stride</code>) + 1</p>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.FeatureLPPooling:updateOutput"></a></p>
+
+<ul>
+<li><code>fbcunn.FeatureLPPooling:updateOutput(input)</code>
+<a name="fbcunn.FeatureLPPooling:updateGradInput"></a></li>
+<li><code>fbcunn.FeatureLPPooling:updateGradInput(input, gradOutput)</code></li>
+</ul>

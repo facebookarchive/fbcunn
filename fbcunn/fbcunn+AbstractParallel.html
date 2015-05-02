@@ -1,0 +1,67 @@
+<h3>AbstractParallel.lua</h3>
+
+<p>Copyright 2004-present Facebook. All Rights Reserved.</p>
+
+<p><a name="fbcunn.AbstractParallel.dok"></a></p>
+
+<h2>fbcunn.AbstractParallel</h2>
+
+<p><code>nn.AbstractParallel</code> is the base class for modules controlling
+data/model-parallel behaviour in Torch.</p>
+
+<p>The key concept is that data/model-parallelism <em>splits</em> along a
+dimension, and this class controls the distribution of input and
+merging of output along this dimension.</p>
+
+<p>To extend this class, override <code>_distributeInput</code> as appropriate.</p>
+
+<p>See <code>nn.DataParallel</code> and <code>nn.ModelParallel</code> for examples of usage.</p>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/fbcunn/AbstractParallel.lua#L52">[src]</a>
+<a name="fbcunn.AbstractParallel:nextGPU"></a></p>
+
+<h3>fbcunn.AbstractParallel:nextGPU()</h3>
+
+<p>This function yields the GPU id for the module to be added.</p>
+
+<p>It can be used for load balancing. It assumes all GPUs are available.</p>
+
+<p><a class="entityLink" href="https://github.com/facebook/fbcunn/blob/340a7c2261d022dfda11da1ac42e50b4c6819442/fbcunn/AbstractParallel.lua#L83">[src]</a>
+<a name="fbcunn.AbstractParallel:gpuSend"></a></p>
+
+<h3>fbcunn.AbstractParallel:gpuSend(dest, source)</h3>
+
+<p>Asynchronous copy from dest to source.</p>
+
+<p>Use with caution; there needs to be some sort of external synchronization to
+prevent source from being modified after this copy is enqueued.</p>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.AbstractParallel"></a></p>
+
+<ul>
+<li><code>fbcunn.AbstractParallel(dimension)</code>
+<a name="fbcunn.AbstractParallel:add"></a></li>
+<li><code>fbcunn.AbstractParallel:add(module, gpuid)</code>
+<a name="fbcunn.AbstractParallel:get"></a></li>
+<li><code>fbcunn.AbstractParallel:get(index)</code>
+<a name="fbcunn.AbstractParallel:updateOutput"></a></li>
+<li><code>fbcunn.AbstractParallel:updateOutput(input)</code>
+<a name="fbcunn.AbstractParallel:updateGradInput"></a></li>
+<li><code>fbcunn.AbstractParallel:updateGradInput(_input, gradOutput)</code>
+<a name="fbcunn.AbstractParallel:accGradParameters"></a></li>
+<li><code>fbcunn.AbstractParallel:accGradParameters(_input, _gradOutput, scale)</code>
+<a name="fbcunn.AbstractParallel:accUpdateGradParameters"></a></li>
+<li><code>fbcunn.AbstractParallel:accUpdateGradParameters(_input, _gradOutput, lr)</code>
+<a name="fbcunn.AbstractParallel:zeroGradParameters"></a></li>
+<li><code>fbcunn.AbstractParallel:zeroGradParameters()</code>
+<a name="fbcunn.AbstractParallel:updateParameters"></a></li>
+<li><code>fbcunn.AbstractParallel:updateParameters(learningRate)</code>
+<a name="fbcunn.AbstractParallel:share"></a></li>
+<li><code>fbcunn.AbstractParallel:share(mlp,...)</code>
+<a name="fbcunn.AbstractParallel:clone"></a></li>
+<li><code>fbcunn.AbstractParallel:clone()</code>
+<a name="fbcunn.AbstractParallel:reset"></a></li>
+<li><code>fbcunn.AbstractParallel:reset(stdv)</code></li>
+</ul>

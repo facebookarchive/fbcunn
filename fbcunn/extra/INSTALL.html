@@ -1,0 +1,72 @@
+<ul>
+<li>Find a machine with <a href="http://www.ubuntu.com/">Ubuntu 14.04+</a> and an NVIDIA GPU with compute capability 3.5 or above</li>
+</ul>
+
+<p>Then, install everything that is needed by using the instructions below:</p>
+
+<h1>Install CUDA</h1>
+
+<pre><code class="bash">sudo apt-get install build-essential
+</code></pre>
+
+<p>If you are using a Virtual Machine (like Amazon EC2 instances), install:</p>
+
+<pre><code class="bash">sudo apt-get update
+sudo apt-get install linux-generic
+</code></pre>
+
+<p>Download the CUDA .deb file for Linux Ubuntu 14.04 64-bit from this page: <a href="https://developer.nvidia.com/cuda-downloads">https://developer.nvidia.com/cuda-downloads</a><br>
+It would be a file named similar this: cuda-repo-ubuntu1404_6.5-14_amd64.deb<br>
+Now, install it using:</p>
+
+<pre><code class="bash">sudo dpkg -i cuda-repo-ubuntu1404_6.5-14_amd64.deb
+sudo apt-get update
+sudo apt-get install cuda
+echo &quot;export PATH=/usr/local/cuda/bin/:\$PATH; export LD_LIBRARY_PATH=/usr/local/cuda/lib64/:\$LD_LIBRARY_PATH; &quot; &gt;&gt;~/.bashrc &amp;&amp; source ~/.bashrc
+</code></pre>
+
+<p>Restart your computer</p>
+
+<p>Install CuDNN</p>
+
+<ul>
+<li>Go to <a href="https://developer.nvidia.com/cuDNN">https://developer.nvidia.com/cuDNN</a> and use the Download button (you have to register and login to download. no way around that.)</li>
+<li>Download cuDNN 6.5 R2-rc2 for Linux. You will download a file cudnn-6.5-linux-x64-v2-rc2.tgz
+then use the commands:
+<code>bash
+tar -xvf cudnn-6.5-linux-x64-v2-rc2.tgz
+sudo cp cudnn-6.5-linux-x64-v2-rc2/*.h /usr/local/cuda/include
+sudo cp cudnn-6.5-linux-x64-v2-rc2/*.so* /usr/local/cuda/lib64
+</code></li>
+</ul>
+
+<h1>Install Torch Dependencies</h1>
+
+<pre><code class="bash">curl -sk https://raw.githubusercontent.com/torch/ezinstall/master/install-deps | bash
+</code></pre>
+
+<h1>Install Torch in a local folder</h1>
+
+<pre><code class="bash">git clone https://github.com/torch/distro.git ~/torch --recursive
+cd ~/torch; ./install.sh
+</code></pre>
+
+<p>If you want to uninstall torch, you can use the command: <code>rm -rf ~/torch</code></p>
+
+<h1>Install Folly, fbthrift, thpp and fblualib</h1>
+
+<pre><code class="bash">curl -sk https://raw.githubusercontent.com/soumith/fblualib/master/install_all.sh | bash
+</code></pre>
+
+<h1>Install fbcunn</h1>
+
+<pre><code class="bash">git clone https://github.com/torch/nn &amp;&amp; cd nn &amp;&amp; git checkout getParamsByDevice &amp;&amp; luarocks make rocks/nn-scm-1.rockspec
+git clone https://github.com/facebook/fbcunn.git
+cd fbcunn &amp;&amp; luarocks make rocks/fbcunn-scm-1.rockspec # go get a coffee
+</code></pre>
+
+<p>If you want to run the imagenet example, you need fbnn</p>
+
+<pre><code class="bash">git clone https://github.com/facebook/fbnn.git &amp;&amp; cd fbnn
+luarocks make rocks/fbnn-scm-1.rockspec
+</code></pre>

@@ -1,0 +1,33 @@
+<h3>ModelParallel.lua</h3>
+
+<p>Copyright 2004-present Facebook. All Rights Reserved.</p>
+
+<p><a name="fbcunn.ModelParallel.dok"></a></p>
+
+<h2>fbcunn.ModelParallel</h2>
+
+<p><code>ModelParallel</code> copies inputs to all child modules, and runs
+disjoint parts of the model on separate devices.</p>
+
+<p>For example, consider a convolutional layer with a large number of
+filter banks. ModelParallel will split the model along the given
+<code>dimension</code> (e.g. 2 if we lay the input out as <code>BDWH</code>), copy the input
+to each device, and then merge the outputs across the device.</p>
+
+<h4>Undocumented methods</h4>
+
+<p><a name="fbcunn.ModelParallel"></a></p>
+
+<ul>
+<li><code>fbcunn.ModelParallel(dimension)</code>
+<a name="fbcunn.ModelParallel:nextGPU"></a></li>
+<li><code>fbcunn.ModelParallel:nextGPU()</code>
+<a name="fbcunn.ModelParallel:add"></a></li>
+<li><code>fbcunn.ModelParallel:add(module, gpuid)</code>
+<a name="fbcunn.ModelParallel:get"></a></li>
+<li><code>fbcunn.ModelParallel:get(index)</code>
+<a name="fbcunn.ModelParallel:name"></a></li>
+<li><code>fbcunn.ModelParallel:name()</code>
+<a name="fbcunn.ModelParallel:updateGradInput"></a></li>
+<li><code>fbcunn.ModelParallel:updateGradInput(_input, gradOutput)</code></li>
+</ul>

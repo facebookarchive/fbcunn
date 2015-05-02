@@ -1,0 +1,88 @@
+<p><a id="fbcunn.README.`fbcunn`___Deep_Learning_CUDA_Extensions_from_Facebook_AI_Research_"></a></p>
+
+<h1><code>fbcunn</code> - Deep Learning CUDA Extensions from Facebook AI Research.</h1>
+
+<p><a id="fbcunn.README.What_"></a></p>
+
+<h2>What?</h2>
+
+<p><a href="http://en.wikipedia.org/wiki/Deep_learning">Deep Learning</a> is a popular kid in machine learning these days.
+At <a href="http://research.facebook.com/ai/">Facebook AI Research</a> we&#39;ve been doing quite a bit of deep learning research.
+This repository contains our highly engineered deep learning modules for GPUs, to accelerate your own deep learning endeavors.
+It plugs into the <a href="https://github.com/torch/torch7/wiki/Cheatsheet">Torch-7</a> framework and installs seamlessly via <code>luarocks</code>, 
+and is fully compatible with torch&#39;s <a href="https://github.com/torch/nn">nn</a> package.</p>
+
+<p>In summary, we&#39;re releasing fast nn modules for Convnets and neural networks in general:</p>
+
+<ul>
+<li>Fast spatial convolution modules that use FFT to accelerate convolutions. <a href="http://arxiv.org/abs/1412.7580">We wrote a paper about them</a> if you&#39;d like to read more.</li>
+<li>Fast Temporal convolutions that are 1.5x to 10x faster compared to Torch&#39;s cunn implementations.</li>
+<li>nn.DataParallel and nn.ModelParallel containers. Plug your model in them and see it accelerate over multiple GPUs</li>
+<li>Wrappers to use FFT/IFFT as nn modules.</li>
+<li>Fast LookupTable that is used for Neural Language Models and word embeddings. Much faster than the one in torch/nn</li>
+<li>Hierarchical SoftMax module, now classifying 1 million classes is a practically viable strategy</li>
+<li>LP and Max Pooling over feature maps (usable for MaxOut).</li>
+<li>more goodies. Full documentation and spec is here: <a href="https://facebook.github.io/fbcunn/fbcunn/">https://facebook.github.io/fbcunn/fbcunn/</a></li>
+</ul>
+
+<p>Examples:</p>
+
+<ul>
+<li>Training an imagenet based classifier in Torch-7 using multiple GPUs (showcasing our FFT convolutions as well as our ModelParallel container)</li>
+</ul>
+
+<p><a id="fbcunn.README.Why_"></a></p>
+
+<h2>Why?</h2>
+
+<p>We know that science and technology progress faster when researchers exchange ideas and tools. Making significant progress in AI will take the participation of the entire research community, and We want to do what we can to make the field progress faster. That is why we love open science and open source. We publish our research with open access, very often on <a href="http://arxiv.org">Arxiv</a>, on <a href="http://research.facebook.com/ai">our members&#39; web sites</a>, and eventually on the <a href="https://research.facebook.com/publications/ai/">FAIR publications page</a>. And we share our code right here!</p>
+
+<p><a id="fbcunn.README.Who_is_this_for_"></a></p>
+
+<h2>Who is this for?</h2>
+
+<p>This will help you if you want to train large-scale deep learning systems (particularly convolutional nets) for image recognition, NLP, or other applications. This will help you particularly well if already are a Torch user.</p>
+
+<p><a id="fbcunn.README.How_to_install_them_"></a></p>
+
+<h2>How to install them?</h2>
+
+<p>You will find step-by-step and detailed installation instructions in <strong><a href="#fbcunn.INSTALL.dok">INSTALL.md</a></strong></p>
+
+<p>We&#39;ve worked hard to make the install as pain-free as possible. If you have an issue, use github issues, we&#39;ll try our best to help.</p>
+
+<p><a id="fbcunn.README.How_to_use_them_"></a></p>
+
+<h2>How to use them?</h2>
+
+<ul>
+<li><p>The DataParallel and ModelParallel modules are super-simple to use. The unit-test doubles as both an example as well as a test. There is also a practical example of ModelParallel in examples/imagenet. If you want more examples, please do ask.</p>
+
+<pre><code class="lua">m = nn.DataParallel():add(nn.SpatialConvolution(...)):add(nn.ReLU()) -- see, so simple
+</code></pre></li>
+<li><p>Convolution modules are even simpler to use. They are fully API compatible with their <a href="#fbcunn.https://github.com/torch/nn/blob/master/doc/convolution.dok">nn equivalents</a>. For an example, look at examples/imagenet</p>
+
+<pre><code class="lua">conv = nn.SpatialConvolutionCuFFT(...) -- fast spatial convolutions!
+conv = nn.TemporalConvolutionFB(...) -- fast temporal convolutions!
+</code></pre></li>
+<li><p>LookupTable is named <code>nn.LookupTableGPU</code> and Hierarchical SoftMax as <code>nn.HSM</code>, they are super-simple to use as well, check the docs out.</p></li>
+</ul>
+
+<p><a href="https://facebook.github.io/fbcunn/fbcunn/">https://facebook.github.io/fbcunn/fbcunn/</a></p>
+
+<p>The unit tests in the test/ folder also double as examples! If you have a question, do ask.</p>
+
+<p><a id="fbcunn.README.I_want_exact_details_of_everything___"></a></p>
+
+<h2>I want exact details of everything...</h2>
+
+<p>API docs, generated with <a href="https://github.com/deepmind/torch-dokx">torch-dokx</a>, are available at <a href="http://facebook.github.io/fbcunn/fbcunn/">http://facebook.github.io/fbcunn/fbcunn/</a></p>
+
+<p>Some of the unit tests need <a href="https://github.com/facebook/fbnn">fbnn</a></p>
+
+<p><a id="fbcunn.README.License"></a></p>
+
+<h2>License</h2>
+
+<p><code>fbcunn</code> is BSD-licensed. We also provide an additional patent
+grant.</p>
