@@ -17,6 +17,7 @@
 #include <thrust/fill.h>
 #include <thrust/replace.h>
 #include <thrust/functional.h>
+#include <gflags/gflags.h>
 
 DEFINE_bool(fft_verbose, false, "Dump meta information for the FFT wrapper");
 
