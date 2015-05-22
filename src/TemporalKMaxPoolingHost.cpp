@@ -22,7 +22,7 @@ int checkAndAdjustK(lua_State* L, int k, double kDynamic, long sequenceLength) {
   }
 
   if (k > sequenceLength) {
-    luaL_error(L, "k: k must be less than the sequence length");
+    luaL_error(L, "k (%d) must be less than sequence length (%d) ", k, sequenceLength);
   }
 
   return k;
@@ -60,7 +60,7 @@ int cunn_TemporalKMaxPooling_updateOutput(lua_State *L) {
   auto inputContiguousTH = THCudaTensor_newContiguous(state, inputTH);
   SCOPE_EXIT{ THCudaTensor_free(state, inputContiguousTH); };
 
-  checkAndAdjustK(L, k, kDynamic, sequenceLength);
+  k = checkAndAdjustK(L, k, kDynamic, sequenceLength);
 
   DeviceTensor<float, 3> input;
   DeviceTensor<float, 3> indices;
@@ -143,7 +143,7 @@ int cunn_TemporalKMaxPooling_updateGradInput(lua_State *L) {
   }
 
   const auto sequenceLength = gradInput.getSize(1);
-  checkAndAdjustK(L, k, kDynamic, sequenceLength);
+  k = checkAndAdjustK(L, k, kDynamic, sequenceLength);
 
   runTemporalKMaxPoolingUpdateGradInput(
     THCState_getCurrentStream(state), gradOutput, indices, gradInput, k);
