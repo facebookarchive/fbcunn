@@ -39,7 +39,7 @@ sudo cp cudnn-6.5-linux-x64-v2/*.so* /usr/local/cuda/lib64
 Install Torch Dependencies
 ==========================
 ```bash
-curl -sk https://raw.githubusercontent.com/torch/ezinstall/master/install-deps | bash
+curl -sk https://raw.githubusercontent.com/torch/ezinstall/master/install-deps | bash -e
 ```
 
 Install Torch in a local folder
@@ -54,7 +54,7 @@ If you want to uninstall torch, you can use the command: `rm -rf ~/torch`
 Install Folly, fbthrift, thpp and fblualib
 ============================================
 ```bash
-curl -sk https://raw.githubusercontent.com/soumith/fblualib/master/install_all.sh | bash
+curl -sk https://raw.githubusercontent.com/soumith/fblualib/master/install_all.sh | bash -e
 ```
 
 Install fbcunn
