@@ -405,10 +405,11 @@ function dataset:get(i1, i2)
    local scalarTable = {}
    for i=1,quantity do
       -- load the sample
-      local imgpath = ffi.string(torch.data(self.imagePath[indices[i]]))
+      local idx = self.testIndices[indices[i]]
+      local imgpath = ffi.string(torch.data(self.imagePath[idx]))
       local out = self:sampleHookTest(imgpath)
       table.insert(dataTable, out)
-      table.insert(scalarTable, self.imageClass[indices[i]])
+      table.insert(scalarTable, self.imageClass[idx])
    end
    local data, scalarLabels, labels = tableToOutput(self, dataTable, scalarTable)
    return data, scalarLabels, labels
