@@ -70,7 +70,7 @@ __global__ void accGradParametersKernel(DeviceTensor<float, 2> input,
     unsigned int lookupElement = i % input.getSize(1);
 
     int weightIndex = (int) (input[batch][lookupElement].ldg() - 0.5f);
-    float update = gradOutput[batch][lookupElement][featureDim];
+    float update = gradOutput[batch][lookupElement][featureDim] * scale;
 
     // Check for collision
     if (warpHasCollision(weightIndex)) {
