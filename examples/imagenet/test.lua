@@ -32,9 +32,9 @@ function test()
    top1_center = 0; top5_center = 0
    top1_10crop = 0; top5_10crop = 0
    loss = 0
-   for i=1,nTest/opt.testBatchSize do -- nTest is set in 1_data.lua
+   for i=1,math.ceil(nTest/opt.testBatchSize) do -- nTest is set in 1_data.lua
       local indexStart = (i-1) * opt.testBatchSize + 1
-      local indexEnd = (indexStart + opt.testBatchSize - 1)
+      local indexEnd = math.min(nImgs, indexStart + opt.testBatchSize - 1)
       donkeys:addjob(
          -- work to be done by donkey thread
          function()
