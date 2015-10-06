@@ -4,7 +4,7 @@
 [Deep Learning](http://en.wikipedia.org/wiki/Deep_learning) is a popular kid in machine learning these days.
 At [Facebook AI Research](http://research.facebook.com/ai/) we've been doing quite a bit of deep learning research.
 This repository contains our highly engineered deep learning modules for GPUs, to accelerate your own deep learning endeavors.
-It plugs into the [Torch-7](https://github.com/torch/torch7/wiki/Cheatsheet) framework and installs seamlessly via `luarocks`, 
+It plugs into the [Torch-7](https://github.com/torch/torch7/wiki/Cheatsheet) framework and  installs seamlessly via `luarocks`, 
 and is fully compatible with torch's [nn](https://github.com/torch/nn) package.
 
 In summary, we're releasing fast nn modules for Convnets and neural networks in general:
