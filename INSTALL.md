@@ -15,10 +15,10 @@ sudo apt-get install linux-generic
 ```
 
 Download the CUDA .deb file for Linux Ubuntu 14.04 64-bit from this page: https://developer.nvidia.com/cuda-downloads  
-It would be a file named similar this: cuda-repo-ubuntu1404_6.5-14_amd64.deb  
+It would be a file named similar this: cuda-repo-ubuntu1404-7-5-local_7.5-18_amd64.deb
 Now, install it using:
 ```bash
-sudo dpkg -i cuda-repo-ubuntu1404_6.5-14_amd64.deb
+sudo dpkg -i cuda-repo-ubuntu1404-7-5-local_7.5-18_amd64.deb
 sudo apt-get update
 sudo apt-get install cuda
 echo "export PATH=/usr/local/cuda/bin/:\$PATH; export LD_LIBRARY_PATH=/usr/local/cuda/lib64/:\$LD_LIBRARY_PATH; " >>~/.bashrc && source ~/.bashrc
@@ -28,12 +28,12 @@ Restart your computer
 
 Install CuDNN
 - Go to https://developer.nvidia.com/cuDNN and use the Download button (you have to register and login to download. no way around that.)
-- Download cuDNN 6.5 R2 for Linux. You will download a file cudnn-6.5-linux-x64-v2.tgz
+- Download cuDNN R3 for Linux. You will download a file cudnn-7.0-linux-x64-v3.0-prod.tgz
 then use the commands:
 ```bash
-tar -xvf cudnn-6.5-linux-x64-v2.tgz
-sudo cp cudnn-6.5-linux-x64-v2/*.h /usr/local/cuda/include
-sudo cp cudnn-6.5-linux-x64-v2/*.so* /usr/local/cuda/lib64
+tar -xvf cudnn-7.0-linux-x64-v3.0-prod.tgz
+sudo cp cuda/include/*.h /usr/local/cuda/include
+sudo cp cuda/lib64/*.so* /usr/local/cuda/lib64
 ```
 
 Install Torch Dependencies
