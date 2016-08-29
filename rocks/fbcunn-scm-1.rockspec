@@ -18,6 +18,8 @@ dependencies = {
    "nn >= 1.0",
    "cutorch >= 1.0",
    "multikey"
+   "fbnn"
+   "fbtorch"
 }
 
 build = {
