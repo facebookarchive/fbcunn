@@ -1,14 +1,14 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "torch/fb/fbcunn/src/DeviceTensorUtils.h"
+#include "src/DeviceTensorUtils.h"
 #include "THCTensor.h"
-#include "torch/fb/fbcunn/src/fft/Utils.h"
-#include "torch/fb/fbcunn/src/fft/CuFFTConvolution_UpdateOutput.cuh"
-#include "torch/fb/fbcunn/src/fft/CuFFTConvolution_AccGradParameters.cuh"
-#include "torch/fb/fbcunn/src/fft/CuFFTConvolution_UpdateGradInput.cuh"
-#include "torch/fb/fbcunn/test/InputCentricConvolution_UpdateOutput.cuh"
-#include "torch/fb/fbcunn/test/ReferenceConvolutions.h"
-#include "torch/fb/fbcunn/test/TestUtils.h"
+#include "src/fft/Utils.h"
+#include "src/fft/CuFFTConvolution_UpdateOutput.cuh"
+#include "src/fft/CuFFTConvolution_AccGradParameters.cuh"
+#include "src/fft/CuFFTConvolution_UpdateGradInput.cuh"
+#include "test/InputCentricConvolution_UpdateOutput.cuh"
+#include "test/ReferenceConvolutions.h"
+#include "test/TestUtils.h"
 
 #include <cuda.h>
 #include <folly/Optional.h>
@@ -22,11 +22,18 @@ using namespace facebook::deeplearning::torch;
 DEFINE_bool(verify, true, "Run the convolution and verify the output");
 DEFINE_bool(debug, false, "Print basic information on tensors");
 
+unique_ptr<THCState> g_state;
+
 // Override gtest_main so as to parse the --verify flag
 int main(int argc, char** argv) {
   testing::InitGoogleTest(&argc, argv);
   google::ParseCommandLineFlags(&argc, &argv, true);
-  return RUN_ALL_TESTS();
+  g_state.reset(new THCState);
+  THCudaInit(g_state.get());
+
+  auto ret = RUN_ALL_TESTS();
+  THCudaShutdown(g_state.get());
+  return ret;
 }
 
 namespace facebook { namespace deeplearning { namespace torch { namespace test {
@@ -466,17 +473,12 @@ class TorchTest : public ConvolutionModule {
 
     // Torch APIs don't take input/filters as const even though they
     // effectively are
-    auto inputTH = input.moveAsTH();
-    auto filtersTH = filters.moveAsTH();
-    auto outputTH = output.moveAsTH();
+    auto inputTH = input.asTH();
+    auto filtersTH = filters.asTH();
+    auto outputTH = output.asTH();
 
     THFloatTensor_conv2Dmm(outputTH, 1.0, 1.0, inputTH, filtersTH,
                            filterRowStride, filterColStride, "V", "X");
-
-    // Rebind for evaluation and cleanup
-    output = std::move(outputTH);
-    input = std::move(inputTH);
-    filters = std::move(filtersTH);
   }
 
   void updateGradInput(
@@ -488,20 +490,15 @@ class TorchTest : public ConvolutionModule {
     Tensor<float>& input) override {
     ASSERT_FALSE(inputPadding); // padding not supported
 
-    auto inputTH = input.moveAsTH();
-    auto outputTH = output.moveAsTH();
+    auto inputTH = input.asTH();
+    auto outputTH = output.asTH();
 
     // Torch requires transposition of filters
     filters.transpose(0, 1);
-    auto filtersTH = filters.moveAsTH();
+    auto filtersTH = filters.asTH();
 
     THFloatTensor_conv2Dmm(inputTH, 0.0, 1.0, outputTH, filtersTH,
                            filterRowStride, filterColStride, "F", "C");
-
-    // Rebind for evaluation and cleanup
-    input = std::move(inputTH);
-    output = std::move(outputTH);
-    filters = std::move(filtersTH);
   }
 
   void accGradParameters(
@@ -514,18 +511,13 @@ class TorchTest : public ConvolutionModule {
     Tensor<float>& filters) override {
     ASSERT_FALSE(inputPadding); // padding not supported
 
-    auto inputTH = input.moveAsTH();
-    auto outputTH = output.moveAsTH();
-    auto filtersTH = filters.moveAsTH();
+    auto inputTH = input.asTH();
+    auto outputTH = output.asTH();
+    auto filtersTH = filters.asTH();
 
     THFloatTensor_conv2DRevgerm(filtersTH, 1.0, scale,
                                 inputTH, outputTH,
                                 filterRowStride, filterColStride);
-
-    // Rebind for evaluation and cleanup
-    input = std::move(inputTH);
-    output = std::move(outputTH);
-    filters = std::move(filtersTH);
   }
 };
 
@@ -588,8 +580,8 @@ class InputCentricTest : public ConvolutionModule {
     Tensor<float>& output) override {
     ASSERT_FALSE(inputPadding); // padding not supported
 
-    auto inputCuda = copyToCuda(nullptr, input);
-    auto filtersCuda = copyToCuda(nullptr, filters);
+    auto inputCuda = copyToCuda(g_state.get(), input);
+    auto filtersCuda = copyToCuda(g_state.get(), filters);
 
     CHECK(layout == Layout::Relayout) <<
       "Only Relayout mode is supported for this kernel atm";
@@ -609,13 +601,13 @@ class InputCentricTest : public ConvolutionModule {
         }
       }
     }
-    auto filtersCudaTmp = copyToCuda(nullptr, filtersTmp);
+    auto filtersCudaTmp = copyToCuda(g_state.get(), filtersTmp);
 
     // Relayout output, for instance for 32 x 96 x 71 x 71 we get
     const int filterRowSize = filters.size(2);
     const int ceilFilterSizeFilterStride =
       (filterRowSize + filterRowStride - 1) / filterRowStride;
-    auto outputCudaTmp = makeTHCudaTensorFull(nullptr, {
+    auto outputCudaTmp = makeTHCudaTensorFull(g_state.get(), {
         output.size(0),      // 32
           // 71 + 2 * ceilFilterSizeFilterStride
           // This expansion by 2 * ceilFilterSizeFilterStride allows us to
@@ -627,7 +619,7 @@ class InputCentricTest : public ConvolutionModule {
       );
 
     bool result =
-      InputCentricRelayoutConvolution_UpdateOutput(nullptr,
+      InputCentricRelayoutConvolution_UpdateOutput(g_state.get(),
                                                    inputCuda.get(),
                                                    filtersCudaTmp.get(),
                                                    filterRowStride,
@@ -637,7 +629,7 @@ class InputCentricTest : public ConvolutionModule {
     EXPECT_TRUE(result);
 
     // Recover actual output from layout
-    auto outputTmp = copyFromCuda(nullptr, outputCudaTmp.get());
+    auto outputTmp = copyFromCuda(g_state.get(), outputCudaTmp.get());
     for (long i = 0; i < output.size(0); ++i) {
       for (long j = 0; j < output.size(1); ++j) {
         for (long k = 0; k < output.size(2); ++k) {
@@ -707,33 +699,34 @@ class CuFFT : public ConvolutionModule {
       std::max(filters.size(3), output.size(3)));
 
     std::vector<long> maxSizes({maxRows, maxCols});
-    auto realComplexPair = makeCuFFTTensors<kFFTDims>(nullptr, input, maxSizes);
+    auto realComplexPair =
+      makeCuFFTTensors<kFFTDims>(g_state.get(), input, maxSizes);
     auto inputTHCudaTensor = std::move(realComplexPair.first);
     auto inputComplexTHCudaTensor = std::move(realComplexPair.second);
     auto inputComplexTHCudaTensorT = makeCuFFTTensorComplex<kFFTDims>(
-      nullptr, inputTHCudaTensor.get(), maxSizes);
+      g_state.get(), inputTHCudaTensor.get(), maxSizes);
 
     realComplexPair =
-      makeCuFFTTensors<kFFTDims>(nullptr, filters, maxSizes);
+      makeCuFFTTensors<kFFTDims>(g_state.get(), filters, maxSizes);
     auto filtersTHCudaTensor = std::move(realComplexPair.first);
     auto filtersComplexTHCudaTensor = std::move(realComplexPair.second);
     auto filtersComplexTHCudaTensorT = makeCuFFTTensorComplex<kFFTDims>(
-      nullptr, filtersTHCudaTensor.get(), maxSizes);
+      g_state.get(), filtersTHCudaTensor.get(), maxSizes);
 
     realComplexPair =
-      makeCuFFTTensors<kFFTDims>(nullptr, output, maxSizes);
+      makeCuFFTTensors<kFFTDims>(g_state.get(), output, maxSizes);
     auto outputTHCudaTensor = std::move(realComplexPair.first);
     auto outputComplexTHCudaTensor = std::move(realComplexPair.second);
     auto outputComplexTHCudaTensorT = makeCuFFTTensorComplex<kFFTDims>(
-      nullptr, outputTHCudaTensor.get(), maxSizes);
+      g_state.get(), outputTHCudaTensor.get(), maxSizes);
 
     // We don't test the bias here
-    auto bias = Tensor<float>{{output.size(0)}};
+    auto bias = Tensor<float>{output.size(0)};
     bias.fill(0);
-    auto biasCuda = copyToCuda(nullptr, bias);
+    auto biasCuda = copyToCuda(g_state.get(), bias);
 
     if (impl_ == Implementation::Reference) {
-      CuFFTConvolution_ReferenceUpdateOutput(nullptr,
+      CuFFTConvolution_ReferenceUpdateOutput(g_state.get(),
                                              inputTHCudaTensor.get(),
                                              filtersTHCudaTensor.get(),
                                              outputTHCudaTensor.get(),
@@ -742,7 +735,7 @@ class CuFFT : public ConvolutionModule {
                                              filtersComplexTHCudaTensor.get(),
                                              outputComplexTHCudaTensor.get());
     } else {
-      CuFFTConvolution_UpdateOutput(nullptr,
+      CuFFTConvolution_UpdateOutput(g_state.get(),
                                     inputTHCudaTensor.get(),
                                     filtersTHCudaTensor.get(),
                                     outputTHCudaTensor.get(),
@@ -757,13 +750,14 @@ class CuFFT : public ConvolutionModule {
 
     if (FLAGS_verify) {
       checkExpectedInput(input,
-                         copyFromCuda(nullptr, inputTHCudaTensor.get()));
+                         copyFromCuda(g_state.get(), inputTHCudaTensor.get()));
       checkExpectedInput(filters,
-                         copyFromCuda(nullptr, filtersTHCudaTensor.get()));
+                         copyFromCuda(g_state.get(),
+                                      filtersTHCudaTensor.get()));
 
       // Recover actual output from padded layout, output is smaller
       // than outputTmp when kernelSize > 1
-      auto outputTmp = copyFromCuda(nullptr, outputTHCudaTensor.get());
+      auto outputTmp = copyFromCuda(g_state.get(), outputTHCudaTensor.get());
       for (long i = 0; i < output.size(0); ++i) {
         for (long j = 0; j < output.size(1); ++j) {
           for (long k = 0; k < output.size(2); ++k) {
@@ -802,34 +796,34 @@ class CuFFT : public ConvolutionModule {
 
     std::vector<long> maxSizes({maxRows, maxCols});
     auto realComplexPair =
-      makeCuFFTTensors<kFFTDims>(nullptr, input, maxSizes);
+      makeCuFFTTensors<kFFTDims>(g_state.get(), input, maxSizes);
     auto inputTHCudaTensor = std::move(realComplexPair.first);
     auto inputComplexTHCudaTensor = std::move(realComplexPair.second);
     auto inputComplexTHCudaTensorT = makeCuFFTTensorComplex<kFFTDims>(
-      nullptr, inputTHCudaTensor.get(), maxSizes);
+      g_state.get(), inputTHCudaTensor.get(), maxSizes);
 
     realComplexPair =
-      makeCuFFTTensors<kFFTDims>(nullptr, filters, maxSizes);
+      makeCuFFTTensors<kFFTDims>(g_state.get(), filters, maxSizes);
     auto filtersTHCudaTensor = std::move(realComplexPair.first);
     auto filtersComplexTHCudaTensor = std::move(realComplexPair.second);
     auto filtersComplexTHCudaTensorT = makeCuFFTTensorComplex<kFFTDims>(
-      nullptr, filtersTHCudaTensor.get(), maxSizes);
+      g_state.get(), filtersTHCudaTensor.get(), maxSizes);
 
     realComplexPair =
-      makeCuFFTTensors<kFFTDims>(nullptr, output, maxSizes);
+      makeCuFFTTensors<kFFTDims>(g_state.get(), output, maxSizes);
     auto outputTHCudaTensor = std::move(realComplexPair.first);
     auto outputComplexTHCudaTensor = std::move(realComplexPair.second);
     auto outputComplexTHCudaTensorT = makeCuFFTTensorComplex<kFFTDims>(
-      nullptr, outputTHCudaTensor.get(), maxSizes);
+      g_state.get(), outputTHCudaTensor.get(), maxSizes);
 
     // We don't test the bias here
-    auto bias = Tensor<float>{{filters.size(0)}};
+    auto bias = Tensor<float>{filters.size(0)};
     bias.fill(0);
-    auto biasCuda = copyToCuda(nullptr, bias);
+    auto biasCuda = copyToCuda(g_state.get(), bias);
 
     if (impl_ == Implementation::Reference) {
       CuFFTConvolution_ReferenceAccGradParameters(
-        nullptr,
+        g_state.get(),
         inputTHCudaTensor.get(),
         filtersTHCudaTensor.get(),
         outputTHCudaTensor.get(),
@@ -839,7 +833,7 @@ class CuFFT : public ConvolutionModule {
         filtersComplexTHCudaTensor.get(),
         outputComplexTHCudaTensor.get());
     } else {
-      CuFFTConvolution_AccGradParameters(nullptr,
+      CuFFTConvolution_AccGradParameters(g_state.get(),
                                          inputTHCudaTensor.get(),
                                          filtersTHCudaTensor.get(),
                                          outputTHCudaTensor.get(),
@@ -855,12 +849,12 @@ class CuFFT : public ConvolutionModule {
 
     if (FLAGS_verify) {
       checkExpectedInput(input,
-                         copyFromCuda(nullptr, inputTHCudaTensor.get()));
+                         copyFromCuda(g_state.get(), inputTHCudaTensor.get()));
       checkExpectedInput(output,
-                         copyFromCuda(nullptr, outputTHCudaTensor.get()));
+                         copyFromCuda(g_state.get(), outputTHCudaTensor.get()));
       // Recover actual filters from padded layout, filters is smaller
       // than filtersTmp when kernelSize > 1
-      auto filtersTmp = copyFromCuda(nullptr, filtersTHCudaTensor.get());
+      auto filtersTmp = copyFromCuda(g_state.get(), filtersTHCudaTensor.get());
       for (long i = 0; i < filters.size(0); ++i) {
         for (long j = 0; j < filters.size(1); ++j) {
           for (long k = 0; k < filters.size(2); ++k) {
@@ -896,30 +890,30 @@ class CuFFT : public ConvolutionModule {
 
     std::vector<long> maxSizes({maxRows, maxCols});
     auto realComplexPair =
-      makeCuFFTTensors<kFFTDims>(nullptr, input, maxSizes);
+      makeCuFFTTensors<kFFTDims>(g_state.get(), input, maxSizes);
     auto inputTHCudaTensor = std::move(realComplexPair.first);
     auto inputComplexTHCudaTensor = std::move(realComplexPair.second);
     auto inputComplexTHCudaTensorT = makeCuFFTTensorComplex<kFFTDims>(
-      nullptr, inputTHCudaTensor.get(), maxSizes);
+      g_state.get(), inputTHCudaTensor.get(), maxSizes);
 
     realComplexPair =
-      makeCuFFTTensors<kFFTDims>(nullptr, filters, maxSizes);
+      makeCuFFTTensors<kFFTDims>(g_state.get(), filters, maxSizes);
     auto filtersTHCudaTensor = std::move(realComplexPair.first);
     auto filtersComplexTHCudaTensor = std::move(realComplexPair.second);
     auto filtersComplexTHCudaTensorT =
       makeCuFFTTensorComplex<kFFTDims>(
-        nullptr, filtersTHCudaTensor.get(), maxSizes);
+        g_state.get(), filtersTHCudaTensor.get(), maxSizes);
 
     realComplexPair =
-      makeCuFFTTensors<kFFTDims>(nullptr, output, maxSizes);
+      makeCuFFTTensors<kFFTDims>(g_state.get(), output, maxSizes);
     auto outputTHCudaTensor = std::move(realComplexPair.first);
     auto outputComplexTHCudaTensor = std::move(realComplexPair.second);
     auto outputComplexTHCudaTensorT = makeCuFFTTensorComplex<kFFTDims>(
-      nullptr, outputTHCudaTensor.get(), maxSizes);
+      g_state.get(), outputTHCudaTensor.get(), maxSizes);
 
     if (impl_ == Implementation::Reference) {
       CuFFTConvolution_ReferenceUpdateGradInput(
-        nullptr,
+        g_state.get(),
         inputTHCudaTensor.get(),
         filtersTHCudaTensor.get(),
         outputTHCudaTensor.get(),
@@ -928,7 +922,7 @@ class CuFFT : public ConvolutionModule {
         outputComplexTHCudaTensor.get());
     } else {
       CuFFTConvolution_UpdateGradInput(
-        nullptr,
+        g_state.get(),
         inputTHCudaTensor.get(),
         filtersTHCudaTensor.get(),
         outputTHCudaTensor.get(),
@@ -942,12 +936,13 @@ class CuFFT : public ConvolutionModule {
 
     if (FLAGS_verify) {
       checkExpectedInput(filters,
-                         copyFromCuda(nullptr, filtersTHCudaTensor.get()));
+                         copyFromCuda(g_state.get(),
+                                      filtersTHCudaTensor.get()));
       checkExpectedInput(output,
-                         copyFromCuda(nullptr, outputTHCudaTensor.get()));
+                         copyFromCuda(g_state.get(), outputTHCudaTensor.get()));
       // Recover actual filters from padded layout, filters is smaller
       // than filtersTmp when kernelSize > 1
-      auto inputTmp = copyFromCuda(nullptr, inputTHCudaTensor.get());
+      auto inputTmp = copyFromCuda(g_state.get(), inputTHCudaTensor.get());
       for (long i = 0; i < input.size(0); ++i) {
         for (long j = 0; j < input.size(1); ++j) {
           for (long k = 0; k < input.size(2); ++k) {
@@ -1376,7 +1371,7 @@ TEST(CudaConvolutionTest, CuFFT_updateGradInput_fixed) {
 
   CuFFT::checkExpectedInput(
     expectedInput,
-    copyFromCuda(nullptr, cufft.saveInputTHCudaTensor.get()));
+    copyFromCuda(g_state.get(), cufft.saveInputTHCudaTensor.get()));
 }
 
 } } } } // namespace

@@ -4,7 +4,7 @@
 
 #include "thpp/Tensor.h"
 #include "THCTensor.h"
-#include "CudaTensorUtils.h"
+#include "src/CudaTensorUtils.h"
 
 #include <glog/logging.h>
 #include <vector>

@@ -117,6 +117,50 @@ function fbcunntest.TemporalMaxPoolingBatch()
                            1e-4, 'error on backward batch')
 end
 
+function fbcunntest.testDoG()
+
+  -- load image:
+    require 'image'
+    local input = image.scale(image.lena(), 16, 16, 'bilinear'):cuda()
+    local numChannels = input:size(1)
+
+    -- construct module:
+    local nOctaves = 3
+    local nScalesPerOctave = 4
+    local module = nn.DifferenceOfGaussian(
+        numChannels,
+        nOctaves,
+        nScalesPerOctave
+    ):cuda()
+
+    -- test forward pass:
+    local output = module:forward(input)
+    assert(type(output) == 'table')
+    assert(#output == nOctaves)
+    for n = 1,nOctaves do
+        assert(output[n]:size(1) == nScalesPerOctave * numChannels)
+    end
+
+    -- repeat the forward tests in batch mode:
+    local batchSize = 8
+    local batchInput = input.new(
+        batchSize,
+        input:size(1),
+        input:size(2),
+        input:size(3)
+    )
+    for n = 1,batchSize do
+        batchInput[n]:copy(input):add(torch.randn(input:size()):cuda(), 0.05)
+    end
+    output = module:forward(batchInput)
+    assert(type(output) == 'table')
+    assert(#output == nOctaves)
+    for n = 1,nOctaves do
+        assert(output[n]:size(1) == batchSize)
+        assert(output[n]:size(2) == nScalesPerOctave * numChannels)
+    end
+end
+
 function fbcunntest.Optim()
     require 'cunn'
     local fboptim = require 'fboptim'

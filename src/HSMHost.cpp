@@ -3,7 +3,7 @@
  * @author Michael Mathieu (myrhev@fb.com)
  */
 
-#include "Utils.h"
+#include "src/Utils.h"
 #include <lua.hpp>
 #include <TH.h>
 #include "THC.h"

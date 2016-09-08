@@ -2,8 +2,8 @@
 #pragma once
 
 #include "cuda/DeviceTensor.cuh"
-#include "cuda/fbfft/FBFFT.h"
-#include "Utils.cuh"
+#include "cuda/fbfft/FBFFT.cuh"
+#include "src/fft/Utils.cuh"
 
 #include <cufft.h>
 
@@ -16,11 +16,12 @@ class FFTParameters {
   // Normalization occurs only in inverse FFT (by 1 / (M.N)) since CuFFT does
   // unnormalized FFTs by default
   FFTParameters() :
-      version(cufft), direction_(true), normalize_(true) {}
+      version(cufft), direction_(true), normalize_(true), padLeft_(0), padUp_(0)
+    {}
 
   operator facebook::cuda::fbfft::FBFFTParameters() const {
     facebook::cuda::fbfft::FBFFTParameters res;
-    res = res.normalize(normalize_);
+    res = res.normalize(normalize_).withPadLeft(padLeft_).withPadUp(padUp_);
     return (direction_) ? res.forward() : res.inverse();
   }
 
@@ -49,11 +50,23 @@ class FFTParameters {
     return *this;
   }
 
+  FFTParameters& withPadLeft(int p) {
+    padLeft_ = p;
+    return *this;
+  }
+
+  FFTParameters& withPadUp(int p) {
+    padUp_ = p;
+    return *this;
+  }
+
   bool forwardFFT() const { return  direction_; }
   bool inverseFFT() const { return !direction_; }
   bool normalizeFFT() const { return normalize_; }
   bool cuFFT() const { return version == cufft; }
   bool fbFFT() const { return version == fbfft; }
+  int padLeft() const { return padLeft_; }
+  int padUp() const { return padUp_; }
 
   template <bool Hermitian>
   std::vector<long> makeComplexTensorSizes(
@@ -99,6 +112,8 @@ class FFTParameters {
  private:
   bool direction_;
   bool normalize_;
+  int padLeft_;
+  int padUp_;
 };
 
 template <int NumBatch, int RealTensorDim>

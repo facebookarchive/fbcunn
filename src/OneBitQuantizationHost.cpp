@@ -1,11 +1,11 @@
 // Copyright 2014 Facebook
 
 #include "cuda/DeviceTensor.cuh"
-#include "DeviceTensorUtils.h"
-#include "Utils.h"
+#include "src/DeviceTensorUtils.h"
+#include "src/Utils.h"
 #include "THC.h"
 #include "THCTensor.h"
-#include "OneBitQuantization.cuh"
+#include "src/OneBitQuantization.cuh"
 
 #include <cuda_runtime.h>
 #include <glog/logging.h>

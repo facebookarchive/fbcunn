@@ -3,9 +3,9 @@
 #include <algorithm>
 #include <assert.h>
 
-#include "util/Transform.cuh"
+#include "src/util/Transform.cuh"
 
-namespace facebook { namespace CUDAUtil {
+namespace facebook { namespace cuda {
 
 template<typename Operator>
 __global__ static void

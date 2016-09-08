@@ -3,13 +3,14 @@
  * @author Tudor Bosman (tudorb@fb.com)
  */
 
-#include "util/AsyncCopier.h"
-#include "util/Misc.h"
+#include "src/util/AsyncCopier.h"
+#include "src/util/Misc.h"
+
 #include <exception>
 #include <folly/Format.h>
 #include <glog/logging.h>
 
-namespace facebook { namespace CUDAUtil {
+namespace facebook { namespace cuda {
 
 uint8_t* allocPageLocked(size_t size) {
   void* ptr;

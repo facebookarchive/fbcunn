@@ -77,7 +77,8 @@ function testSequentialCriterion()
       local n_classes = torch.random(200)
       local module = nn.Linear(input_size, n_classes)
       local crit = nn.ClassNLLCriterion()
-      testSequentialCriterion_run(input_size, n_classes, module, crit)
+      testSequentialCriterion_run(input_size, n_classes, module,
+                                  crit, 'torch.LongTensor')
 
       -- try with HSM
       local input1_size = torch.random(200)

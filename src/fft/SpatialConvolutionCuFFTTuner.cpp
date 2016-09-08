@@ -1,11 +1,11 @@
 // Copyright 2014 Facebook
 
-#include "SpatialConvolutionCuFFTTuner.h"
+#include "src/fft/SpatialConvolutionCuFFTTuner.h"
 
 #include "cuda/KernelTimer.h"
 #include "THC.h"
-#include "CuFFTStrategy.h"
-#include "SpatialConvolutionCuFFT.h"
+#include "src/fft/CuFFTStrategy.h"
+#include "src/fft/SpatialConvolutionCuFFT.h"
 
 #include <cublas_v2.h>
 #include <cuda_runtime.h>

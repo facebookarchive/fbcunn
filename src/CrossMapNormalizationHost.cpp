@@ -4,8 +4,8 @@
  */
 
 #include "THC.h"
-#include "CrossMapNormalization.cuh"
-#include "Utils.h"
+#include "src/CrossMapNormalization.cuh"
+#include "src/Utils.h"
 #include <luaT.h>
 #include <lua.hpp>
 

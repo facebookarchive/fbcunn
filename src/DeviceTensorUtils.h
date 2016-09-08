@@ -51,4 +51,4 @@ torchToDeviceTensorCast(THCState* state, THCudaTensor* t) {
 
 } } }  // namespace
 
-#include "DeviceTensorUtils-inl.h"
+#include "src/DeviceTensorUtils-inl.h"

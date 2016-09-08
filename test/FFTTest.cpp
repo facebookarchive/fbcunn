@@ -1,11 +1,11 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "torch/fb/fbcunn/src/DeviceTensorUtils.h"
+#include "src/DeviceTensorUtils.h"
 #include "THCTensor.h"
-#include "torch/fb/fbcunn/src/fft/CuFFTWrapper.cuh"
-#include "torch/fb/fbcunn/test/InputCentricConvolution_UpdateOutput.cuh"
-#include "torch/fb/fbcunn/test/ReferenceConvolutions.h"
-#include "torch/fb/fbcunn/test/TestUtils.h"
+#include "src/fft/CuFFTWrapper.cuh"
+#include "test/InputCentricConvolution_UpdateOutput.cuh"
+#include "test/ReferenceConvolutions.h"
+#include "test/TestUtils.h"
 
 #include <folly/Optional.h>
 
@@ -18,11 +18,18 @@ using namespace facebook::deeplearning::torch;
 
 DEFINE_bool(verify, true, "Run the convolution and verify the output");
 
+unique_ptr<THCState> g_state;
+
 // Override gtest_main so as to parse the --verify flag
 int main(int argc, char** argv) {
   testing::InitGoogleTest(&argc, argv);
   google::ParseCommandLineFlags(&argc, &argv, true);
-  return RUN_ALL_TESTS();
+  g_state.reset(new THCState);
+  THCudaInit(g_state.get());
+
+  auto ret = RUN_ALL_TESTS();
+  THCudaShutdown(g_state.get());
+  return ret;
 }
 
 namespace facebook { namespace deeplearning { namespace torch { namespace test {
@@ -81,16 +88,16 @@ class FFTTestBase : public ::testing::Test {
     }
 
     auto realComplexPair =
-      makeCuFFTTensors<FFTDim>(nullptr, input, FFTSize, cfg.inPlace);
+      makeCuFFTTensors<FFTDim>(g_state.get(), input, FFTSize, cfg.inPlace);
     inputTHCudaTensor = std::move(realComplexPair.first);
     fftTHCudaTensor = std::move(realComplexPair.second);
 
     inputCudaTensor =
       torchToDeviceTensor<float, FFTDim + BatchDim>(
-        nullptr, inputTHCudaTensor.get());
+        g_state.get(), inputTHCudaTensor.get());
     outputCudaTensor =
       torchToDeviceTensor<float, FFTDim + BatchDim + 1>(
-        nullptr, fftTHCudaTensor.get());
+        g_state.get(), fftTHCudaTensor.get());
 
     if (cfg.inPlace == FFTOutputSpecification::InPlace) {
       CHECK_EQ(inputCudaTensor.data(), outputCudaTensor.data());
@@ -220,7 +227,7 @@ TEST_F(FFT2DTest, test2x2ConstantInPlace) {
   fft2d<2>(inputCudaTensor, outputCudaTensor);
 
   checkExpectedOutput(expected,
-                      copyFromCuda(nullptr, fftTHCudaTensor.get()));
+                      copyFromCuda(g_state.get(), fftTHCudaTensor.get()));
 }
 
 TEST_F(FFT2DTest, test2x2ConstantOutOfPlace) {
@@ -253,7 +260,7 @@ TEST_F(FFT2DTest, test2x2ConstantOutOfPlace) {
   fft2d<2>(inputCudaTensor, outputCudaTensor);
 
   checkExpectedOutput(expected,
-                      copyFromCuda(nullptr, fftTHCudaTensor.get()));
+                      copyFromCuda(g_state.get(), fftTHCudaTensor.get()));
 }
 
 TEST_F(FFT2DTest, test2x2VariableInPlace) {
@@ -290,7 +297,7 @@ TEST_F(FFT2DTest, test2x2VariableInPlace) {
   fft2d<2>(inputCudaTensor, outputCudaTensor);
 
   checkExpectedOutput(expected,
-                      copyFromCuda(nullptr, fftTHCudaTensor.get()));
+                      copyFromCuda(g_state.get(), fftTHCudaTensor.get()));
 }
 
 TEST_F(FFT2DTest, test2x2VariableOutOfPlace) {
@@ -328,7 +335,7 @@ TEST_F(FFT2DTest, test2x2VariableOutOfPlace) {
   fft2d<2>(inputCudaTensor, outputCudaTensor);
 
   checkExpectedOutput(expected,
-                      copyFromCuda(nullptr, fftTHCudaTensor.get()));
+                      copyFromCuda(g_state.get(), fftTHCudaTensor.get()));
 }
 
 TEST_F(FFT2DTest, test1x2ConstantInPlacePadded) {
@@ -365,7 +372,7 @@ TEST_F(FFT2DTest, test1x2ConstantInPlacePadded) {
   fft2d<2>(inputCudaTensor, outputCudaTensor);
 
   checkExpectedOutput(expected,
-                      copyFromCuda(nullptr, fftTHCudaTensor.get()));
+                      copyFromCuda(g_state.get(), fftTHCudaTensor.get()));
 }
 
 TEST_F(FFT2DTest, test1x2ConstantOutOfPlacePadded) {
@@ -402,7 +409,7 @@ TEST_F(FFT2DTest, test1x2ConstantOutOfPlacePadded) {
   fft2d<2>(inputCudaTensor, outputCudaTensor);
 
   checkExpectedOutput(expected,
-                      copyFromCuda(nullptr, fftTHCudaTensor.get()));
+                      copyFromCuda(g_state.get(), fftTHCudaTensor.get()));
 }
 
 TEST_F(FFT2DTest, test2x2ConstantInPlacePadded) {
@@ -456,7 +463,7 @@ TEST_F(FFT2DTest, test2x2ConstantInPlacePadded) {
 
   // One element does not check at 1e-6f error
   checkExpectedOutput(expected,
-                      copyFromCuda(nullptr, fftTHCudaTensor.get()),
+                      copyFromCuda(g_state.get(), fftTHCudaTensor.get()),
                       5e-5f);
 }
 
@@ -515,7 +522,7 @@ TEST_F(FFT2DTest, test2x2ConstantOutOfPlacePadded) {
 
   // One element does not check at 1e-6f error
   checkExpectedOutput(expected,
-                      copyFromCuda(nullptr, fftTHCudaTensor.get()),
+                      copyFromCuda(g_state.get(), fftTHCudaTensor.get()),
                       5e-5f);
 }
 
@@ -552,7 +559,7 @@ TEST_F(FFT2DTest, testInverseOutOfPlace) {
 
   // First element does not check at 5e-5f error
   checkExpectedInput(input,
-                     copyFromCuda(nullptr, inputTHCudaTensor.get()),
+                     copyFromCuda(g_state.get(), inputTHCudaTensor.get()),
                      5e-4f);
 }
 
@@ -588,7 +595,7 @@ TEST_F(FFT2DTest, testInverseInPlace) {
 
   // First element does not check at 1e-6f error
   checkExpectedInput(input,
-                     copyFromCuda(nullptr, inputTHCudaTensor.get()),
+                     copyFromCuda(g_state.get(), inputTHCudaTensor.get()),
                      5e-5f);
 }
 
@@ -625,7 +632,7 @@ TEST_F(FFT2DTest, testInverseOutOfPlacePadded) {
 
   // First element does not check at 5e-5f error
   checkExpectedInput(input,
-                     copyFromCuda(nullptr, inputTHCudaTensor.get()),
+                     copyFromCuda(g_state.get(), inputTHCudaTensor.get()),
                      5e-4f);
 }
 
@@ -677,7 +684,7 @@ TEST_F(FFT1DTest, test1x4VariableOutOfPlacePadded) {
   fft1d<3>(inputCudaTensor, outputCudaTensor);
 
   checkExpectedOutput(expected,
-                      copyFromCuda(nullptr, fftTHCudaTensor.get()));
+                      copyFromCuda(g_state.get(), fftTHCudaTensor.get()));
 }
 
 TEST_F(FFT1DTest, test1x4VariableInPlacePadded) {
@@ -728,7 +735,7 @@ TEST_F(FFT1DTest, test1x4VariableInPlacePadded) {
   fft1d<3>(inputCudaTensor, outputCudaTensor);
 
   checkExpectedOutput(expected,
-                      copyFromCuda(nullptr, fftTHCudaTensor.get()));
+                      copyFromCuda(g_state.get(), fftTHCudaTensor.get()));
 }
 
 TEST_F(FFT1DTest, testInverseInPlace) {
@@ -762,7 +769,7 @@ TEST_F(FFT1DTest, testInverseInPlace) {
   fft1d<3>(inputCudaTensor, outputCudaTensor, FFTParameters().inverse());
 
   checkExpectedInput(input,
-                     copyFromCuda(nullptr, inputTHCudaTensor.get()));
+                     copyFromCuda(g_state.get(), inputTHCudaTensor.get()));
 }
 
 TEST_F(FFT1DTest, testInverseOutOfPlacePadded) {
@@ -797,7 +804,7 @@ TEST_F(FFT1DTest, testInverseOutOfPlacePadded) {
   fft1d<3>(inputCudaTensor, outputCudaTensor, FFTParameters().inverse());
 
   checkExpectedInput(input,
-                     copyFromCuda(nullptr, inputTHCudaTensor.get()),
+                     copyFromCuda(g_state.get(), inputTHCudaTensor.get()),
                      5e-5f);
 }
 

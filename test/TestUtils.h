@@ -2,11 +2,11 @@
 
 #pragma once
 #include "cuda/DeviceTensor.cuh"
-#include "torch/fb/fbcunn/src/CudaTensorUtils.h"
-#include "torch/fb/fbcunn/src/DeviceTensorUtils.h"
+#include "src/CudaTensorUtils.h"
+#include "src/DeviceTensorUtils.h"
 #include "THCTensor.h"
-#include "torch/fb/fbcunn/src/fft/CuFFTConvolution_UpdateOutput.cuh"
-#include "torch/fb/fbcunn/src/fft/Utils.h"
+#include "src/fft/CuFFTConvolution_UpdateOutput.cuh"
+#include "src/fft/Utils.h"
 
 #include <folly/Optional.h>
 #include <tuple>

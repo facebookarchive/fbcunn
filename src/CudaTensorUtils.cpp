@@ -1,5 +1,5 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
-#include "CudaTensorUtils.h"
+#include "src/CudaTensorUtils.h"
 #include "THC.h"
 
 using namespace std;
@@ -107,10 +107,10 @@ makeAliasedTHCudaTensorFull(THCState* state,
   }
 
   auto szTH = LongStorage::wrap(
-    makeMutable(LongRange(sizesTH, sizes.size()))).moveAsTH();
+    folly::Range<long*>(sizesTH, sizes.size())).moveAsTH();
   SCOPE_EXIT { THLongStorage_free(szTH); };
   auto strTH = LongStorage::wrap(
-    makeMutable(LongRange(stridesTH, sizes.size()))).moveAsTH();
+    folly::Range<long*>(stridesTH, sizes.size())).moveAsTH();
   SCOPE_EXIT { THLongStorage_free(strTH); };
 
   auto tensor = THCudaTensor_newWithStorage(
@@ -148,9 +148,9 @@ Tensor<float> copyFromCuda(THCState* state, const THCudaTensor* ctensor) {
   return Tensor<float>(
     Storage<float>(dataTH), tensor->storageOffset,
     LongStorage::wrap(
-      makeMutable(LongRange(tensor->size, tensor->nDimension))),
+      folly::Range<long*>(tensor->size, tensor->nDimension)),
     LongStorage::wrap(
-      makeMutable(LongRange(tensor->stride, tensor->nDimension))));
+      folly::Range<long*>(tensor->stride, tensor->nDimension)));
 }
 
 unique_ptr<THCudaTensor, CudaTensorDeleter>

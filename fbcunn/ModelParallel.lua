@@ -182,3 +182,50 @@ function ModelParallel:updateGradInput(_input, gradOutput)
 
     return self.gradInput
 end
+
+
+function ModelParallel:backward(_input, gradOutput, scale)
+   self:_distributeGradOutput(_input, gradOutput)
+
+   scale = scale or 1
+   -- update gradInput for each module
+    for i,module in ipairs(self.modules) do
+        local gpuid = self.gpu_assignments[i]
+        withDevice(gpuid, function()
+            module:backward(self.input_gpu[gpuid],
+                            self.gradOutput_gpu[i],
+                            scale)
+        end)
+    end
+
+    if not self.gradInput then return end -- if gradInput is nil, do nothing
+    self.gradInput:resizeAs(self.input_gpu[self.container_gpuid])
+
+    -- add gradInputs
+    for i, module in ripairs(self.modules) do
+        if module.gradInput then
+            if i == 1 then
+                self.gradInput:copy(module.gradInput)
+                return self.gradInput
+            end
+
+            local parent_module_idx = math.floor(i / 2)
+            local parent_gpuid = self.gpu_assignments[parent_module_idx]
+            withDevice(parent_gpuid, function()
+                           if not self.gradInput_gpu[i] then
+                               self.gradInput_gpu[i] = torch.CudaTensor()
+                           end
+
+                           self.gradInput_gpu[i]:resizeAs(module.gradInput)
+                           self:gpuSend(self.gradInput_gpu[i], module.gradInput)
+                           self.modules[parent_module_idx].gradInput:add(
+                               self.gradInput_gpu[i])
+            end)
+        end
+    end
+
+    -- Combine gradients for data parallel models
+    self:_mixGrads()
+
+    return self.gradInput
+end

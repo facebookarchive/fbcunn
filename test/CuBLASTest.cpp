@@ -1,9 +1,9 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "torch/fb/fbcunn/src/DeviceTensorUtils.h"
+#include "src/DeviceTensorUtils.h"
 #include "THCTensor.h"
-#include "torch/fb/fbcunn/src/CuBLASWrapper.h"
-#include "torch/fb/fbcunn/test/TestUtils.h"
+#include "src/CuBLASWrapper.h"
+#include "test/TestUtils.h"
 
 #include <glog/logging.h>
 #include <gtest/gtest.h>
@@ -12,6 +12,20 @@ using namespace facebook::cuda;
 using namespace std;
 using namespace facebook::deeplearning::torch;
 using namespace thpp;
+
+unique_ptr<THCState> g_state;
+
+// Override gtest_main to initialize a THCState
+int main(int argc, char** argv) {
+  testing::InitGoogleTest(&argc, argv);
+  google::ParseCommandLineFlags(&argc, &argv, true);
+  g_state.reset(new THCState);
+  THCudaInit(g_state.get());
+
+  auto ret = RUN_ALL_TESTS();
+  THCudaShutdown(g_state.get());
+  return ret;
+}
 
 namespace facebook { namespace deeplearning { namespace torch { namespace test {
 
@@ -37,15 +51,15 @@ std::pair<std::unique_ptr<THCudaTensor, CudaTensorDeleter>,
                      bool asComplex = false) {
   CHECK_EQ(Dim, t.ndims());
   CHECK_EQ(Dim, tt.ndims());
-  auto tCuda = copyToCuda(nullptr, t);
-  auto ttCuda = copyToCuda(nullptr, tt);
+  auto tCuda = copyToCuda(g_state.get(), t);
+  auto ttCuda = copyToCuda(g_state.get(), tt);
   DeviceTensor<float, Dim> tCudaTensor =
-    torchToDeviceTensor<float, Dim>(nullptr, tCuda.get());
+    torchToDeviceTensor<float, Dim>(g_state.get(), tCuda.get());
   DeviceTensor<float, Dim> ttCudaTensor =
-    torchToDeviceTensor<float, Dim>(nullptr, ttCuda.get());
+    torchToDeviceTensor<float, Dim>(g_state.get(), ttCuda.get());
 
   transpose(tCudaTensor, ttCudaTensor, sep, asComplex);
-  tt = copyFromCuda(nullptr, ttCuda.get());
+  tt = copyFromCuda(g_state.get(), ttCuda.get());
   tt.resize(LongStorage(resizeTransposed));
   return make_pair(std::move(tCuda), std::move(ttCuda));
 }
@@ -58,11 +72,13 @@ void unTransposeAndCheckOutOfPlace(
     int sep,
     initializer_list<long> testSize,
     bool asComplex = false) {
-  auto ct = torchToDeviceTensor<float, Dim>(nullptr, pCudaTensor.first.get());
-  auto ctt = torchToDeviceTensor<float, Dim>(nullptr, pCudaTensor.second.get());
+  auto ct =
+    torchToDeviceTensor<float, Dim>(g_state.get(), pCudaTensor.first.get());
+  auto ctt =
+    torchToDeviceTensor<float, Dim>(g_state.get(), pCudaTensor.second.get());
 
   transpose(ct, ctt, Dim - sep, asComplex);
-  pTensor.second = copyFromCuda(nullptr, pCudaTensor.first.get());
+  pTensor.second = copyFromCuda(g_state.get(), pCudaTensor.first.get());
   pTensor.first.resize(LongStorage(testSize));
   pTensor.second.resize(LongStorage(testSize));
 

@@ -1,4 +1,4 @@
-#include <HalfPrec.h>
+#include <src/HalfPrec.h>
 #include <gtest/gtest.h>
 #include <common/math/Float16.h>
 #include <cuda.h>

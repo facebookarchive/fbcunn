@@ -3,8 +3,8 @@
 #include "TestUtils.h"
 #include "THCTensor.h"
 
-#include "torch/fb/fbcunn/src/DeviceTensorUtils.h"
-#include "torch/fb/fbcunn/src/ConvolutionBias.cuh"
+#include "src/DeviceTensorUtils.h"
+#include "src/ConvolutionBias.cuh"
 
 #include <glog/logging.h>
 #include <gtest/gtest.h>
@@ -13,6 +13,20 @@
 using namespace std;
 using namespace facebook::deeplearning::torch;
 using namespace thpp;
+
+unique_ptr<THCState> g_state;
+
+// Override gtest_main to initialize a THCState
+int main(int argc, char** argv) {
+  testing::InitGoogleTest(&argc, argv);
+  google::ParseCommandLineFlags(&argc, &argv, true);
+  g_state.reset(new THCState);
+  THCudaInit(g_state.get());
+
+  auto ret = RUN_ALL_TESTS();
+  THCudaShutdown(g_state.get());
+  return ret;
+}
 
 namespace facebook { namespace deeplearning { namespace torch { namespace bias {
 
@@ -177,17 +191,17 @@ void testOneAccGradParameters(long batchSize,
   auto expectedResult =
     referenceBiasAccGradParameters(output, gradBias, biasScale);
 
-  auto outputCuda = copyToCuda(nullptr, output);
-  auto gradBiasCuda = copyToCuda(nullptr, gradBias);
+  auto outputCuda = copyToCuda(g_state.get(), output);
+  auto gradBiasCuda = copyToCuda(g_state.get(), gradBias);
 
   for (int i = 0; i < nRep; i++) {
-    accGradParametersBias(nullptr,
+    accGradParametersBias(g_state.get(),
                           outputCuda.get(),
                           gradBiasCuda.get(),
                           biasScale);
   }
 
-  auto result = copyFromCuda(nullptr, gradBiasCuda.get());
+  auto result = copyFromCuda(g_state.get(), gradBiasCuda.get());
 
   // Due to order of reductions, our implementation is a little off
   auto comparison = test::compareTensors(expectedResult, result, 5e-4f);
@@ -213,17 +227,17 @@ void testOneAccGradParametersTemporal(long batchSize,
   auto expectedResult =
     referenceBiasAccGradParametersTemporal(output, gradBias, biasScale);
 
-  auto outputCuda = copyToCuda(nullptr, output);
-  auto gradBiasCuda = copyToCuda(nullptr, gradBias);
+  auto outputCuda = copyToCuda(g_state.get(), output);
+  auto gradBiasCuda = copyToCuda(g_state.get(), gradBias);
 
   for (int i = 0; i < nRep; i++) {
-    accGradParametersTemporalBias(nullptr,
+    accGradParametersTemporalBias(g_state.get(),
                                   outputCuda.get(),
                                   gradBiasCuda.get(),
                                   biasScale);
   }
 
-  auto result = copyFromCuda(nullptr, gradBiasCuda.get());
+  auto result = copyFromCuda(g_state.get(), gradBiasCuda.get());
 
   auto comparison = test::compareTensors(expectedResult, result, 5e-4f);
   EXPECT_TRUE(comparison.first) << comparison.second;
@@ -255,12 +269,12 @@ TEST(BiasTest, testUpdateOutput) {
     auto bias = makeBiasTensor(numPlanes);
     auto expectedResult = referenceBiasUpdateOutput(output, bias);
 
-    auto outputCuda = copyToCuda(nullptr, output);
-    auto biasCuda = copyToCuda(nullptr, bias);
+    auto outputCuda = copyToCuda(g_state.get(), output);
+    auto biasCuda = copyToCuda(g_state.get(), bias);
 
-    updateOutputBias(nullptr, outputCuda.get(), biasCuda.get());
+    updateOutputBias(g_state.get(), outputCuda.get(), biasCuda.get());
 
-    auto result = copyFromCuda(nullptr, outputCuda.get());
+    auto result = copyFromCuda(g_state.get(), outputCuda.get());
 
     auto comparison = test::compareTensors(expectedResult, result);
     EXPECT_TRUE(comparison.first) << comparison.second;
@@ -288,12 +302,12 @@ TEST(BiasTest, testUpdateOutputTemporal) {
     Tensor<float> transposedOutput;
     auto expectedResult = referenceBiasUpdateOutputTemporal(output, bias);
 
-    auto outputCuda = copyToCuda(nullptr, output);
-    auto biasCuda = copyToCuda(nullptr, bias);
+    auto outputCuda = copyToCuda(g_state.get(), output);
+    auto biasCuda = copyToCuda(g_state.get(), bias);
 
-    updateOutputTemporalBias(nullptr, outputCuda.get(), biasCuda.get());
+    updateOutputTemporalBias(g_state.get(), outputCuda.get(), biasCuda.get());
 
-    auto result = copyFromCuda(nullptr, outputCuda.get());
+    auto result = copyFromCuda(g_state.get(), outputCuda.get());
 
     auto comparison = test::compareTensors(expectedResult, result);
     EXPECT_TRUE(comparison.first) << comparison.second;

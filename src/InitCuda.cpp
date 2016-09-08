@@ -5,6 +5,11 @@
 
 #include <lua.hpp>
 
+#ifdef FB_INTERNAL
+#else
+#define LUAOPEN(x) luaopen_fbcunn_cuda_ext(x)
+#endif
+
 namespace facebook { namespace deeplearning { namespace torch {
 
 void initCrossMapNormalizationCuda(lua_State* L);
@@ -17,14 +22,15 @@ void initOneBitQuantizationCuda(lua_State* L);
 void initSparseNLLCriterionCuda(lua_State* L);
 void initFeatureLPPoolingCuda(lua_State* L);
 void initCuBLASWrapper(lua_State *L);
-void initFFTWrapper(lua_State *L);
-void initSpatialConvolutionCuFFT(lua_State *L);
+// void initFFTWrapper(lua_State *L);
+// void initSpatialConvolutionCuFFT(lua_State *L);
+void initWeightedLookupTableCuda(lua_State *L);
 
 }}}  // namespace
 
 using namespace facebook::deeplearning::torch;
 
-extern "C" int luaopen_libfbcunnlayers(lua_State* L) {
+extern "C" int LUAOPEN(lua_State* L) {
   initCrossMapNormalizationCuda(L);
   initLocallyConnectedCuda(L);
   initLookupTableGPUCuda(L);
@@ -35,8 +41,9 @@ extern "C" int luaopen_libfbcunnlayers(lua_State* L) {
   initSparseNLLCriterionCuda(L);
   initFeatureLPPoolingCuda(L);
   initCuBLASWrapper(L);
-  initFFTWrapper(L);
-  initSpatialConvolutionCuFFT(L);
+  // initFFTWrapper(L);
+  // initSpatialConvolutionCuFFT(L);
+  initWeightedLookupTableCuda(L);
 
   return 0;
 }

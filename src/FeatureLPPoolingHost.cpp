@@ -1,10 +1,10 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "cuda/DeviceTensor.cuh"
-#include "Utils.h"
-#include "DeviceTensorUtils.h"
+#include "src/Utils.h"
+#include "src/DeviceTensorUtils.h"
 #include "THC.h"
-#include "FeatureLPPooling.cuh"
+#include "src/FeatureLPPooling.cuh"
 
 #include <folly/Optional.h>
 #include <folly/ScopeGuard.h>
@@ -264,7 +264,7 @@ int featureLPPooling_updateGradInput(lua_State *L) {
   gradOutput = *gradOutputUpcast;
   output = *outputUpcast;
 
-  if (!output.isSameSizeAndStride(gradOutput)) {
+  if (!output.isSameSize(gradOutput)) {
     luaL_error(L, "output and gradOutput sizes do not match");
   }
 

@@ -2,20 +2,31 @@ require 'nn'
 require 'fbnn'
 require 'cunn'
 require 'libfbcunn'
-require 'libfbcunnlayers'
+require 'fbcunn.cuda_ext'
 
 include('AbstractParallel.lua')
+include('BatchNormalization.lua')
 include('CuBLASWrapper.lua')
 include('DataParallel.lua')
 include('FeatureLPPooling.lua')
 include('FFTWrapper.lua')
--- include('HalfPrecision.lua')
+include('HalfPrecision.lua')
 include('LookupTableGPU.lua')
 include('ModelParallel.lua')
 include('OneBitDataParallel.lua')
 include('OneBitQuantization.lua')
 include('OneBitSGD.lua')
-include('SpatialConvolutionCuFFT.lua')
+include('FFTCDefs.lua')
+include('SpatialBatchNormalization.lua')
+-- include('SpatialConvolutionFFT.lua')
+-- include('SpatialConvolutionCuFFT.lua')
+-- include('SpatialConvolutionFBFFT.lua')
+-- include('SpatialConvolutionFBFFTGemm.lua')
+-- include('SpatialConvolutionFFTTiled.lua')
+-- include('SpatialConvolutionFFTTiledSync.lua')
+-- include('SpatialConvolutionFFTTiledAsync.lua')
+-- include('SpatialConvolutionFFTTiledIterated.lua')
+-- include('SpatialConvolution.lua')
 include('TemporalConvolutionFB.lua')
 include('TemporalKMaxPooling.lua')
 
@@ -65,11 +76,11 @@ function nn.Module:getParametersByDevice()
             return nil
         end
         if dev == 0 then
-            return nn.Module._gather(params), nn.Module._gather(grads)
+            return nn.Module.flatten(params), nn.Module.flatten(grads)
         end
         return cutorch.withDevice(dev,
-            function() return nn.Module._gather(params),
-                              nn.Module._gather(grads)
+            function() return nn.Module.flatten(params),
+                              nn.Module.flatten(grads)
         end)
     end
 

@@ -50,7 +50,7 @@ function FeatureLPPooling:__init(width, stride, power, batch_mode)
 end
 
 function FeatureLPPooling:updateOutput(input)
-   if self:type() == 'torch.CudaTensor' then
+   if torch.type(input) == 'torch.CudaTensor' then
       input.nn.FeatureLPPooling_updateOutput(self, input)
    else
       error('CUDA only supported at the moment')
@@ -59,7 +59,7 @@ function FeatureLPPooling:updateOutput(input)
 end
 
 function FeatureLPPooling:updateGradInput(input, gradOutput)
-   if self:type() == 'torch.CudaTensor' then
+   if torch.type(input) == 'torch.CudaTensor' then
       input.nn.FeatureLPPooling_updateGradInput(self, input, gradOutput)
    else
       error('CUDA only supported at the moment')

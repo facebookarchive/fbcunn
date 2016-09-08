@@ -1,12 +1,9 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "cuda/DeviceTensor.cuh"
-#include "DeviceTensorUtils.h"
-#include "util/Misc.h"
-#include "Utils.h"
-#include "lua.h"
-#include "luaT.h"
-#include "THC.h"
+#include "cuda/util/CachedDeviceProperties.h"
+#include "src/DeviceTensorUtils.h"
+#include "src/Utils.h"
 
 using namespace facebook::cuda;
 using namespace facebook::deeplearning::torch;
@@ -141,7 +138,7 @@ static int fbcunn_TemporalMaxPooling_updateOutput(lua_State *L) {
   // be limited by smem or register count, so no need to use the
   // occupancy calculator.
   const cudaDeviceProp& deviceProperties =
-    facebook::CUDAUtil::getCurrentDeviceProperties();
+    facebook::cuda::getCurrentDeviceProperties();
 
   dim3 block(min(input.getSize(2), deviceProperties.maxThreadsPerBlock));
   dim3 grid(input.getSize(0), // batch size
@@ -205,7 +202,7 @@ static int fbcunn_TemporalMaxPooling_updateGradInput(lua_State *L) {
   // be limited by smem or register count, so no need to use the
   // occupancy calculator.
   const cudaDeviceProp& deviceProperties =
-    facebook::CUDAUtil::getCurrentDeviceProperties();
+    facebook::cuda::getCurrentDeviceProperties();
 
   dim3 block(min(gradOutput.getSize(2), deviceProperties.maxThreadsPerBlock));
   dim3 grid(gradOutput.getSize(0), // batch size

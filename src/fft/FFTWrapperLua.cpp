@@ -4,13 +4,12 @@
 
 #include "THC.h"
 #include "THCTensor.h"
-#include "cuda/fbfft/FBFFT.h"
-#include "Utils.h"
-#include "../Utils.h"
-#include "CuFFTWrapper.cuh"
-#include "FBFFTHost.h"
-#include "DeviceTensorUtils.h"
-#include "util/Misc.h"
+#include "cuda/fbfft/FBFFT.cuh"
+#include "cuda/util/CachedDeviceProperties.h"
+#include "src/Utils.h"
+#include "src/fft/CuFFTWrapper.cuh"
+#include "src/fft/FBFFTHost.h"
+#include "src/DeviceTensorUtils.h"
 
 #include <cublas_v2.h>
 #include <cuda_runtime.h>
@@ -23,7 +22,6 @@
 
 using namespace facebook::cuda;
 using namespace facebook::cuda::fbfft;
-using namespace facebook::CUDAUtil;
 using namespace std;
 
 namespace facebook { namespace deeplearning { namespace torch {
@@ -61,8 +59,8 @@ float timedRun(THCState* state,
       state,
       timeTHTensor, frequencyTHTensor, bufferTHTensor, (FBFFTParameters)p);
     if (result != FBFFTParameters::Success) {
-      throw std::invalid_argument(folly::format("FBFFT error: {}",
-                                                (int)result).str().c_str());
+      THCudaCheck(cudaGetLastError());
+      THError(folly::format("FBFFT error: {}", (int)result).str().c_str());
     }
     auto timeMS = timer.stop();
     return timeMS;
@@ -70,49 +68,38 @@ float timedRun(THCState* state,
   return 0.0f;
 }
 
-#define FFT_BATCH(BATCH)                                        \
-  case BATCH:                                                   \
-  {                                                             \
-    switch(dims) {                                              \
-      case 2:                                                   \
-        time += timedRun<BATCH, 2>(state,                       \
-                                   timeTHTensor,                \
-                                   frequencyTHTensor,           \
-                                   bufferTHTensor,              \
-                                   p,                           \
-                                   fftPlan);                    \
-        break;                                                  \
-      case 3:                                                   \
-        time += timedRun<BATCH, 3>(state,                       \
-                                   timeTHTensor,                \
-                                   frequencyTHTensor,           \
-                                   bufferTHTensor,              \
-                                   p,                           \
-                                   fftPlan);                    \
-        break;                                                  \
-      default:                                                  \
-        throw invalid_argument("Unsupported dims + batchDims"); \
-    }                                                           \
-  }                                                             \
-  break;
+#define TIMED_FFT(BATCH, DIM)                           \
+  if (batchDims == BATCH && dims == DIM) {              \
+    time += timedRun<BATCH, DIM>(state,                 \
+                                 timeTHTensor,          \
+                                 frequencyTHTensor,     \
+                                 bufferTHTensor,        \
+                                 p,                     \
+                                 fftPlan);              \
+    done = true;                                        \
+  }
 
-
-
-int fftFun(lua_State* L, bool forward) {
+int runTimedFFT(lua_State* L, bool forward) {
   THCState* state = getCutorchState(L);
-  bool dumpTimings = false;
-
   auto batchDims = luaT_getfieldcheckint(L, 1, "batchDims");
-  auto cufft = luaT_getfieldcheckint(L, 1, "cufft");
+  auto cufft = luaT_getfieldcheckboolean(L, 1, "cufft");
+  auto padLeft = luaT_getfieldcheckint(L, 1, "padLeft");
+  auto padUp = luaT_getfieldcheckint(L, 1, "padUp");
   auto timeTHTensor =
     (THCudaTensor*)luaT_checkudata(L, 2, "torch.CudaTensor");
   auto frequencyTHTensor =
     (THCudaTensor*)luaT_checkudata(L, 3, "torch.CudaTensor");
   auto bufferTHTensor =
     (THCudaTensor*)luaT_checkudata(L, 4, "torch.CudaTensor");
+  if (THCudaTensor_nDimension(state, bufferTHTensor) == 0) {
+    bufferTHTensor = nullptr;
+    THAssert(THCudaTensor_checkGPU(state, 2, timeTHTensor, frequencyTHTensor));
+  } else {
+    THAssert(THCudaTensor_checkGPU(state, 3, timeTHTensor, frequencyTHTensor,
+                                   bufferTHTensor));
+  }
+  auto fftPlan = (cufftHandle)lua_tonumber(L, 5);
 
-  THAssert(THCudaTensor_checkGPU(state, 3, timeTHTensor, frequencyTHTensor,
-                                 bufferTHTensor));
   CHECK_EQ(THCudaTensor_nDimension(state, timeTHTensor) + 1,
            THCudaTensor_nDimension(state, frequencyTHTensor));
 
@@ -124,27 +111,23 @@ int fftFun(lua_State* L, bool forward) {
   if (!forward) {
     p = p.inverse().normalize(false);
   }
-  if (cufft == 1) {
+  if (cufft) {
     p = p.withCufft();
   } else {
     p = p.withFbfft();
   }
+  p.withPadLeft(padLeft);
+  p.withPadUp(padUp);
 
   try {
-    cufftHandle fftPlan = -1;
-    SCOPE_EXIT{
-      if (fftPlan >= 0) {
-        CHECK_EQ(CUFFT_SUCCESS, cufftDestroy(fftPlan));
-      }
-    };
-
     for (int i = 0; i < kNumTrials; ++i) {
-      switch (batchDims) {
-        FFT_BATCH(1);
-        default:
-          throw invalid_argument("Unsupported batch dims");
-      };
-
+      auto done = false;
+      TIMED_FFT(1, 2);
+      TIMED_FFT(1, 3);
+      if (!done) {
+        THCudaCheck(cudaGetLastError());
+        THError("Timed FFT: Unsupported batch dims");
+      }
       // Reset time to kNumTrials
       if (i < kNumSkipTrials && kNumTrials > kNumSkipTrials) {
         time = 0.0f;
@@ -176,7 +159,7 @@ int fftFun(lua_State* L, bool forward) {
   auto version = (p.cuFFT()) ? "CuFFT" : "FBFFT";
   auto direction = (forward) ? "forward" : "inverse";
   auto GOut = size / 1e9;
-  LOG_IF(INFO, dumpTimings) << folly::format(
+  LOG(INFO) << folly::format(
     "  Running fft-{}d ({}) direction={} ({}x{}x{}),"   \
     "  {} batches, GNlogN/s = {:.5f}"                   \
     "  time = {:.2f}ms",
@@ -193,17 +176,116 @@ int fftFun(lua_State* L, bool forward) {
   return 0;
 }
 
-int fftFun(lua_State* L) {
-  return fftFun(L, true);
+#define FBFFT_CASE(BATCH_DIMS, INPUT_DIMS)                              \
+  if (batchDims == BATCH_DIMS && inputDims == INPUT_DIMS) {             \
+    auto result = fbfft<BATCH_DIMS>(state,                              \
+                                    timeTHTensor,                       \
+                                    frequencyTHTensor,                  \
+                                    bufferTHTensor,                     \
+                                    (FBFFTParameters)p);                \
+    if (result != FBFFTParameters::Success) {                           \
+      THCudaCheck(cudaGetLastError());                                  \
+      THError(                                                          \
+        folly::format("FBFFT error: {}",                                \
+                      (int)result).str().c_str());                      \
+    }                                                                   \
+    done = true;                                                        \
+  }
+
+#define CUFFT_CASE(BATCH_DIMS, INPUT_DIMS)                                  \
+  if (batchDims == BATCH_DIMS && inputDims == INPUT_DIMS) {                 \
+    auto timeTensor =                                                       \
+      torchToDeviceTensor<float, INPUT_DIMS>(state, timeTHTensor);          \
+    auto frequencyTensor =                                                  \
+      torchToDeviceTensor<float, INPUT_DIMS + 1>(state, frequencyTHTensor); \
+    if (fftPlan < 0) {                                                      \
+       localPlan = makeCuFFTPlan<BATCH_DIMS, INPUT_DIMS>(                   \
+         timeTensor, frequencyTensor, p);                                   \
+    }                                                                       \
+    fft<BATCH_DIMS, INPUT_DIMS>(timeTensor, frequencyTensor, p, &localPlan);\
+    done = true;                                                            \
+  }
+
+int runFFT(lua_State* L, bool forward) {
+  THCState* state = getCutorchState(L);
+  auto batchDims = luaT_getfieldcheckint(L, 1, "batchDims");
+  auto cufft = luaT_getfieldcheckboolean(L, 1, "cufft");
+  auto padLeft = luaT_getfieldcheckint(L, 1, "padLeft");
+  auto padUp = luaT_getfieldcheckint(L, 1, "padUp");
+  auto timeTHTensor =
+    (THCudaTensor*)luaT_checkudata(L, 2, "torch.CudaTensor");
+  auto frequencyTHTensor =
+    (THCudaTensor*)luaT_checkudata(L, 3, "torch.CudaTensor");
+  auto bufferTHTensor =
+    (THCudaTensor*)luaT_checkudata(L, 4, "torch.CudaTensor");
+  if (THCudaTensor_nDimension(state, bufferTHTensor) == 0) {
+    bufferTHTensor = nullptr;
+    THAssert(THCudaTensor_checkGPU(state, 2, timeTHTensor, frequencyTHTensor));
+  } else {
+    THAssert(THCudaTensor_checkGPU(state, 3, timeTHTensor, frequencyTHTensor,
+                                   bufferTHTensor));
+  }
+  auto fftPlan = (cufftHandle)lua_tonumber(L, 5);
+
+  CHECK_EQ(THCudaTensor_nDimension(state, timeTHTensor) + 1,
+           THCudaTensor_nDimension(state, frequencyTHTensor));
+
+  int inputDims = THCudaTensor_nDimension(state, timeTHTensor);
+  FFTParameters p; // forward and normalize are default
+  if (!forward) {
+    p = p.inverse().normalize(false);
+  }
+  if (!cufft) {
+    p = p.withFbfft();
+  } else {
+    p = p.withCufft();
+  }
+  p.withPadLeft(padLeft);
+  p.withPadUp(padUp);
+
+  try {
+    auto done = false;
+    if (!cufft) {
+      FBFFT_CASE(1, 2);
+      FBFFT_CASE(1, 3);
+      FBFFT_CASE(2, 3);
+      FBFFT_CASE(2, 4);
+      if (!done) { THError("Unsupported fbfft batch dims"); }
+    } else {
+      cufftHandle localPlan = fftPlan;
+      SCOPE_EXIT {
+        if (fftPlan < 0) {
+          cufftDestroy(localPlan);
+        }
+      };
+      CUFFT_CASE(1, 2);
+      CUFFT_CASE(1, 3);
+      CUFFT_CASE(2, 3);
+      CUFFT_CASE(2, 4);
+      if (!done) { THError("Unsupported cufft batch dims"); }
+    }
+  } catch(exception &e){
+    return luaL_error(L, e.what());
+  }
+
+  return 0;
 }
 
-int fftiFun(lua_State* L) {
-  return fftFun(L, false);
+int fft(lua_State* L) {
+  auto timed = luaT_getfieldcheckboolean(L, 1, "timed");
+  if (timed) { return runTimedFFT(L, true); }
+  return runFFT(L, true);
+}
+
+int ffti(lua_State* L) {
+  auto timed = luaT_getfieldcheckboolean(L, 1, "timed");
+  if (timed) { return runTimedFFT(L, false); }
+  return runFFT(L, false);
 }
 
 const luaL_Reg functions[] = {
-  {"FFTWrapper_fft", fftFun},
-  {"FFTWrapper_ffti", fftiFun},
+  {"FFTWrapper_fft", fft},
+  {"FFTWrapper_ffti", ffti},
   {nullptr, nullptr},
 };
 

@@ -3,7 +3,7 @@
 #include "cuda/DeviceTensor.cuh"
 #include "cuda/TopKElements.cuh"
 #include "cuda/DeviceTensor.cuh"
-#include "util/Misc.h"
+#include "cuda/util/CachedDeviceProperties.h"
 #include "THC.h"
 
 using namespace facebook::cuda;
@@ -88,7 +88,7 @@ runTemporalKMaxPoolingUpdateOutput(cudaStream_t stream,
                                    DeviceTensor<float, 3>& output,
                                    int k) {
   const cudaDeviceProp& deviceProperties =
-    facebook::CUDAUtil::getCurrentDeviceProperties();
+    facebook::cuda::getCurrentDeviceProperties();
 
   // We aim to run with 4 warps.
   const int numWarps = std::min(input.getSize(2), 4);
@@ -107,7 +107,7 @@ runTemporalKMaxPoolingUpdateGradInput(cudaStream_t stream,
                                       DeviceTensor<float, 3>& gradInput,
                                       int k) {
   const cudaDeviceProp& deviceProperties =
-    facebook::CUDAUtil::getCurrentDeviceProperties();
+    facebook::cuda::getCurrentDeviceProperties();
 
   // We aim to run with 4 warps.
   const int numThreads =

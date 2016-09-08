@@ -5,7 +5,7 @@
 
 #include "cuda/CudaUtils.cuh"
 #include "cuda/WarpReductions.cuh"
-#include "util/Misc.h"
+#include "cuda/util/CachedDeviceProperties.h"
 
 #include "SparseNLLCriterion.cuh"
 
@@ -76,7 +76,7 @@ void runSparseNLLCriterion_updateOutput(
   DeviceTensor<float, 1>& output) {
 
   const cudaDeviceProp& deviceProperties =
-    facebook::CUDAUtil::getCurrentDeviceProperties();
+    facebook::cuda::getCurrentDeviceProperties();
   const int maxThreads = deviceProperties.maxThreadsPerBlock;
 
   const int batchSize = targetP.getSize(0);
@@ -97,7 +97,7 @@ void runSparseNLLCriterion_updateGradInput(
   DeviceTensor<float, 2>& gradInput) {
 
   const cudaDeviceProp& deviceProperties =
-    facebook::CUDAUtil::getCurrentDeviceProperties();
+    facebook::cuda::getCurrentDeviceProperties();
 
   const int batchSize = targetP.getSize(0);
   const int K = targetP.getSize(1);

@@ -1,16 +1,16 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "torch/fb/fbcunn/test/InputCentricConvolution_UpdateOutput.cuh"
+#include "test/InputCentricConvolution_UpdateOutput.cuh"
 #include "cuda/CudaUtils.cuh"
 #include "cuda/DeviceTensor.cuh"
-#include "torch/fb/fbcunn/src/DeviceTensorUtils.h"
-#include "torch/fb/fbcunn/src/util/Misc.h"
+#include "cuda/util/CachedDeviceProperties.h"
+#include "src/DeviceTensorUtils.h"
 
 #include <glog/logging.h>
 #include <iostream>
 
 using namespace facebook::cuda;
-using namespace facebook::CUDAUtil;
+using namespace facebook::cuda;
 
 namespace facebook { namespace deeplearning { namespace torch { namespace test {
 

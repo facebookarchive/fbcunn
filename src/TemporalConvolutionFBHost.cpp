@@ -1,13 +1,13 @@
 // Copyright 2014 Facebook
 
 #include "cuda/DeviceTensor.cuh"
+#include "cuda/util/CachedDeviceProperties.h"
 #include "THC.h"
 #include "THCTensor.h"
-#include "Utils.h"
-#include "CuBLASWrapper.h"
-#include "ConvolutionBias.cuh"
-#include "DeviceTensorUtils.h"
-#include "util/Misc.h"
+#include "src/Utils.h"
+#include "src/CuBLASWrapper.h"
+#include "src/ConvolutionBias.cuh"
+#include "src/DeviceTensorUtils.h"
 
 #include <cublas_v2.h>
 #include <cuda_runtime.h>

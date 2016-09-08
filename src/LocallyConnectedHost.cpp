@@ -4,7 +4,7 @@
  */
 
 #include "THC.h"
-#include "Utils.h"
+#include "src/Utils.h"
 #include "LocallyConnected.cuh"
 #include <luaT.h>
 #include <lua.hpp>
@@ -75,14 +75,6 @@ void initializeParams(THCState* state,
     params->inputHeight = THCudaTensor_size(state, input, 0);
     params->inputWidth  = THCudaTensor_size(state, input, 1);
   }
-}
-
-void narrowTensors(THCState* state,
-                   THCudaTensor* in, THCudaTensor* in1,
-                   THCudaTensor* out, THCudaTensor* out1,
-                   int index, int size) {
-  THCudaTensor_narrow(state, in1, in, 0, index, size);
-  THCudaTensor_narrow(state, out1, out, 0, index, size);
 }
 
 // Updates a cache in cuda layout.

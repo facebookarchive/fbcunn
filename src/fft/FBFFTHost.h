@@ -33,7 +33,6 @@ facebook::cuda::fbfft::FBFFTParameters::ErrorCode fbfft(
   THCudaTensor* complex,
   THCudaTensor* buffer = nullptr,
   facebook::cuda::fbfft::FBFFTParameters params =
-  facebook::cuda::fbfft::FBFFTParameters(),
-  cudaStream_t s = 0);
+  facebook::cuda::fbfft::FBFFTParameters());
 
 } } } // namespace

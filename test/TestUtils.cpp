@@ -131,7 +131,7 @@ bool isWithin(float a, float b, float relativeError) {
 
 
   // Special case for a or b very close to zero, only absolute check can work
-  if (std::abs(a) < relativeError || std::abs(a) < relativeError ||
+  if (std::abs(a) < relativeError || std::abs(b) < relativeError ||
       !std::isnormal(a)|| !std::isnormal(b)) {
     if (std::abs(a - b) > adjRelativeError) {
       return false;

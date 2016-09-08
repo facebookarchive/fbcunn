@@ -1,17 +1,17 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "CuFFTConvolution.cuh"
+#include "src/fft/CuFFTConvolution.cuh"
 
 #include "THCTensor.h"
 #include "cuda/DeviceTensor.cuh"
-#include "CuBLASWrapper.h"
-#include "DeviceTensorUtils.h"
-#include "MM.h"
-#include "CuFFTStrategy.h"
-#include "CuFFTWrapper.cuh"
-#include "FBFFTHost.h"
-#include "Utils.cuh"
-#include "Utils.h"
+#include "src/CuBLASWrapper.h"
+#include "src/DeviceTensorUtils.h"
+#include "src/MM.h"
+#include "src/fft/CuFFTStrategy.h"
+#include "src/fft/CuFFTWrapper.cuh"
+#include "src/fft/FBFFTHost.h"
+#include "src/fft/Utils.cuh"
+#include "src/fft/Utils.h"
 
 #include <cublas_v2.h>
 #include <cuda_runtime.h>
@@ -799,13 +799,13 @@ void CuFFTConvolution::CuFFTConvolutionMxM() {
     // A, B and C nomenclature is relative to cuBLAS' column-major.
     // In row-major fbmm, this is reversed.
     if (convPass_.pass == ConvolutionPass::kUpdateOutput) {
-      transposeMM<5, false, true>(
+      transposeMM<5, false, true, false>(
         BComplex_, AComplex_, CComplex_, norm_.x, getStream(0));
     } else if (convPass_.pass == ConvolutionPass::kUpdateGradInput) {
-      transposeMM<5, false, false>(
+      transposeMM<5, false, false, false>(
         BComplex_, AComplex_, CComplex_, norm_.x, getStream(0));
     } else if (convPass_.pass == ConvolutionPass::kAccGradParameters) {
-      transposeMM<5, true, false>(
+      transposeMM<5, true, false, false>(
         BComplex_, AComplex_, CComplex_, norm_.x, getStream(0));
     } else {
       throw std::runtime_error("Invalid pass for CuFFTConvolution");
@@ -902,7 +902,7 @@ void CuFFTConvolution::run() {
 
   if (!strategy_->fbmm()) {
     // Transpose A_ (? ? y x) -> (y x ? ?) (row-major formulation)
-    transposeAsComplex(AComplex_, AComplexT_, 2, handle0, s0);
+    transposeAsComplex(AComplex_, AComplexT_, 2, true, handle0, s0);
   }
 
   auto handle1 = getCircular(cublasHandles_, 1);
@@ -929,7 +929,7 @@ void CuFFTConvolution::run() {
 
   if (!strategy_->fbmm()) {
     // Transpose A_ (? ? y x) -> (y x ? ?) (row-major formulation)
-    transposeAsComplex(BComplex_, BComplexT_, 2, handle1, s1);
+    transposeAsComplex(BComplex_, BComplexT_, 2, true, handle1, s1);
 
     // Here, both CComplex_ and CComplexT_ contain garbage that we will
     // overwrite and that we preemptively size to (y x ? ?)..
@@ -959,7 +959,7 @@ void CuFFTConvolution::run() {
     auto handle = getCircular(cublasHandles_, 0);
     // Transpose followed by IFFT in same stream s0 as the MxM
     // Transpose input (y x ? ?) -> (? ? y x) (row-major formulation)
-    transposeAsComplex(CComplexT_, CComplex_, 2, handle, s);
+    transposeAsComplex(CComplexT_, CComplex_, 2, true, handle, s);
   }
   if (strategy_->cufft()) {
     fft2d<2>(C_, CComplex_, FFTParameters().inverse().normalize(false),

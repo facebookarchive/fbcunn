@@ -2,14 +2,13 @@
 
 #pragma once
 
+#include "cuda/util/CachedDeviceProperties.h"
+
 #include <cuda_runtime.h>
 
-namespace facebook { namespace CUDAUtil {
+namespace facebook { namespace cuda {
 
-int getDevice();
-
-extern __attribute__((__noreturn__))
-void throwCudaError(cudaError_t, const char* msg);
+[[noreturn]] void throwCudaError(cudaError_t, const char* msg);
 
 inline void
 checkCudaError(cudaError_t error, const char* msg = 0) {
@@ -17,7 +16,6 @@ checkCudaError(cudaError_t error, const char* msg = 0) {
     throwCudaError(error, msg);
   }
 }
-
 
 class OnDevice {
   int m_home;
@@ -31,10 +29,6 @@ class OnDevice {
   }
 };
 
-const cudaDeviceProp& getCurrentDeviceProperties();
-const cudaDeviceProp& getDeviceProperties(int device);
-
 cudaStream_t getComputeStream();
-cudaStream_t getCopyStream();
 
 } }

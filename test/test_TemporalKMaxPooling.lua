@@ -166,19 +166,5 @@ function TemporalKMaxPoolingTest.sequential()
    assert (gradInput_matches:sum() == gradInput_matches:numel())
 end
 
-function TemporalKMaxPoolingTest.dynamic()
-  local kmax = nn.TemporalKMaxPooling(2, 0.5)
-  local seq = nn.Sequential()
-  seq:add(nn.TemporalKMaxPooling(2, 0.5))
-
-  for n=12,13 do
-    local input = torch.randn(n, 1):cuda()
-    local kmax_output = kmax:updateOutput(input)
-    local seq_output = seq:updateOutput(input)
-    assert (kmax_output:size(1) == 6)
-    assert (torch.all(kmax_output:eq(seq_output)))
-  end
-end
-
 tester:add(TemporalKMaxPoolingTest)
 tester:run()

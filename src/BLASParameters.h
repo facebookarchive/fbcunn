@@ -33,12 +33,14 @@ struct BLASParameters {
     iterDims = i;
     return *this;
   }
+
   // After iterDims, remaining outermost dimensions to be treated as batch
   // dimensions, for instance, in a gemmbatched call.
   BLASParameters& withBatchDims(int i) {
     batchDims = i;
     return *this;
   }
+
   // Force running on a particular handle / stream index in the handle /
   // stream vectors. The actual handle / stream we will end up running on is
   // recovered by modulo indexing into the vector, default handle / stream if
@@ -47,6 +49,7 @@ struct BLASParameters {
     resourceIndex = i;
     return *this;
   }
+
   // Distance between two batches of A, used in batched mode, in case we want
   // to compute one entry every k. Step of zerom means the same matrix A will
   // be read over and over again.
@@ -54,6 +57,7 @@ struct BLASParameters {
     batchStepA = i;
     return *this;
   }
+
   // Distance between two batches of B, used in batched mode, in case we want
   // to compute one entry every k. Step of zerom means the same matrix B will
   // be read over and over again.
@@ -61,6 +65,7 @@ struct BLASParameters {
     batchStepB = i;
     return *this;
   }
+
   // Distance between two batches of C, used in batched mode, in case we want
   // to compute one entry every k. Step of zerom means the same matrix C will
   // be written over and over again.
@@ -68,44 +73,66 @@ struct BLASParameters {
     batchStepC = i;
     return *this;
   }
+
   // Sets real scale in C += alpha * C + scale * A * B
   BLASParameters& withScaleReal(float f) {
     scaleRe = f;
     return *this;
   }
+
   // Sets imaginary scale in C += alpha * C + scale * A * B
   BLASParameters& withScaleImaginary(float f) {
     scaleIm = f;
     return *this;
   }
+
   // Use cgemm instead of sgemm
   BLASParameters& withComplex(bool b) {
     asComplex = b;
     return *this;
   }
+
   // If true, computes C += scale * A * B. Default is C = scale * A * B.
   BLASParameters& withAccumulate(bool b) {
     accumulate = b;
     return *this;
   }
+
   // Set vector of handle resources
   BLASParameters& withHandles(const std::vector<cublasHandle_t>& h) {
     handles = h;
     return *this;
   }
+
   // Set vector of stream resources
   BLASParameters& withStreams(const std::vector<cudaStream_t>& s) {
     streams = s;
     return *this;
   }
+
   // Transpose A
   BLASParameters& withTransposeA(cublasOperation_t t) {
     transposeA = t;
     return *this;
   }
+
   // Transpose B
   BLASParameters& withTransposeB(cublasOperation_t t) {
     transposeB = t;
+    return *this;
+  }
+
+  // Transpose A
+  BLASParameters& withTransposeA(char c) {
+    transposeA = (c == 't') ? CUBLAS_OP_T :
+      ((c == 'c') ? CUBLAS_OP_C : CUBLAS_OP_N);
+    return *this;
+  }
+
+  // Transpose B
+  BLASParameters& withTransposeB(char c) {
+    transposeB = (c == 't') ? CUBLAS_OP_T :
+      ((c == 'c') ? CUBLAS_OP_C : CUBLAS_OP_N);
     return *this;
   }
 

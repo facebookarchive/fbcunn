@@ -1,11 +1,10 @@
 // Copyright 2014 Facebook
 
-#include "Utils.h"
-#include "../Utils.h"
-#include "CudaTensorUtils.h"
-#include "CuFFTStrategy.h"
-#include "SpatialConvolutionCuFFT.h"
-#include "SpatialConvolutionCuFFTTuner.h"
+#include "src/Utils.h"
+#include "src/CudaTensorUtils.h"
+#include "src/fft/CuFFTStrategy.h"
+#include "src/fft/SpatialConvolutionCuFFT.h"
+#include "src/fft/SpatialConvolutionCuFFTTuner.h"
 
 #include <luaT.h>
 #include <lua.hpp>
@@ -66,7 +65,7 @@ int updateOutputLua(lua_State* L) {
                                  bufs.weight, bufs.weightTranspose));
 
   THParams thp(state, input, weight, output, bias, 0.0f, bufs);
-  ConvolutionPass pass(ConvolutionPass(ConvolutionPass::kUpdateOutput));
+  ConvolutionPass pass( (ConvolutionPass(ConvolutionPass::kUpdateOutput)) );
   ProblemSizes pbs(thp, pass);
 
   auto strategy = SpatialConvolutionCuFFTTuner::getBestPerformance(state, pbs);
@@ -119,7 +118,7 @@ int updateGradInputLua(lua_State* L) {
                                  bufs.weight, bufs.weightTranspose));
 
   THParams thp(state, gradInput, weight, gradOutput, nullptr, 0.0f, bufs);
-  ConvolutionPass pass(ConvolutionPass(ConvolutionPass::kUpdateGradInput));
+  ConvolutionPass pass( (ConvolutionPass(ConvolutionPass::kUpdateGradInput)) );
   ProblemSizes pbs(thp, pass);
 
   auto strategy = SpatialConvolutionCuFFTTuner::getBestPerformance(state, pbs);
@@ -177,7 +176,7 @@ int accGradParametersLua(lua_State* L) {
                                  bufs.weight, bufs.weightTranspose));
 
   THParams thp(state, input, gradWeight, gradOutput, gradBias, scale, bufs);
-  ConvolutionPass pass(ConvolutionPass(ConvolutionPass::kAccGradParameters));
+  ConvolutionPass pass(ConvolutionPass::kAccGradParameters);
   ProblemSizes pbs(thp, pass);
 
   auto strategy = SpatialConvolutionCuFFTTuner::getBestPerformance(state, pbs);
