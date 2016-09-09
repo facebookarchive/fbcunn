@@ -4,9 +4,6 @@ OneBitSGD contains various utility functions for use in OneBitDataParallel, expo
 
 local M = {}
 
-local _fbd = require('fb.debugger')
-local _trace = require('fb.util.trace')
-
 local pl = require('pl.import_into')()
 local util = require('fb.util')
 local withDevice = cutorch.withDevice

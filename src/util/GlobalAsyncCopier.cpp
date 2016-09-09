@@ -3,15 +3,15 @@
  * @author Tudor Bosman (tudorb@fb.com)
  */
 
-#include "util/GlobalAsyncCopier.h"
+#include "src/util/GlobalAsyncCopier.h"
 
 #include <cstdlib>
 #include <folly/Conv.h>
 #include <folly/Memory.h>
 
-#include "util/AsyncCopier.h"
+#include "src/util/AsyncCopier.h"
 
-using namespace facebook::CUDAUtil;
+using namespace facebook::cuda;
 
 constexpr size_t kDefaultBufferSizeMB = 16;
 const char* const kBufferSizeEnvVar = "FB_CUDA_ASYNC_COPIER_BUFFER_SIZE_MB";

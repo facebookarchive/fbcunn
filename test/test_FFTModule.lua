@@ -10,11 +10,11 @@ local mytester = torch.Tester()
 
 local FFTTester = {}
 local printResults = false
-local precision = 2e-7
+local precision = 2 * 2e-7 -- 2 ULPs relative to the largest input
 
 -- We exploit hermitian symmetry to write out only 1/2 the data.
 -- CuFFT exploits hermitian symmetry along the innermost dimension
--- FBFFT is parameteriazble  only determined by the output tensor dimesions.
+-- FBFFT is parametriazble  only determined by the output tensor dimensions.
 -- Ideally we would use outermost dimension hermitian symmetry for better
 -- coalescing but if we check correctness vs CuFFT then we match it.
 local runTests = true
@@ -31,55 +31,47 @@ local _iclr2015TestCases = {
   {1, {4, 32}},
   {1, {4, 64}},
   {1, {4, 128}},
-  {1, {4, 256}},
 
   {1, {32, 8}},
   {1, {32, 16}},
   {1, {32, 32}},
   {1, {32, 64}},
   {1, {32, 128}},
-  {1, {32, 256}},
 
   {1, {128, 8}},
   {1, {128, 16}},
   {1, {128, 32}},
   {1, {128, 64}},
   {1, {128, 128}},
-  {1, {128, 256}},
 
   {1, {1024, 8}},
   {1, {1024, 16}},
   {1, {1024, 32}},
   {1, {1024, 64}},
   {1, {1024, 128}},
-  {1, {1024, 256}},
 
   {1, {4096, 8}},
   {1, {4096, 16}},
   {1, {4096, 32}},
   {1, {4096, 64}},
   {1, {4096, 128}},
-  {1, {4096, 256}},
 
   {1, {128 * 128, 8}},
   {1, {128 * 128, 16}},
   {1, {128 * 128, 32}},
   {1, {128 * 128, 64}},
   {1, {128 * 128, 128}},
-  {1, {128 * 128, 256}},
 
   {1, {256 * 256, 8}},
   {1, {256 * 256, 16}},
   {1, {256 * 256, 32}},
   {1, {256 * 256, 64}},
   {1, {256 * 256, 128}},
-  {1, {256 * 256, 256}},
 
   {2, {4, 8, 8}},
   {2, {4, 16, 16}},
   {2, {4, 32, 32}},
   {2, {4, 64, 64}},
-  {2, {4, 128, 128}},
 
   {2, {32, 8, 8}},
   {2, {32, 16, 16}},
@@ -105,19 +97,23 @@ local _iclr2015TestCases = {
   {2, {4096, 64, 64}},
   {2, {4096, 128, 128}},
 
+  {2, {1, 8, 8}},
+  {2, {1, 16, 16}},
+  {2, {1, 32, 32}},
+  {2, {1, 64, 64}},
+
   {2, {128 * 128, 8, 8}},
   {2, {128 * 128, 16, 16}},
   {2, {128 * 128, 32, 32}},
   {2, {128 * 128, 64, 64}},
   {2, {128 * 128, 128, 128}},
 
---[[
   {2, {256 * 256, 8, 8}},
   {2, {256 * 256, 16, 16}},
   {2, {256 * 256, 32, 32}},
   {2, {256 * 256, 64, 64}},
-  {2, {256 * 256, 128, 128}},
---]]
+-- Too much memory
+-- {2, {256 * 256, 128, 128}},
 }
 
 local _stressTestCases = {
@@ -128,7 +124,6 @@ local _stressTestCases = {
   {1, {32 * 32, 32}},
   {1, {32 * 32, 64}},
   {1, {32 * 32, 128}},
-  {1, {32 * 32, 256}},
 
   {2, {32 * 32, 2, 2}},
   {2, {32 * 32, 4, 4}},
@@ -145,7 +140,6 @@ local _stressTestCases = {
   {1, {64 * 64, 32}},
   {1, {64 * 64, 64}},
   {1, {64 * 64, 128}},
-  {1, {64 * 64, 256}},
 
   {2, {64 * 64, 2, 2}},
   {2, {64 * 64, 4 ,4}},
@@ -162,7 +156,6 @@ local _stressTestCases = {
   {1, {128 * 128, 32}},
   {1, {128 * 128, 64}},
   {1, {128 * 128, 128}},
-  {1, {128 * 128, 256}},
 
   {2, {128 * 128, 2, 2}},
   {2, {128 * 128, 4 ,4}},
@@ -175,6 +168,14 @@ local _stressTestCases = {
 }
 
 local testCases = {
+  {1, {1, 2}},
+  {1, {1, 4}},
+  {1, {1, 8}},
+  {1, {1, 16}},
+  {1, {1, 32}},
+  {1, {1, 64}},
+  {1, {1, 128}},
+
   {1, {127, 2}},
   {1, {127, 4}},
   {1, {127, 8}},
@@ -182,7 +183,6 @@ local testCases = {
   {1, {127, 32}},
   {1, {127, 64}},
   {1, {127, 128}},
-  {1, {127, 256}},
 
   {1, {437, 2}},
   {1, {437, 4}},
@@ -191,7 +191,14 @@ local testCases = {
   {1, {437, 32}},
   {1, {437, 64}},
   {1, {437, 128}},
-  {1, {437, 256}},
+
+  {2, {1, 2, 2}},
+  {2, {1, 4 ,4}},
+  {2, {1, 8, 8}},
+  {2, {1, 16, 16}},
+  {2, {1, 32, 32}},
+  {2, {1, 64, 64}},
+  {2, {1, 128, 128}},
 
   {2, {9, 2, 2}},
   {2, {9, 4 ,4}},
@@ -269,30 +276,28 @@ local function benchmarkCuFFT(problemSize, timeCuda)
     local freqSize = {}
     for i = 1, #timeSize do
       if i == #timeSize then
-        freqSize = concat(freqSize, {math.floor(timeSize[i] / 2) + 1})
+        table.insert(freqSize, math.floor(timeSize[i] / 2) + 1)
       else
-        freqSize = concat(freqSize, {timeSize[i]})
+        table.insert(freqSize, timeSize[i])
       end
     end
-    freqSize = concat(freqSize, {2})
-
+    table.insert(freqSize, 2)
 
     local timeInvCuda = timeCuda:clone()
     local frequencyCuda =
-        torch.CudaTensor(torch.LongStorage(freqSize)):fill(-47.0)
+        torch.CudaTensor(torch.LongStorage(freqSize)):fill(0 / 0)
 
     local batchDims = #timeSize - fftDim
-    local net = nn.FFTWrapper(1)
+    local net = nn.FFTWrapper("cufft", 0, 0, "timed") -- no padding
     net:fft(timeCuda, frequencyCuda, batchDims)
     net:ffti(timeInvCuda, frequencyCuda, batchDims)
 
     local timeInv = timeInvCuda:double()
     local frequency = frequencyCuda:double()
     if printResults then
-        print('forward re:', frequency:select(fftDim + 2, 1))
-        print('forward im:', frequency:select(fftDim + 2, 2))
-
-        print('inverse re:', timeInv)
+        print('cufft forward re:', frequency:select(fftDim + 2, 1))
+        print('cufft forward im:', frequency:select(fftDim + 2, 2))
+        print('cufft inverse re:', timeInv)
     end
 
     timeInvCuda = {}
@@ -300,6 +305,11 @@ local function benchmarkCuFFT(problemSize, timeCuda)
     collectgarbage()
 
     return frequency, timeInv
+end
+
+local function transposedLayout(fftDim, fftSize)
+   if fftDim == 2 and (fftSize < 8 or fftSize > 32) then return true end
+   return false
 end
 
 local function benchmarkFBFFT(problemSize, timeCuda, frequency2)
@@ -310,32 +320,31 @@ local function benchmarkFBFFT(problemSize, timeCuda, frequency2)
 
     for i = 1, #timeSize do
         if i == hermitianDim then
-            freqSize = concat(freqSize, {math.floor(timeSize[i] / 2) + 1})
+            table.insert(freqSize, math.floor(timeSize[i] / 2) + 1)
         else
-            freqSize = concat(freqSize, {timeSize[i]})
+            table.insert(freqSize, timeSize[i])
         end
     end
-    freqSize = concat(freqSize, {2})
+    table.insert(freqSize, 2)
 
     local timeInvCuda = timeCuda:clone()
     local frequencyCuda =
-        torch.CudaTensor(torch.LongStorage(freqSize)):fill(-47.0)
+        torch.CudaTensor(torch.LongStorage(freqSize)):fill(0 / 0)
     local batchDims = #timeSize - fftDim
-    local net = nn.FFTWrapper(0)
+    local net = nn.FFTWrapper("fbfft", 0, 0, "timed") -- no padding
     net:fft(timeCuda, frequencyCuda, batchDims)
     net:ffti(timeInvCuda, frequencyCuda, batchDims)
 
     local timeInv = timeInvCuda:double()
     local frequency = frequencyCuda:double()
-    if fftDim == 2 then
+    if transposedLayout(fftDim, timeSize[hermitianDim]) then
         frequency = frequency:transpose(2, 3)
     end
 
     if printResults then
-        print('forward re:', frequency:select(fftDim + 2, 1))
-        print('forward im:', frequency:select(fftDim + 2, 2))
-
-        print('inverse re:', timeInv)
+        print('fbfft forward re:', frequency:select(fftDim + 2, 1))
+        print('fbfft forward im:', frequency:select(fftDim + 2, 2))
+        print('fb inverse re:', timeInv)
     end
 
     timeInvCuda = {}
@@ -376,8 +385,25 @@ local function initCuda(ps, localInit)
               res = res + 1
           end
           return res
-            end):cuda()
+        end):cuda()
     elseif localInit == 5 then
+        local val = 0
+        local res = 0
+        timeCudaTensor = torch.Tensor(
+            torch.LongStorage(ps)):apply(function()
+          val = val + 1
+          if val == ps[#ps] + 1 then
+              val = 1
+              res = res + 1
+          end
+          return res
+        end)
+        if #timeCudaTensor:size() == 3 then
+           timeCudaTensor = timeCudaTensor:transpose(2,3):contiguous():cuda()
+        else
+           timeCudaTensor = timeCudaTensor:cuda()
+        end
+    elseif localInit == 6 then
         local val = 0
         timeCudaTensor = torch.Tensor(
             torch.LongStorage(ps)):apply(function()
@@ -404,33 +430,190 @@ local function run(localInit, problemSizes)
               print(timeCudaTensor:float())
           end
 
-          local function assertdiff(reffft, fbfft, fftDim, fftSize)
-              if ps[1] > 512 then
-                  print('Skip horrendously long test, need to transpose',
-                        ' the data efficiently to test')
-                  return
-              end
-              local m = (reffft:double() - fbfft:double()):abs():max()
-              local n = reffft:double():norm() + 1e-10
-              local nfbfft = fbfft:double():norm() + 1e-10
-              if m / n > precision then
-                  if printResults then
-                      print('Check max diff, norm, norm fbfft, max normalized = ',
-                            m, n, nfbfft, m / n)
-                      print('FAILS CHECK !!')
-                      print(m, n, m / n)
-                  end
-              end
-              assert(m / n < precision)
-              return
+          local function checkEqual(a, b, complexCheck)
+             if printResults then
+                print('Top left block equality\n', a, b)
+             end
+             local a = a:double():abs() + 1e-10
+             local b = b:double():abs() + 1e-10
+             local delta = (a:double() - b:double()):abs()
+             local max = a:max() + 1e-20
+             local deltaNorm = delta:div(max)
+
+             if printResults and deltaNorm:max() > precision then
+                print('Check max delta, norm ref fft, max normalized, prec = ',
+                      delta:max(), b:norm(), deltaNorm:max(), precision)
+                print('RE:\n',
+                      a:select(#a:size(), 1, 1),
+                      b:select(#b:size(), 1, 1))
+                print('IM:\n',
+                      a:select(#a:size(), 2, 1),
+                      b:select(#b:size(), 2, 1))
+             end
+             if deltaNorm:max() > precision then
+                print('Error Delta RE', delta:select(#delta:size(), 1, 1))
+                print('Error Delta IM', delta:select(#delta:size(), 2, 1))
+             end
+             assert(deltaNorm:max() <= precision,
+                    deltaNorm:max() .. ' > ' .. precision)
           end
 
+          local function checkOrthogonalSymmetry(r, fftSize)
+             if printResults then
+                print('Row orthogonal symmetry\n', r)
+             end
+
+             local max = r:clone():abs():max() + 1e-20
+             for k = 1, fftSize / 2 - 1 do
+                local d1 = r[fftSize / 2 + 1 - k][1] - r[fftSize / 2 + 1 + k][1]
+                assert(
+                   math.abs(d1) / max < precision,
+                   d1 .. ' ' .. math.abs(d1) / max .. ' ' .. precision
+                )
+                local d2 = r[fftSize / 2 + 1 - k][2] + r[fftSize / 2 + 1 + k][2]
+                assert(
+                   math.abs(d2) / max < precision,
+                   d2 .. ' ' .. math.abs(d2) / max .. ' ' .. precision
+                )
+             end
+          end
+
+          local
+             function checkCentralSymmetry(cuFFT, fbFFT, fftSize, imaginaryPart)
+                if printResults then
+                   print('Remaining block central symmetry', cuFFT, fbFFT)
+                end
+                assert(cuFFT:size(1) == fbFFT:size(1))
+                assert(cuFFT:size(2) == fbFFT:size(2))
+                assert(cuFFT:size(3) == fbFFT:size(3))
+                assert(cuFFT:size(2) == cuFFT:size(3))
+
+                local max = cuFFT:clone():abs():max() + 1e-20
+                for i = 1, cuFFT:size(1) do
+                   for j = 1, cuFFT:size(2) do
+                      for k = 1, cuFFT:size(2) do
+                         local fbFFTVal = fbFFT
+                            [i][1 + cuFFT:size(2) - j][1 + cuFFT:size(2) - k]
+
+                         local d1 = cuFFT[i][j][k] - fbFFTVal
+                         if imaginaryPart then
+                            d1 = cuFFT[i][j][k] + fbFFTVal
+                         end
+
+                         if math.abs(d1) / max > precision then
+                            print('Error Delta\n', d1, ' @ ', i, j, k)
+                            print(cuFFT[i][j][k],
+                                  ' vs ',
+                                  fbFFTVal)
+                         end
+                         assert(
+                            math.abs(d1) / max < precision,
+                            d1 .. ' ' .. math.abs(d1) / max .. ' ' .. precision
+                         )
+                      end
+                   end
+                end
+             end
+
+          local function assertdiffHermitian(
+                reffft, fbfft, fftDim, fftSize, complexCheck)
+             if ps[1] > 512 then
+                print('Skip long test based on lua side loops')
+                return
+             end
+
+             if fftDim == 1 or (fftDim == 2 and not complexCheck) then
+                -- Just check tensor relative equality modulo precision
+                checkEqual(reffft:clone(), fbfft:clone())
+             else
+                assert(complexCheck)
+                assert(fftDim == 2)
+                -- Hermitian check is comprised of 4 checks, one is fbfft vs
+                -- cufft, the others are symmetry checks
+                checkEqual(
+                   fbfft:narrow(
+                      2, 1, fftSize / 2 + 1
+                   ):narrow(3, 1, fftSize / 2 + 1):clone(),
+                   reffft:narrow(
+                      2, 1, fftSize / 2 + 1
+                   ):narrow(3, 1, fftSize / 2 + 1):clone()
+                )
+
+                -- Orthogonal symmetry for first and middle rows along vertical
+                -- plane FFTSize / 2 = 1
+                for i = 1, reffft:size(1) do
+                   for k = 1, fftSize / 2 + 1 do
+                      checkOrthogonalSymmetry(fbfft[i][1]:clone(), fftSize)
+                      checkOrthogonalSymmetry(
+                         fbfft[i][fftSize / 2 + 1]:clone(), fftSize)
+                   end
+                end
+
+                if fftSize > 2 then
+                   -- Central symmetry for:
+                   --   [1, FFTSize / 2) x [FFTSize / 2 + 1, FFTSize) and
+                   --   [FFTSize / 2 + 1, FFTSize) x [FFTSize / 2 + 1, FFTSize)
+                   local f = fbfft:narrow(
+                      2, 2, (fftSize / 2 - 1)
+                   ):narrow(
+                      3, fftSize / 2 + 1 + 1, (fftSize / 2 - 1)
+                           ):clone()
+                   local c = reffft:narrow(
+                      3, 2, (fftSize / 2 - 1)
+                   ):narrow(
+                      2, fftSize / 2 + 1 + 1, (fftSize / 2 - 1)
+                           ):clone()
+                   checkCentralSymmetry(
+                      c:select(4, 1), f:select(4, 1), fftSize)
+                   checkCentralSymmetry(
+                      c:select(4, 2), f:select(4, 2), fftSize, true)
+                end
+             end
+             return
+          end
+
+          local function assertdiffTransposed(reffft, fbfft, fftDim, fftSize)
+             if ps[1] > 512 then
+                print('Skip horrendously long test, need to transpose',
+                      ' the data efficiently to test')
+                return
+             end
+             local m = (reffft:double() - fbfft:double()):abs():max()
+             local n = reffft:double():norm() + 1e-10
+             local nfbfft = fbfft:double():norm() + 1e-10
+             if m / n > precision then
+                print('Check max diff, norm, norm fbfft, max normalized = ',
+                      m, n, nfbfft, m / n)
+                print('FAILS CHECK !!')
+                print(m, n, m / n)
+                if fftDim == 2 and #reffft:size() == 4 then
+                   print('DIFFTENSOR REAL!\n')
+                   print(reffft:add(-fbfft):float():select(fftDim + 2, 1))
+                   print('DIFFTENSOR IM!\n')
+                   print(reffft:add(-fbfft):float():select(fftDim + 2, 2))
+                else
+                   print(reffft, fbfft)
+                   print('DIFFTENSOR REAL!\n')
+                   print(reffft:add(-fbfft):float())
+                end
+             end
+             assert(m / n < precision)
+             return
+          end
+
+          local cufft, cuifft = benchmarkCuFFT(problemSizes[i], timeCudaTensor)
           local fbfft, fbifft =
               benchmarkFBFFT(problemSizes[i], timeCudaTensor, matchCuFFTAlloc)
-          local cufft, cuifft = benchmarkCuFFT(problemSizes[i], timeCudaTensor)
+
+          local fftSize = ps[2]
           if runTests then
-              assertdiff(cufft, fbfft, fftDim, ps[2])
-              assertdiff(cuifft, fbifft, fftDim, ps[2])
+             if not transposedLayout(fftDim, fftSize) then
+                assertdiffHermitian(cufft, fbfft, fftDim, fftSize, true)
+                assertdiffHermitian(cuifft, fbifft, fftDim, fftSize, false)
+             else
+                assertdiffTransposed(cufft, fbfft, fftDim, fftSize)
+                assertdiffTransposed(cuifft, fbifft, fftDim, fftSize)
+             end
           end
 
           timeCudaTensor = {}
@@ -439,20 +622,30 @@ local function run(localInit, problemSizes)
     end
 end
 
+printResults = false
+local localInits = {7} -- only run on random inputs to cut down testing time
+local runCases = testCases
+
+--[[
+-- Convenient override of the default that are used for unit tests
+localInits = {1}
+runCases = _iclr2015TestCases
+--]]
+
 function FFTTester.test()
 -- Type of initialization:
 -- 1: fill(1.0f)
 -- 2: 1.0f if 0 mod 2 else 2.0f
 -- 3: val % 4 + 1
 -- 4: val == row
--- 5: starts at 1.0f and += 1.0f at each entry
+-- 5: val == col
+-- 6: starts at 1.0f and += 1.0f at each entry
 -- else: random
-    local localInits = {1, 2, 3, 4, 5, 6}
-    for i = 1, #localInits do
-        run(localInits[i], testCases)
-        collectgarbage()
-        cutorch.synchronize()
-    end
+   for i = 1, #localInits do
+      run(localInits[i], runCases)
+      collectgarbage()
+      cutorch.synchronize()
+   end
 end
 
 mytester:add(FFTTester)

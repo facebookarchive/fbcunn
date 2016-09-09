@@ -8,7 +8,8 @@
 
 namespace facebook { namespace deeplearning { namespace torch {
 
-template <int Dim, bool ConjugateTransposeA, bool ConjugateTransposeB>
+template
+<int Dim, bool ConjugateTransposeA, bool ConjugateTransposeB, bool Accumulate>
 void transposeMM(facebook::cuda::DeviceTensor<float, Dim>& A,
                  facebook::cuda::DeviceTensor<float, Dim>& B,
                  facebook::cuda::DeviceTensor<float, Dim>& C,

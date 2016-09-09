@@ -1,19 +1,19 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "ConvolutionBias.cuh"
+#include "src/ConvolutionBias.cuh"
 
 #include "cuda/ComputeCapabilities.cuh"
 #include "cuda/CudaUtils.cuh"
 #include "cuda/DeviceTensor.cuh"
 #include "cuda/WarpReductions.cuh"
-#include "DeviceTensorUtils.h"
-#include "util/Misc.h"
+#include "cuda/util/CachedDeviceProperties.h"
+#include "src/DeviceTensorUtils.h"
 
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <glog/logging.h>
 
 using namespace facebook::cuda;
-using namespace facebook::CUDAUtil;
+using namespace facebook::cuda;
 
 // This layer computes the following:
 //
@@ -250,6 +250,33 @@ accGradParametersTemporalBias(THCState* state,
 
   accGradParametersTemporalBias<<<grid, block,
     0, THCState_getCurrentStream(state)>>>(gradBias, output, biasScale);
+}
+
+
+extern "C" void updateOutputBiasFFI(THCState* state,
+                                    THCudaTensor* outputTH,
+                                    THCudaTensor* biasTH) {
+  updateOutputBias(state, outputTH, biasTH);
+}
+
+extern "C" void updateOutputTemporalBiasFFI(THCState* state,
+                                            THCudaTensor* outputTH,
+                                            THCudaTensor* biasTH) {
+  updateOutputTemporalBias(state, outputTH, biasTH);
+}
+
+extern "C" void accGradParametersBiasFFI(THCState* state,
+                                         THCudaTensor* outputTH,
+                                         THCudaTensor* gradBiasTH,
+                                         float biasScale) {
+  accGradParametersBias(state, outputTH, gradBiasTH, biasScale);
+}
+
+extern "C" void accGradParametersTemporalBiasFFI(THCState* state,
+                                                 THCudaTensor* outputTH,
+                                                 THCudaTensor* gradBiasTH,
+                                                 float biasScale) {
+  accGradParametersTemporalBias(state, outputTH, gradBiasTH, biasScale);
 }
 
 } } } } // namespace

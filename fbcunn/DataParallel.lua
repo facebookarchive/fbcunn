@@ -43,8 +43,8 @@ Pictorially
                         +--------+
 ```
 ]]
-local DataParallel, _ = torch.class('nn.DataParallel',
-                                    'nn.AbstractParallel')
+local DataParallel, parent = torch.class('nn.DataParallel',
+                                         'nn.AbstractParallel')
 
 -- `_distributeInput` slices the input along self.dimension
 -- and copies each portion into each child module.
@@ -181,4 +181,10 @@ function DataParallel:accUpdateGradParameters(_input, _gradOutput, lr)
    -- to implement this, you have to write a function called _mixWeights, that
    -- like mixGrads, averages the weights across all GPUs
    error('accUpdateGradParameters not implemented for: ' .. torch.type(self))
+end
+
+function DataParallel:clearState()
+   self.homeGradBuffers = {}
+
+   parent.clearState(self)
 end

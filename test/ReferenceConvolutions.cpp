@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "torch/fb/fbcunn/test/ReferenceConvolutions.h"
+#include "test/ReferenceConvolutions.h"
 
 #include <glog/logging.h>
 
@@ -21,10 +21,10 @@ namespace facebook { namespace deeplearning { namespace torch { namespace test {
 // output * filter operates with a mask when going to the input.
 //
 // -------------------------------
-// |      implied zeros          |\
-// |  _________________________  | \
-// |  |                       |  |  \  convoled with
-// |  |       real input      |  |   \____
+// |      implied zeros          |
+// |  _________________________  |
+// |  |                       |  |     convoled with
+// |  |       real input      |  |    ____
 // |  |                       |  |    |  |
 // |  |                       |  | *  |  |  equals ==>
 // |  |         area          |  |    ----
@@ -55,10 +55,10 @@ namespace facebook { namespace deeplearning { namespace torch { namespace test {
 //
 //         total output area
 // -------------------------------
-// |  affected by implied zeros  |\
-// |  _________________________  | \  convolved with
-// |  |                       |  |  \
-// |  |   output area not     |  |   \____
+// |  affected by implied zeros  |
+// |  _________________________  |    convolved with
+// |  |                       |  |
+// |  |   output area not     |  |    ____
 // |  |     affected by       |  |    |  |
 // |  |    implied zero       |  | *  |  |  equals ==>
 // |  |    area; this data    |  |    ----

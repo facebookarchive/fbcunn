@@ -1,16 +1,16 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "CuFFTConvolution_AccGradParameters.cuh"
+#include "src/fft/CuFFTConvolution_AccGradParameters.cuh"
 
 #include "cuda/CudaUtils.cuh"
 #include "cuda/DeviceTensor.cuh"
-#include "DeviceTensorUtils.h"
+#include "src/DeviceTensorUtils.h"
 #include "THCTensor.h"
-#include "CuBLASWrapper.h"
-#include "ConvolutionBias.cuh"
-#include "CuFFTWrapper.cuh"
-#include "CuFFTConvolution.cuh"
-#include "Utils.cuh"
+#include "src/CuBLASWrapper.h"
+#include "src/ConvolutionBias.cuh"
+#include "src/fft/CuFFTWrapper.cuh"
+#include "src/fft/CuFFTConvolution.cuh"
+#include "src/fft/Utils.cuh"
 
 #include <cublas_v2.h>
 #include <cuda_runtime.h>

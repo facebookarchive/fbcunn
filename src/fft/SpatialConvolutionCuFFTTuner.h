@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "CuFFTStrategy.h"
+#include "src/fft/CuFFTStrategy.h"
 #include <folly/Optional.h>
 
 struct THCState;

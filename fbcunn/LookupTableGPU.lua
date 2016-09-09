@@ -29,7 +29,7 @@ end
 
 function LookupTableGPU:reset(stdv)
    stdv = stdv or 1
-   self.weight:normal(stdv)
+   self.weight:normal(0, stdv)
 end
 
 function LookupTableGPU:parameters()

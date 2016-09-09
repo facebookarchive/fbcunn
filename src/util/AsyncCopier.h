@@ -15,7 +15,7 @@
 #include <folly/Optional.h>
 #include <folly/small_vector.h>
 
-namespace facebook { namespace CUDAUtil {
+namespace facebook { namespace cuda {
 
 class AsyncCopier {
  public:

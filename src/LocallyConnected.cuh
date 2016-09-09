@@ -4,7 +4,7 @@
 #pragma once
 
 #include "cuda/DeviceTensor.cuh"
-#include "DeviceTensorUtils.h"
+#include "src/DeviceTensorUtils.h"
 #include <cassert>
 
 namespace facebook { namespace deeplearning { namespace torch {

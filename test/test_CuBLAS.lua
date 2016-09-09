@@ -1,13 +1,12 @@
 -- Copyright 2004-present Facebook. All Rights Reserved.
-require('fb.luaunit')
-
+require 'fb.luaunit'
+require 'fbtorch'
 require 'cunn'
-
 require 'fbcunn'
 
 torch.setdefaulttensortype('torch.FloatTensor')
 
-local test = {}
+local fb_test = {}
 
 -- Let C = m-by-n and A = m-by-k
 -- Format is m, n, k, seqIter, batch, numHandles, numStreams
@@ -43,6 +42,16 @@ local problemSize = {
     {1, 1024, 512, {1}, {16 * 32}, 1, 1},
   }
 
+-- This test exercises the performance of multi-handle + multi-stream on many
+-- small gemms.
+local _testMultiHandlePerf = {
+  {513, 513, 513, {53}, {}, 0, 0},
+  {513, 513, 513, {53}, {}, 1, 1},
+  {513, 513, 513, {53}, {}, 1, 4},
+  {513, 513, 513, {53}, {}, 4, 1},
+  {513, 513, 513, {53}, {}, 4, 4},
+}
+
 local function concat(t1,t2)
     local res = {}
     for i=1,#t1 do
@@ -54,61 +63,10 @@ local function concat(t1,t2)
     return res
 end
 
--- Soumith's inline print
-local ndepth = 4
-local function print_inline(...)
-   local function rawprint(o)
-      io.write(tostring(o or '') .. ' ')
-      io.flush()
-   end
-
-   local function printrecursive(obj, depth)
-      local depth = depth or 0
-      local tab = 0
-      local line = function(s) for i=1,tab do io.write(' ') end rawprint(s) end
-         if next(obj) then
-            line('{')
-            for k,v in pairs(obj) do
-               if type(v) == 'table' then
-                  if depth >= (ndepth-1) or next(v) == nil then
-                     line(tostring(k) .. ' : {}')
-                  else
-                     line(tostring(k) .. ' : ') printrecursive(v, depth + 1)
-                  end
-               else
-                  line(tostring(k) .. ' : ' .. v)
-               end
-               rawprint(',')
-            end
-            tab = tab-2
-            line('}')
-         else
-            line('{}')
-         end
-   end
-   for i = 1,select('#',...) do
-      local obj = select(i,...)
-      if type(obj) ~= 'table' then
-         if type(obj) == 'userdata' or type(obj) == 'cdata' then
-            rawprint(obj)
-         else
-            io.write(obj .. '\t')
-            if i == select('#',...) then
-               rawprint()
-            end
-         end
-      elseif getmetatable(obj) and getmetatable(obj).__tostring then
-         rawprint(obj)
-      else
-         printrecursive(obj)
-      end
-   end
-end
-
 local function testLoop(problemSize)
   -- Just allocate some dummy placeholder to get to the proper
   -- function in the lua module
-  local net = nn.CuBLASWrapper()
+  local net = nn.CuBLASWrapper(true)
 
   local m = problemSize[1]
   local n = problemSize[2]
@@ -125,13 +83,25 @@ local function testLoop(problemSize)
   local B = torch.Tensor(sB):cuda()
   local C = torch.Tensor(sC):cuda()
 
-  print_inline(problemSize)
-  print('')
-  net:matmult(A, B, C, seqIter, batch, handles, streams)
+  cutorch.reserveBlasHandles(handles)
+  cutorch.reserveStreams(streams)
+  cutorch.synchronize()
+  net:matmult(A, B, C, seqIter, batch)
+  mytester:assert(true)
 
+  cutorch.synchronize()
   collectgarbage()
 end
 
-for i = 1, table.getn(problemSize) do
-   testLoop(problemSize[i])
+function fb_test.testGEMMs()
+  for i = 1, table.getn(_testMultiHandlePerf) do
+    testLoop(_testMultiHandlePerf[i])
+  end
+  for i = 1, table.getn(problemSize) do
+    testLoop(problemSize[i])
+  end
 end
+
+mytester = torch.Tester()
+mytester:add(fb_test)
+mytester:run()

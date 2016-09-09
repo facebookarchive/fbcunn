@@ -1,13 +1,13 @@
 // Copyright 2004-, Facebook, Inc. All Rights Reserved.
 
-#include "HalfPrec.h"
+#include "src/HalfPrec.h"
 
 #include <string>
 #include <assert.h>
 #include <lua.hpp>
-#include "Utils.h"
-#include "Tensor.h"
-#include "LuaUtils.h"
+#include "src/Utils.h"
+#include "src/Tensor.h"
+#include "src/LuaUtils.h"
 #include "THC.h"
 
 using namespace std;

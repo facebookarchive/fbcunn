@@ -1,10 +1,10 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "CuBLASWrapper.h"
+#include "src/CuBLASWrapper.h"
 
 #include "cuda/DeviceTensor.cuh"
 #include "THCTensor.h"
-#include "BLASParameters.h"
+#include "src/BLASParameters.h"
 
 #include <cublas_v2.h>
 #include <cuda_runtime.h>
@@ -33,8 +33,9 @@ const cuFloatComplex kOneComplex = make_cuComplex(1.0f, 0.0f);
 template <int Dim>
 void transpose(const DeviceTensor<float, Dim>& in,
                DeviceTensor<float, Dim>& out,
-               int sep,
+               int separator,
                bool asComplex,
+               bool transposeMetaData,
                cublasHandle_t handle,
                cudaStream_t stream) {
   cublasHandle_t localHandle;
@@ -55,18 +56,35 @@ void transpose(const DeviceTensor<float, Dim>& in,
     CHECK_EQ(true, in.isContiguousDim(i)) << "Not contiguous dim = " << i;
     CHECK_EQ(true, out.isContiguousDim(i)) << "Not contiguous dim = " << i;
   }
-  for (int i = 0; i < Dim; ++i) {
-    CHECK_EQ(in.getSize(i), out.getSize(i)) <<
-      "Not eq dim = " << i << " in = " << in << " out = " << out;
+  if (transposeMetaData) {
+    for (int i = 0; i < Dim; ++i) {
+      CHECK_EQ(in.getSize(i), out.getSize(i)) <<
+        "Not eq dim = " << i << " in = " << in << " out = " << out;
+    }
+  } else {
+    auto upper = (asComplex) ? Dim - 2 : Dim - 1;
+    if (!asComplex) {
+      for (int i = 0; i < separator; ++i) {
+        CHECK_EQ(in.getSize(i), out.getSize(Dim - separator + i)) <<
+          "Not eq dim, in(" << i << ") = " << in << " out(" <<
+          (Dim - separator + i) << ") = " << out;
+      }
+      for (int i = separator; i < upper; ++i) {
+        CHECK_EQ(in.getSize(i), out.getSize(i - separator)) <<
+          "Not eq dim, in(" << i << ") = " << in << " out(" <<
+          (i - separator) << ") = " << out;
+      }
+    }
   }
 
+
   int rows = 1;
-  for (int i = 0; i < sep; ++i) {
+  for (int i = 0; i < separator; ++i) {
     rows *= in.getSize(i);
   }
 
   int cols = 1;
-  for (int i = sep; i < Dim; ++i) {
+  for (int i = separator; i < Dim; ++i) {
     cols *= in.getSize(i);
   }
 
@@ -122,31 +140,32 @@ void transpose(const DeviceTensor<float, Dim>& in,
   }
   CHECK_EQ(CUBLAS_STATUS_SUCCESS, res);
 
-  // Permute the sizes to keep the CudaTensor consistent.
-  // This only works because all dims are contiguous.
-  std::vector<int> permDims;
-  permDims.reserve(Dim);
-  if (!asComplex) {
-    // Non-complex case is easy
-    for (int i = sep; i < Dim; ++i) {
-      permDims.push_back(i);
+  if (transposeMetaData) {
+    // Permute the sizes to keep the CudaTensor consistent.
+    // This only works because all dims are contiguous.
+    std::vector<int> permDims;
+    permDims.reserve(Dim);
+    if (!asComplex) {
+      // Non-complex case is easy
+      for (int i = separator; i < Dim; ++i) {
+        permDims.push_back(i);
+      }
+      for (int i = 0; i < separator; ++i) {
+        permDims.push_back(i);
+      }
+    } else {
+      // Complex case is trickier since it is float[2] that must stay in
+      // horizontal order whatever happens
+      for (int i = separator; i < Dim - 1; ++i) {
+        permDims.push_back(i);
+      }
+      for (int i = 0; i < separator; ++i) {
+        permDims.push_back(i);
+      }
+      permDims.push_back(Dim - 1);
     }
-    for (int i = 0; i < sep; ++i) {
-      permDims.push_back(i);
-    }
-  } else {
-    // Complex case is trickier since it is float[2] that must stay in
-    // horizontal order whatever happens
-    for (int i = sep; i < Dim - 1; ++i) {
-      permDims.push_back(i);
-    }
-    for (int i = 0; i < sep; ++i) {
-      permDims.push_back(i);
-    }
-    permDims.push_back(Dim - 1);
+    out.permuteDims(permDims);
   }
-
-  out.permuteDims(permDims);
 
   THCudaCheck(cudaGetLastError());
   CHECK_EQ(CUBLAS_STATUS_SUCCESS, res);
@@ -155,25 +174,28 @@ void transpose(const DeviceTensor<float, Dim>& in,
 template <int Dim>
 void transposeAsComplex(const DeviceTensor<float, Dim>& in,
                         DeviceTensor<float, Dim>& out,
-                        int sep,
+                        int separator,
+                        bool transposeMetaData,
                         cublasHandle_t handle,
                         cudaStream_t stream) {
-  transpose<Dim>(in, out, sep, true, handle, stream);
+  transpose<Dim>(in, out, separator, true, transposeMetaData, handle, stream);
 }
 
 #define TRANSPOSE_INSTANTIATION(DIM)                                    \
   template void transpose<DIM>(const DeviceTensor<float, DIM>& in,      \
                                DeviceTensor<float, DIM>& out,           \
-                               int sep,                                 \
+                               int separator,                           \
                                bool asComplex,                          \
+                               bool transposeMetaData,                  \
                                cublasHandle_t handle,                   \
                                cudaStream_t stream);
 
-#define TRANSPOSE_AS_COMPLEX_INSTANTIATION(DIM)                         \
+#define TRANSPOSE_AS_COMPLEX_INSTANTIATION(DIM)                             \
   template void transposeAsComplex<DIM>(const DeviceTensor<float, DIM>& in, \
-                                        DeviceTensor<float, DIM>& out,  \
-                                        int sep,                        \
-                                        cublasHandle_t handle,          \
+                                        DeviceTensor<float, DIM>& out,      \
+                                        int separator,                      \
+                                        bool transposeMetaData,             \
+                                        cublasHandle_t handle,              \
                                         cudaStream_t stream);
 
 TRANSPOSE_INSTANTIATION(2);
@@ -516,11 +538,11 @@ struct matmultBatchedStruct<Dim, Dim> {
 #define BATCHEDMM_TAIL_INSTANTIATION(DIM1, DIM2)                        \
   template <>                                                           \
   struct matmultBatchedStruct<DIM1, DIM2> {                             \
-    void run(DeviceTensor<float, DIM1>& C,                                \
-             DeviceTensor<float, DIM1>& A,                          \
-             DeviceTensor<float, DIM1>& B,                          \
+    void run(DeviceTensor<float, DIM1>& C,                              \
+             DeviceTensor<float, DIM1>& A,                              \
+             DeviceTensor<float, DIM1>& B,                              \
              const BLASParameters& params) {                            \
-      throw invalid_argument("BatchedMM needs at least 3 dimensions");  \
+      THError("BatchedMM needs at least 3 dimensions");                 \
     }                                                                   \
   }                                                                     \
 
@@ -586,7 +608,7 @@ void matmultBatched(DeviceTensor<float, Dim>& C,
       matmultBatchedStruct<Dim, Dim - 1>().run(C, A, B, params);
       break;
     default:
-      throw invalid_argument("At most 2 outer sequential dimensions supported");
+      THError("At most 2 outer sequential dimensions supported");
   };
 }
 
@@ -628,15 +650,15 @@ struct matmultIterStruct<Dim, Dim> {
   }
 };
 
-#define ITERATEDMM_TAIL_INSTANTIATION(DIM1, DIM2)       \
-  template <>                                           \
-  struct matmultIterStruct<DIM1, DIM2> {                \
+#define ITERATEDMM_TAIL_INSTANTIATION(DIM1, DIM2)         \
+  template <>                                             \
+  struct matmultIterStruct<DIM1, DIM2> {                  \
     void run(DeviceTensor<float, DIM1>& C,                \
              DeviceTensor<float, DIM1>& A,                \
              DeviceTensor<float, DIM1>& B,                \
-             const BLASParameters& params) {            \
-      CHECK(false) << "Should not be here";             \
-    }                                                   \
+             const BLASParameters& params) {              \
+      CHECK(false) << "Should not be here";               \
+    }                                                     \
   };
 
 ITERATEDMM_TAIL_INSTANTIATION(3, 1);
@@ -676,15 +698,14 @@ void matmultIter(DeviceTensor<float, Dim>& C,
       break;
 
     default:
-      throw invalid_argument(
-        "At most 2 outer sequential and 2 batch dimensions supported");
+      THError("At most 2 outer sequential and 2 batch dimensions supported");
   };
 }
 
 #define MATMULT_ITER_INSTANTIATION(DIM)                                 \
-  template void matmultIter<DIM>(DeviceTensor<float, DIM>& C,             \
-                                 DeviceTensor<float, DIM>& A,             \
-                                 DeviceTensor<float, DIM>& B,             \
+  template void matmultIter<DIM>(DeviceTensor<float, DIM>& C,           \
+                                 DeviceTensor<float, DIM>& A,           \
+                                 DeviceTensor<float, DIM>& B,           \
                                  const BLASParameters& params);
 
 MATMULT_ITER_INSTANTIATION(2);

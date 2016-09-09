@@ -4,8 +4,8 @@
  */
 
 #include "cuda/DeviceTensor.cuh"
-#include "Utils.h"
-#include "DeviceTensorUtils.h"
+#include "src/Utils.h"
+#include "src/DeviceTensorUtils.h"
 #include "THC.h"
 
 #include <lua.hpp>

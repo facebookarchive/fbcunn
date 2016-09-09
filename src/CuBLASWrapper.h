@@ -3,7 +3,7 @@
 
 #include "cuda/DeviceTensor.cuh"
 
-#include "BLASParameters.h"
+#include "src/BLASParameters.h"
 
 #include "cublas_v2.h"
 #include <iostream>
@@ -15,9 +15,10 @@ namespace facebook { namespace deeplearning { namespace torch {
 //
 // This transposition wrapper implements quick device-side transpositions.
 // Consider tensor dimensions are collapsed into a 2-D 'y'-by-'x'.
-// The wrapper takes a sep integer and considers dimensions (0 .. sep - 1) as
-// being collapsed to form the 'y' dimension. Dimensions (sep .. Dim - 1)
-// are collapsed to form the 'x' dimension.
+// The wrapper takes a separator integer and considers dimensions
+// (0 .. separator - 1) as being collapsed to form the 'y'
+// dimension. Dimensions (separator .. Dim - 1) are collapsed to form the 'x'
+// dimension.
 //
 // The complex case is a bit trickier since Torch does not natively support
 // complex numbers, we emulate them with float[2]. In that case, 'x' is
@@ -33,15 +34,17 @@ namespace facebook { namespace deeplearning { namespace torch {
 template<int Dim>
 void transpose(const cuda::DeviceTensor<float, Dim>& in,
                cuda::DeviceTensor<float, Dim>& out,
-               int sep,
+               int separator,
                bool asComplex = false,
+               bool transposeMetaData = true,
                cublasHandle_t handle = NULL,
                cudaStream_t stream = NULL);
 
 template<int Dim>
 void transposeAsComplex(const cuda::DeviceTensor<float, Dim>& in,
                         cuda::DeviceTensor<float, Dim>& out,
-                        int sep,
+                        int separator,
+                        bool transposeMetaData = true,
                         cublasHandle_t handle = NULL,
                         cudaStream_t stream = NULL);
 

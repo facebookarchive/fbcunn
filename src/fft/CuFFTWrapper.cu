@@ -1,14 +1,16 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "CuFFTWrapper.cuh"
+#include "src/fft/CuFFTWrapper.cuh"
 
-#include "cuda/DeviceTensor.cuh"
 #include "THCTensor.h"
+#include "cuda/DeviceTensor.cuh"
+#include "src/DeviceTensorUtils.h"
 
 #include <cublas_v2.h>
 #include <cuda_runtime.h>
 #include <cufft.h>
 #include <glog/logging.h>
+#include <gflags/gflags.h>
 #include <math_constants.h>
 #include <thrust/device_vector.h>
 #include <thrust/transform.h>
@@ -17,7 +19,7 @@
 #include <thrust/fill.h>
 #include <thrust/replace.h>
 #include <thrust/functional.h>
-#include <gflags/gflags.h>
+#include <thrust/system/cuda/execution_policy.h>
 
 DEFINE_bool(fft_verbose, false, "Dump meta information for the FFT wrapper");
 
@@ -173,7 +175,7 @@ cufftHandle makeCuFFTPlan(const DeviceTensor<float, RealTensorDim>& real,
                            batchSize);
   }
   if (errFFT != CUFFT_SUCCESS) {
-    throw std::bad_alloc();
+    THError("Could not allocate cufft plan properly!");
   }
 
   return plan;
@@ -202,7 +204,7 @@ void fft(DeviceTensor<float, RealTensorDim>& real,
                           real.template dataAs<float>(),
                           cplx.template dataAs<cufftComplex>());
     if (errFFT != CUFFT_SUCCESS) {
-      throw std::bad_alloc();
+      THError("Error running forward FFT!");
     }
     DCHECK_EQ(errFFT, CUFFT_SUCCESS);
   } else {
@@ -210,7 +212,7 @@ void fft(DeviceTensor<float, RealTensorDim>& real,
                           cplx.template dataAs<cufftComplex>(),
                           real.template dataAs<cufftReal>());
     if (errFFT != CUFFT_SUCCESS) {
-      throw std::bad_alloc();
+      THError("Error running inverse FFT!");
     }
     DCHECK_EQ(errFFT, CUFFT_SUCCESS);
 
@@ -223,7 +225,8 @@ void fft(DeviceTensor<float, RealTensorDim>& real,
       DCHECK_LT(0, size) << "Negative size not supported !";
       float val = 1 / (float)size;
       thrust::device_ptr<float> res(real.data());
-      thrust::transform(res,
+      thrust::transform(thrust::cuda::par.on(stream),
+                        res,
                         res + real.getSize(0) * real.getStride(0),
                         res,
                         CudaScaleFunctor(val));
@@ -316,5 +319,39 @@ template void fft<2, 5>(DeviceTensor<float, 5>& real,
                         FFTParameters params,
                         cufftHandle* plan,
                         cudaStream_t stream);
+
+#define INSTANTIATE_CUFFT_PLAN(BATCH_DIMS, REAL_TENSOR_DIM)                \
+  if (BATCH_DIMS == batchDimensions &&                                     \
+      REAL_TENSOR_DIM == THCudaTensor_nDimension(state, realTH)) {         \
+    DeviceTensor<float, REAL_TENSOR_DIM> real =                            \
+      torchToDeviceTensor<float, REAL_TENSOR_DIM>(state, realTH);          \
+    DeviceTensor<float, REAL_TENSOR_DIM + 1> cplx =                        \
+      torchToDeviceTensor<float, REAL_TENSOR_DIM + 1>(state, cplxTH);      \
+    return makeCuFFTPlan<BATCH_DIMS, REAL_TENSOR_DIM>(real, cplx, params); \
+  }
+
+extern "C"
+cufftHandle makeCuFFTPlanFFI(THCState* state,
+                             THCudaTensor* realTH,
+                             THCudaTensor* cplxTH,
+                             bool direction,
+                             bool normalize,
+                             int fftVersion,
+                             int batchDimensions)
+{
+  FFTParameters params = FFTParameters().normalize(normalize);
+  if (direction) params = params.forward();
+  else params = params.inverse();
+  if (fftVersion == 0) params = params.withCufft();
+  else params = params.withFbfft();
+
+  // 1 and 2D plans atm with 1 or 2 batch dimensions
+  INSTANTIATE_CUFFT_PLAN(1, 2);
+  INSTANTIATE_CUFFT_PLAN(1, 3);
+  INSTANTIATE_CUFFT_PLAN(2, 3);
+  INSTANTIATE_CUFFT_PLAN(2, 4);
+
+  return (cufftHandle)-1;
+}
 
 } } } // namespace

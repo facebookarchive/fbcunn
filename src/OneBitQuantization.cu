@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "OneBitQuantization.cuh"
+#include "src/OneBitQuantization.cuh"
 
 #include "cuda/ComputeCapabilities.cuh"
 #include "cuda/CudaDebugUtils.cuh"

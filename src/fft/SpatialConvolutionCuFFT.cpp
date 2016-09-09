@@ -1,15 +1,15 @@
 // Copyright 2014 Facebook
 
 #include "THCTensor.h"
-#include "DeviceTensorUtils.h"
-#include "CuFFTConvolution.cuh"
-#include "CuFFTConvolution_UpdateOutput.cuh"
-#include "CuFFTConvolution_AccGradParameters.cuh"
-#include "CuFFTConvolution_UpdateGradInput.cuh"
-#include "CuFFTStrategy.h"
-#include "CuFFTWrapper.cuh"
-#include "Utils.h"
-#include "util/Misc.h"
+#include "cuda/util/CachedDeviceProperties.h"
+#include "src/DeviceTensorUtils.h"
+#include "src/fft/CuFFTConvolution.cuh"
+#include "src/fft/CuFFTConvolution_UpdateOutput.cuh"
+#include "src/fft/CuFFTConvolution_AccGradParameters.cuh"
+#include "src/fft/CuFFTConvolution_UpdateGradInput.cuh"
+#include "src/fft/CuFFTStrategy.h"
+#include "src/fft/CuFFTWrapper.cuh"
+#include "src/fft/Utils.h"
 
 #include <folly/Format.h>
 #include <folly/ScopeGuard.h>
@@ -18,7 +18,7 @@
 #include <vector>
 
 using namespace std;
-using namespace facebook::CUDAUtil;
+using namespace facebook::cuda;
 using namespace facebook::deeplearning::torch;
 
 namespace facebook { namespace deeplearning { namespace torch {
@@ -247,7 +247,7 @@ template <int FFTDim> class CuFFTBuffers {
       torchToDeviceTensor<float, 4>(state, realTH),
       torchToDeviceTensor<float, 5>(state, complexTH),
       params);
-    auto h = folly::make_unique<cufftPlan, CuFFTPlanDeleter>(p);
+    auto h = std::unique_ptr<cufftPlan, CuFFTPlanDeleter>(new cufftPlan(p));
     cufftPlanMap_.emplace(key, std::move(h));
     return cufftPlanMap_[key].get();
   }
@@ -459,27 +459,27 @@ void updateOutputTH(THCState* state,
 
   auto inputCPtr = MAKE_INPUT_BUFFER(p.buffers.input);
   auto inputC = inputCPtr.get();
-  DCHECK_EQ(p.buffers.input->storage, inputC->storage);
+  CHECK_EQ(p.buffers.input->storage, inputC->storage);
 
   auto outputCPtr = MAKE_OUTPUT_BUFFER(p.buffers.output);
   auto outputC = outputCPtr.get();
-  DCHECK_EQ(p.buffers.output->storage, outputC->storage);
+  CHECK_EQ(p.buffers.output->storage, outputC->storage);
 
   auto weightCPtr = MAKE_WEIGHT_BUFFER(p.buffers.weight);
   auto weightC = weightCPtr.get();
-  DCHECK_EQ(p.buffers.weight->storage, weightC->storage);
+  CHECK_EQ(p.buffers.weight->storage, weightC->storage);
 
   auto inputCTrPtr = MAKE_INPUT_BUFFER(p.buffers.inputTranspose);
   auto inputCTr = inputCTrPtr.get();
-  DCHECK_EQ(p.buffers.inputTranspose->storage, inputCTr->storage);
+  CHECK_EQ(p.buffers.inputTranspose->storage, inputCTr->storage);
 
   auto outputCTrPtr = MAKE_OUTPUT_BUFFER(p.buffers.outputTranspose);
   auto outputCTr = outputCTrPtr.get();
-  DCHECK_EQ(p.buffers.outputTranspose->storage, outputCTr->storage);
+  CHECK_EQ(p.buffers.outputTranspose->storage, outputCTr->storage);
 
   auto weightCTrPtr = MAKE_WEIGHT_BUFFER(p.buffers.weightTranspose);
   auto weightCTr = weightCTrPtr.get();
-  DCHECK_EQ(p.buffers.weightTranspose->storage, weightCTr->storage);
+  CHECK_EQ(p.buffers.weightTranspose->storage, weightCTr->storage);
 
   // Plans
   auto planInput = (s.fbfft()) ?
@@ -548,7 +548,7 @@ void updateOutputTH(THCState* state,
   }
 
   // Actual run
-  CuFFTConvolution conv(ConvolutionPass(ConvolutionPass::kUpdateOutput));
+  CuFFTConvolution conv( (ConvolutionPass(ConvolutionPass::kUpdateOutput)) );
   conv.withInputAndBuffers(
     state, inputR, inputC, inputCTr, inputCBuffer, planInput)
     .withFiltersAndBuffers(
@@ -645,27 +645,27 @@ void updateGradInputTH(THCState* state,
 
   auto gradInputCPtr = MAKE_INPUT_BUFFER(p.buffers.input);
   auto gradInputC = gradInputCPtr.get();
-  DCHECK_EQ(p.buffers.input->storage, gradInputC->storage);
+  CHECK_EQ(p.buffers.input->storage, gradInputC->storage);
 
   auto gradOutputCPtr = MAKE_OUTPUT_BUFFER(p.buffers.output);
   auto gradOutputC = gradOutputCPtr.get();
-  DCHECK_EQ(p.buffers.output->storage, gradOutputC->storage);
+  CHECK_EQ(p.buffers.output->storage, gradOutputC->storage);
 
   auto weightCPtr = MAKE_WEIGHT_BUFFER(p.buffers.weight);
   auto weightC = weightCPtr.get();
-  DCHECK_EQ(p.buffers.weight->storage, weightC->storage);
+  CHECK_EQ(p.buffers.weight->storage, weightC->storage);
 
   auto gradInputCTrPtr = MAKE_INPUT_BUFFER(p.buffers.inputTranspose);
   auto gradInputCTr = gradInputCTrPtr.get();
-  DCHECK_EQ(p.buffers.inputTranspose->storage, gradInputCTr->storage);
+  CHECK_EQ(p.buffers.inputTranspose->storage, gradInputCTr->storage);
 
   auto gradOutputCTrPtr = MAKE_OUTPUT_BUFFER(p.buffers.outputTranspose);
   auto gradOutputCTr = gradOutputCTrPtr.get();
-  DCHECK_EQ(p.buffers.outputTranspose->storage, gradOutputCTr->storage);
+  CHECK_EQ(p.buffers.outputTranspose->storage, gradOutputCTr->storage);
 
   auto weightCTrPtr = MAKE_WEIGHT_BUFFER(p.buffers.weightTranspose);
   auto weightCTr = weightCTrPtr.get();
-  DCHECK_EQ(p.buffers.weightTranspose->storage, weightCTr->storage);
+  CHECK_EQ(p.buffers.weightTranspose->storage, weightCTr->storage);
 
   auto gradInputCBuffer = (s.fbfft()) ?
     buffers.buffer(state,
@@ -711,7 +711,7 @@ void updateGradInputTH(THCState* state,
   auto handles = buffers.handles();
 
  // Actual run
-  CuFFTConvolution conv(ConvolutionPass(ConvolutionPass::kUpdateGradInput));
+  CuFFTConvolution conv( (ConvolutionPass(ConvolutionPass::kUpdateGradInput)) );
   conv.withInputAndBuffers(
     state,
     giTmp, gradInputC, gradInputCTr, gradInputCBuffer, planInput)
@@ -807,27 +807,27 @@ void accGradParametersTH(THCState* state,
 
   auto inputCPtr = MAKE_INPUT_BUFFER(p.buffers.input);
   auto inputC = inputCPtr.get();
-  DCHECK_EQ(p.buffers.input->storage, inputC->storage);
+  CHECK_EQ(p.buffers.input->storage, inputC->storage);
 
   auto gradOutputCPtr = MAKE_OUTPUT_BUFFER(p.buffers.output);
   auto gradOutputC = gradOutputCPtr.get();
-  DCHECK_EQ(p.buffers.output->storage, gradOutputC->storage);
+  CHECK_EQ(p.buffers.output->storage, gradOutputC->storage);
 
   auto gradWeightCPtr = MAKE_WEIGHT_BUFFER(p.buffers.weight);
   auto gradWeightC = gradWeightCPtr.get();
-  DCHECK_EQ(p.buffers.weight->storage, gradWeightC->storage);
+  CHECK_EQ(p.buffers.weight->storage, gradWeightC->storage);
 
   auto inputCTrPtr = MAKE_INPUT_BUFFER(p.buffers.inputTranspose);
   auto inputCTr = inputCTrPtr.get();
-  DCHECK_EQ(p.buffers.inputTranspose->storage, inputCTr->storage);
+  CHECK_EQ(p.buffers.inputTranspose->storage, inputCTr->storage);
 
   auto gradOutputCTrPtr = MAKE_OUTPUT_BUFFER(p.buffers.outputTranspose);
   auto gradOutputCTr = gradOutputCTrPtr.get();
-  DCHECK_EQ(p.buffers.outputTranspose->storage, gradOutputCTr->storage);
+  CHECK_EQ(p.buffers.outputTranspose->storage, gradOutputCTr->storage);
 
   auto gradWeightCTrPtr = MAKE_WEIGHT_BUFFER(p.buffers.weightTranspose);
   auto gradWeightCTr = gradWeightCTrPtr.get();
-  DCHECK_EQ(p.buffers.weightTranspose->storage, gradWeightCTr->storage);
+  CHECK_EQ(p.buffers.weightTranspose->storage, gradWeightCTr->storage);
 
   auto inputCBuffer = (s.fbfft()) ?
     buffers.buffer(state,
@@ -873,7 +873,7 @@ void accGradParametersTH(THCState* state,
     buffers.plan(state, gradOutputR, gradOutputC, FFTParameters().forward(), 1);
 
   auto handles = buffers.handles();
-  CuFFTConvolution conv(ConvolutionPass(ConvolutionPass::kAccGradParameters));
+  CuFFTConvolution conv((ConvolutionPass(ConvolutionPass::kAccGradParameters)));
   conv.withInputAndBuffers(
     state, inputR, inputC, inputCTr, inputCBuffer, planInput)
     .withFiltersAndBuffers(

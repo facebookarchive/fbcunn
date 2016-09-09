@@ -6,7 +6,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-namespace facebook { namespace CUDAUtil {
+namespace facebook { namespace cuda {
 
 /*
  * A generic interface for dense point-to-point operations.

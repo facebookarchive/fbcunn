@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "CuFFTStrategy.h"
+#include "src/fft/CuFFTStrategy.h"
 
 namespace facebook { namespace deeplearning { namespace torch {
 namespace detail {

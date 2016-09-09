@@ -1,13 +1,12 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #include "cuda/DeviceTensor.cuh"
-#include "torch/fb/fbcunn/src/DeviceTensorUtils.h"
-
-#include "torch/fb/fbcunn/src/util/Misc.h"
+#include "cuda/util/CachedDeviceProperties.h"
+#include "src/DeviceTensorUtils.h"
 
 #include <cuda.h>
 
 using namespace facebook::cuda;
-using namespace facebook::CUDAUtil;
+using namespace facebook::cuda;
 
 namespace facebook { namespace deeplearning { namespace torch {
 

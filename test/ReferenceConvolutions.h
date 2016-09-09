@@ -1,7 +1,7 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 #pragma once
 
-#include "torch/fb/fbcunn/src/Tensor.h"
+#include "src/Tensor.h"
 
 #include <folly/Optional.h>
 #include <tuple>

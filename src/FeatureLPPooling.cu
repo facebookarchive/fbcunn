@@ -1,11 +1,11 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-#include "FeatureLPPooling.cuh"
+#include "src/FeatureLPPooling.cuh"
 #include "cuda/DeviceTensor.cuh"
 #include "cuda/CudaStaticAssert.cuh"
 #include "cuda/CudaUtils.cuh"
 #include "cuda/RegisterUtils.cuh"
-#include "util/Misc.h"
+#include "cuda/util/CachedDeviceProperties.h"
 #include "THC.h"
 
 #include <boost/preprocessor/repetition/repeat.hpp>
@@ -349,7 +349,7 @@ runFeatureLPPoolingUpdateOutput(cudaStream_t stream,
                                 DeviceTensor<float, 4>& output,
                                 float power, int width, int stride) {
   const cudaDeviceProp& deviceProperties =
-    facebook::CUDAUtil::getCurrentDeviceProperties();
+    facebook::cuda::getCurrentDeviceProperties();
   const int outputFeatures = ((input.getSize(1) - width) / stride) + 1;
 
   assert(input.getSize(0) == output.getSize(0));
@@ -442,7 +442,7 @@ runFeatureLPPoolingUpdateGradInput(cudaStream_t stream,
                                    DeviceTensor<float, 4>& gradInput,
                                    float power, int width, int stride) {
   const cudaDeviceProp& deviceProperties =
-    facebook::CUDAUtil::getCurrentDeviceProperties();
+    facebook::cuda::getCurrentDeviceProperties();
 
   for (int i = 0; i < 4; ++i) {
     assert(gradOutput.getSize(i) == output.getSize(i));
@@ -463,7 +463,7 @@ runFeatureLPPoolingUpdateGradInput(cudaStream_t stream,
 
   // Different threads are potentially adding into overlapping input
   // points, so we must clear out gradInput before continuing.
-  gradInput.fillAsync(0.0f, stream);
+  gradInput.zero();
 
   // Split non-features among threads and grid x
   int totalNonFeatureSize = input.getSize(2) * input.getSize(3);

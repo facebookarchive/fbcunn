@@ -1,13 +1,9 @@
 local fboptim = require('fboptim')
 -- Copyright 2004-present Facebook. All Rights Reserved.
 
-local dprintL = (require 'fb.util.dbg').new('parallel')
-local dprint = function(...)
-    return dprintL(1, ...)
-end
+require 'fb.luaunit'
 require 'optim'
 require 'fbcunn'
-print 'Requiring cunn. This will take a while. Talk amongst yourselves.'
 require 'cunn'
 
 -- Hyper-params. We're targeting a toy problem that computes
@@ -74,98 +70,92 @@ local function tensorsAreProbablySimilar(l, r, epsilon)
     return math.abs(l:norm() - r:norm()) < epsilon
 end
 
--- Set up models on each GPU.
-local dp = nn.DataParallel(1)
-local simpleModels = {}
-for i = 1,numGPUs do
-    if i == 1 then
-        simpleModels[i] = simpleModel()
-    else
-        simpleModels[i] = simpleModels[1]:clone()
-    end
-    dp:add(simpleModels[i])
+function testDataParallel()
+   -- Set up models on each GPU.
+   local dp = nn.DataParallel(1)
+   local simpleModels = {}
+   for i = 1,numGPUs do
+      if i == 1 then
+         simpleModels[i] = simpleModel()
+      else
+         simpleModels[i] = simpleModels[1]:clone()
+      end
+      dp:add(simpleModels[i])
+   end
+
+   -- CPU models to cross-validate
+   local cpuModels = {}
+   local function syncCPUModels()
+      for i = 1,numGPUs do
+         cpuModels[i] = simpleModels[i]:clone()
+         cpuModels[i] = cpuModels[i]:double()
+      end
+   end
+   syncCPUModels()
+
+   -- Check an input/output pair against the CPU models
+   local function checkWideResult(inputs, outputs)
+      local function checkOneResult(input, modIdx, expectedOutput)
+         input = input:double() -- de-cudify
+         assert(tensorsAreProbablySimilar(cpuModels[modIdx]:forward(input),
+                                          expectedOutput))
+      end
+      for j = 1, numGPUs do
+         checkOneResult(getNarrowedInput(inputs, j), j, outputs[{ {j} }])
+      end
+   end
+
+   local function checkCPUModelsAreEquivalent()
+      syncCPUModels()
+      local input = genInput()
+      local out = cpuModels[1]:forward(input)
+      for j = 2, numGPUs do
+         assert(tensorsAreProbablySimilar(out, cpuModels[j]:forward(input)))
+      end
+   end
+   checkCPUModelsAreEquivalent()
+
+   dp:cuda()
+
+   -- Make sure forward produces same results as an individual copy
+   for i=1, 10 do
+      local inputs, targets = genWideExample()
+      local outputs = dp:forward(inputs)
+      syncCPUModels()
+      checkWideResult(inputs, outputs)
+   end
+
+   local optimState = {
+      learningRate = 1e-1,
+      weightDecay = 1e-4,
+      momentum = 0.9,
+      learningRateDecay = 1e-7
+   }
+
+   local timer = torch.Timer()
+   local opt = nn.Optim(dp, optimState)
+   local criterion = nn.MSECriterion():cuda()
+
+   local num_iteration = 10
+   timer:reset()
+   for i=1, num_iteration do
+      local inputs, targets = genWideExample()
+      local outputs = dp:forward(inputs)
+      syncCPUModels()
+      checkWideResult(inputs, outputs)
+      opt:optimize(fboptim.sgd, inputs, targets, criterion)
+      local out = dp:forward(inputs)
+      local err = criterion:forward(out, targets)
+   end
+   checkCPUModelsAreEquivalent()
+
+   -- Check only the speed for forward/backward.
+   timer:reset();
+   for i=1, num_iteration do
+      local inputs, targets = genWideExample()
+      dp:forward(inputs)
+      opt:optimize(fboptim.sgd, inputs, targets, criterion)
+   end
 end
 
--- CPU models to cross-validate
-local cpuModels = {}
-local function syncCPUModels()
-    for i = 1,numGPUs do
-        cpuModels[i] = simpleModels[i]:clone()
-        cpuModels[i] = cpuModels[i]:double()
-    end
-end
-syncCPUModels()
-
--- Check an input/output pair against the CPU models
-local function checkWideResult(inputs, outputs)
-    local function checkOneResult(input, modIdx, expectedOutput)
-        input = input:double() -- de-cudify
-        assert(tensorsAreProbablySimilar(cpuModels[modIdx]:forward(input),
-                                         expectedOutput))
-    end
-    for j = 1, numGPUs do
-        checkOneResult(getNarrowedInput(inputs, j), j, outputs[{ {j} }])
-    end
-end
-
-local function checkCPUModelsAreEquivalent()
-    syncCPUModels()
-    local input = genInput()
-    local out = cpuModels[1]:forward(input)
-    for j = 2, numGPUs do
-        assert(tensorsAreProbablySimilar(out, cpuModels[j]:forward(input)))
-    end
-end
-checkCPUModelsAreEquivalent()
-
-dp:cuda()
-
--- Make sure forward produces same results as an individual copy
-print('forward test {')
-for i=1, 10 do
-    local inputs, targets = genWideExample()
-    dprint{ inputs, targets }
-    local outputs = dp:forward(inputs)
-    syncCPUModels()
-    checkWideResult(inputs, outputs)
-end
-print('} forward test done')
-
-print('optim test {')
-local optimState = {
-    learningRate = 1e-1,
-    weightDecay = 1e-4,
-    momentum = 0.9,
-    learningRateDecay = 1e-7
-}
-
-local timer = torch.Timer()
-local opt = nn.Optim(dp, optimState)
-local criterion = nn.MSECriterion():cuda()
-
-local num_iteration = 10
-timer:reset()
-for i=1, num_iteration do
-    local inputs, targets = genWideExample()
-    local outputs = dp:forward(inputs)
-    syncCPUModels()
-    checkWideResult(inputs, outputs)
-    opt:optimize(fboptim.sgd, inputs, targets, criterion)
-    local out = dp:forward(inputs)
-    local err = criterion:forward(out, targets)
-    print(i, err)
-end
-print(string.format("Total time spent = %f", timer:time().real / num_iteration))
-checkCPUModelsAreEquivalent()
-print('} optim test done ')
-
--- Check only the speed for forward/backward.
-timer:reset();
-for i=1, num_iteration do
-    local inputs, targets = genWideExample()
-    dp:forward(inputs)
-    opt:optimize(fboptim.sgd, inputs, targets, criterion)
-end
-print(string.format(
-    "Speedtest: Total time spent = %f",
-        timer:time().real / num_iteration));
+LuaUnit:main()

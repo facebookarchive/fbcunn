@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Utils.cuh"
+#include "src/fft/Utils.cuh"
 #include "THC.h"
 
 namespace facebook { namespace deeplearning { namespace torch {
@@ -21,8 +21,8 @@ makeCuFFTTensorReal(
   THCState* state,
   THCudaTensor* in,
   const std::vector<long>& commonDims,
-  THCudaTensor* candidateCudaStorageReal = nullptr,
-  FFTOutputSpecification inPlace = FFTOutputSpecification::OutOfPlace) {
+  THCudaTensor* candidateCudaStorageReal,
+  FFTOutputSpecification inPlace) {
   DCHECK_EQ(FFTDim, commonDims.size());
   DCHECK_EQ(4, THCudaTensor_nDimension(state, in));
   DCHECK_LE(1, FFTDim);
@@ -139,8 +139,8 @@ makeCuFFTTensorComplex(
   THCState* state,
   THCudaTensor* real,
   const std::vector<long>& commonDims,
-  THCudaTensor* candidateCudaStorageComplex = nullptr,
-  FFTOutputSpecification inPlace = FFTOutputSpecification::OutOfPlace) {
+  THCudaTensor* candidateCudaStorageComplex,
+  FFTOutputSpecification inPlace) {
   DCHECK_EQ(4, THCudaTensor_nDimension(state, real));
   DCHECK_LE(1, FFTDim);
   DCHECK_GE(3, FFTDim);
@@ -199,7 +199,7 @@ std::unique_ptr<THCudaTensor, CudaTensorDeleter>
 makeCuFFTTensorComplex(
   THCState* state,
   const std::vector<long>& allDims,
-  THCudaTensor* candidateCudaStorageComplex = nullptr) {
+  THCudaTensor* candidateCudaStorageComplex) {
   DCHECK_EQ(4, allDims.size());
   DCHECK_LE(1, FFTDim);
   DCHECK_GE(3, FFTDim);
@@ -240,7 +240,7 @@ makeCuFFTTensors(
   THCState* state,
   THCudaTensor* in,
   const std::vector<long>& commonDims,
-  FFTOutputSpecification inPlace = FFTOutputSpecification::OutOfPlace) {
+  FFTOutputSpecification inPlace) {
   auto p1 =
     makeCuFFTTensorReal<FFTDim>(
       state, in, commonDims, nullptr, inPlace);
@@ -257,7 +257,7 @@ makeCuFFTTensors(
   THCState* state,
   thpp::Tensor<float>& in,
   const std::vector<long>& commonDims,
-  FFTOutputSpecification inPlace = FFTOutputSpecification::OutOfPlace) {
+  FFTOutputSpecification inPlace) {
   auto th = copyToCuda(state, in);
   auto res = makeCuFFTTensors<FFTDim>(state, th.get(), commonDims, inPlace);
   return make_pair(std::move(res.first), std::move(res.second));

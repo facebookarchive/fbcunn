@@ -4,9 +4,9 @@
 #include "cuda/Complex.cuh"
 #include "cuda/ComputeCapabilities.cuh"
 #include "cuda/DeviceTensor.cuh"
-#include "cuda/fbfft/FBFFT.h"
-#include "CuFFTWrapper.cuh"
-#include "DeviceTensorUtils.h"
+#include "cuda/fbfft/FBFFT.cuh"
+#include "src/fft/CuFFTWrapper.cuh"
+#include "src/DeviceTensorUtils.h"
 
 #include <cuda_runtime.h>
 #include <glog/logging.h>
@@ -23,9 +23,9 @@ FBFFTParameters::ErrorCode fbfft1dHost(
     FBFFTParameters params,
     cudaStream_t s) {
   if (params.forwardFFT()) {
-    return fbfft1D<Batch>(real, complexAsFloat, s);
+    return fbfft1D<Batch>(real, complexAsFloat, params.padLeft(), s);
   } else {
-    return fbifft1D<Batch>(real, complexAsFloat, s);
+    return fbifft1D<Batch>(real, complexAsFloat, params.padLeft(), s);
   }
 }
 
@@ -83,7 +83,8 @@ FBFFTParameters::ErrorCode fbfft2dHost(
 
     FBFFTParameters::ErrorCode res;
     if (params.forwardFFT()) {
-      res = fbfft2D<Batch>(real, bufferAsFloatTr, s);
+      res = fbfft2D<Batch>(
+        real, bufferAsFloatTr, params.padLeft(), params.padUp(), s);
     } else  {
       assert(real.getSize(0) == bufferAsFloat->getSize(0));
       assert(complex.getSize(1) ==
@@ -99,13 +100,15 @@ FBFFTParameters::ErrorCode fbfft2dHost(
     if (params.forwardFFT()) {
       return fbfft2D<Batch>(bufferTr, complex, s);
     } else {
-      return fbifft2D<Batch>(buffer, real, s);
+      return fbifft2D<Batch>(buffer, real, params.padLeft(), params.padUp(), s);
     }
   } else {
     if (params.forwardFFT()) {
-      return fbfft2D<Batch>(real, complexAsFloat, s);
+      return fbfft2D<Batch>(
+        real, complexAsFloat, params.padLeft(), params.padUp(), s);
     } else {
-      return fbifft2D<Batch>(complex, real, s);
+      return fbifft2D<Batch>(
+        complex, real, params.padLeft(), params.padUp(), s);
     }
   }
 
@@ -154,12 +157,13 @@ FBFFTParameters::ErrorCode fbfft(THCState* state,
                                  THCudaTensor* r,
                                  THCudaTensor* c,
                                  THCudaTensor* b,
-                                 FBFFTParameters params,
-                                 cudaStream_t s) {
+                                 FBFFTParameters params) {
   if (THCudaTensor_nDimension(state, r) - Batch == 1) {
-    return fbfft1dHost<Batch>(state, r, c, params, s);
+    return fbfft1dHost<Batch>(
+      state, r, c, params, THCState_getCurrentStream(state));
   } else if (THCudaTensor_nDimension(state, r) - Batch == 2) {
-    return fbfft2dHost<Batch>(state, r, c, b, params, s);
+    return fbfft2dHost<Batch>(
+      state, r, c, b, params, THCState_getCurrentStream(state));
   }
   return FBFFTParameters::UnsupportedDimension;
 }
@@ -169,15 +173,13 @@ fbfft<1>(THCState* state,
          THCudaTensor* real,
          THCudaTensor* complex,
          THCudaTensor* buffer,
-         FBFFTParameters params,
-         cudaStream_t s);
+         FBFFTParameters params);
 
 template FBFFTParameters::ErrorCode
 fbfft<2>(THCState* state,
          THCudaTensor* real,
          THCudaTensor* complex,
          THCudaTensor* buffer,
-         FBFFTParameters params,
-         cudaStream_t s);
+         FBFFTParameters params);
 
 } } } // namespace

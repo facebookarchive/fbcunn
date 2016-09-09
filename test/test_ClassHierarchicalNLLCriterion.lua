@@ -219,10 +219,10 @@ for _, x in pairs{{criterion.clusterMatrix, criterion.clusterMatrixDx},
                )
             end
             if basic then
-               assert(math.abs(
+               local err =  math.abs(
                          criterion.classMatrixDx[i][j] -
-                            modelDefault.modules[2].gradWeight[i][j]) <
-                         1e-16)
+                            modelDefault.modules[2].gradWeight[i][j])
+               assert(err < 1e-14, "failed error check : " .. err .. ' < ' .. 1e-14)
             end
           end
         end

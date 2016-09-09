@@ -4,10 +4,10 @@
 #include <stdexcept>
 #include <cuda.h>
 
-#include "HalfPrec.h"
-#include "util/Transform.cuh"
+#include "src/HalfPrec.h"
+#include "src/util/Transform.cuh"
 
-using namespace facebook::CUDAUtil;
+using namespace facebook::cuda;
 void halfprec_ToHalf(cudaStream_t stream,
                      const float* input,
                      half_t* output,

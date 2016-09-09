@@ -44,6 +44,45 @@ function AbstractParallel:_freeCaches()
     self.gradInput_gpu = {}
 end
 
+-- override nn.Module.type to handle gpu_assignments
+function AbstractParallel:type(type, tensorCache)
+   if not type then
+      return self._type
+   end
+
+   self:_freeCaches()
+
+    local current_gpuid = cutorch.getDevice()
+    for i, module in ipairs(self.modules) do
+        cutorch.setDevice(self.gpu_assignments[i])
+        module:type('torch.FloatTensor', {}):type(type, {})
+    end
+    cutorch.setDevice(current_gpuid)
+
+    for key,param in pairs(self) do
+        if key ~= 'modules' then
+            self[key] = nn.utils.recursiveType(param, type, tensorCache)
+        end
+    end
+
+    self._type = type
+    return self
+end
+
+-- override nn.Module.apply to handle gpu_assignments
+function AbstractParallel:apply(callback)
+
+    callback(self)
+
+    local current_gpuid = cutorch.getDevice()
+    for i, module in ipairs(self.modules) do
+        cutorch.setDevice(self.gpu_assignments[i])
+        module:apply(callback)
+    end
+    cutorch.setDevice(current_gpuid)
+end
+
+
 --[[
 This function yields the GPU id for the module to be added.
 
@@ -238,10 +277,6 @@ function AbstractParallel:updateParameters(learningRate)
     end
 end
 
-function AbstractParallel:share(mlp,...)
-    error("Share is not supported for the AbstractParallel layer.")
-end
-
 function AbstractParallel:clone()
     local clone = parent.clone(self)
     clone:cuda()
@@ -254,4 +289,10 @@ function AbstractParallel:reset(stdv)
             self.modules[i]:reset(stdv)
         end)
     end
+end
+
+function AbstractParallel:clearState()
+   self:_freeCaches()
+
+   parent.clearState(self)
 end

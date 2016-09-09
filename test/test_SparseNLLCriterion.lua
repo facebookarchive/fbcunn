@@ -79,9 +79,9 @@ end
 
 function testSparseNLLCriterion()
    for k = 1, test_repeats do
-      local n_classes = torch.random(1000)
+      local n_classes = torch.random(100)
       local K = torch.random(n_classes)
-      local batch_size = torch.random(100)
+      local batch_size = torch.random(32)
       local err1, err2 = test_sparseNLL(K, n_classes, batch_size, false)
       assertTrue(err1 < 1e-3)
       assertTrue(err2 < 1e-3)

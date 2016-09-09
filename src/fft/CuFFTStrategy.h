@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "CuFFTConvolution.cuh"
-#include "CuFFTWrapper.cuh"
+#include "src/fft/CuFFTConvolution.cuh"
+#include "src/fft/CuFFTWrapper.cuh"
 
 #include <algorithm>
 #include <glog/logging.h>

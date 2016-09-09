@@ -1,14 +1,15 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
 #include "cuda/DeviceTensor.cuh"
-#include "Utils.h"
-#include "DeviceTensorUtils.h"
+#include "src/Utils.h"
+#include "src/DeviceTensorUtils.h"
 #include "THC.h"
-#include "TemporalKMaxPooling.cuh"
+#include "src/TemporalKMaxPooling.cuh"
 
 #include <folly/ScopeGuard.h>
 #include <lua.hpp>
 #include <luaT.h>
+#include <cmath>
 
 using namespace facebook::cuda;
 
@@ -17,12 +18,12 @@ namespace facebook { namespace deeplearning { namespace torch {
 namespace {
 
 int checkAndAdjustK(lua_State* L, int k, double kDynamic, long sequenceLength) {
-  if (kDynamic > 0) {
-    k = std::max(k, (int) (kDynamic * sequenceLength));
+  if (kDynamic != -1) {
+    k = std::max(k, (int) (std::ceil(kDynamic * sequenceLength)));
   }
 
   if (k > sequenceLength) {
-    luaL_error(L, "k (%d) must be less than sequence length (%d) ", k, sequenceLength);
+    luaL_error(L, "k: k must be less than the sequence length");
   }
 
   return k;

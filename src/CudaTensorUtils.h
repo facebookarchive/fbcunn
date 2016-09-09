@@ -2,7 +2,7 @@
 #pragma once
 
 #include "THCTensor.h"
-#include "folly/Optional.h"
+#include <folly/Optional.h>
 #include "thpp/Tensor.h"
 
 #include <cuda_runtime.h>
