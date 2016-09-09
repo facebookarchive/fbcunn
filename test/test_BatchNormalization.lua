@@ -60,9 +60,9 @@ local function BNTest(
             assertDiff(modRef.bias, modGPU.bias, 'bias')
             assertDiff(modRef.weight, modGPU.weight, 'weight')
          end
-         uniformInit(modRef.running_std, modGPU.running_std)
+         -- uniformInit(modRef.running_std, modGPU.running_std)
          uniformInit(modRef.running_mean, modGPU.running_mean)
-         assertDiff(modRef.running_std, modGPU.running_std, 'running_std')
+         -- assertDiff(modRef.running_std, modGPU.running_std, 'running_std')
          assertDiff(modRef.running_mean, modGPU.running_mean, 'running_mean')
 
          -- UpdateOutput
@@ -76,36 +76,23 @@ local function BNTest(
             print('bias', modGPU.bias:float())
             print('Expected running_mean', modRef.running_mean:float())
             print('Actual running_mean', modGPU.running_mean:float())
-            print('Expected running_std', modRef.running_std:float())
-            print('Actual running_std', modGPU.running_std:float())
+            -- print('Expected running_std', modRef.running_std:float())
+            -- print('Actual running_std', modGPU.running_std:float())
             print('Expected output', modRef.output:float())
             print('Actual output', modGPU.output:float())
-            if train then
-               print('Expected centered', modRef.centered:float())
-               print('Actual centered', modGPU.centered:float())
-               print('Expected std', modRef.std:float())
-               print('Actual std', modGPU.std:float())
-               print('Expected normalized', modRef.normalized:float())
-               print('Actual normalized', modGPU.normalized:float())
-            end
          end
 
          -- Postconditions
          assertDiff(modRef.running_mean, modGPU.running_mean, 'running_mean')
-         assertDiff(modRef.running_std, modGPU.running_std, 'running_std')
-         if train then
-            assertDiff(modRef.centered, modGPU.centered, 'centered')
-            assertDiff(modRef.std, modGPU.std, 'std')
-            assertDiff(modRef.normalized, modGPU.normalized, 'normalized')
-         end
+         -- assertDiff(modRef.running_std, modGPU.running_std, 'running_std')
         assertDiff(modRef.output, modGPU.output, 'output')
 
 
 
          if train then
             -- Preconditions
-            assertDiff(modRef.centered, modGPU.centered, 'centered')
-            assertDiff(modRef.std, modGPU.std, 'std')
+            -- assertDiff(modRef.centered, modGPU.centered, 'centered')
+            -- assertDiff(modRef.std, modGPU.std, 'std')
             if affine then
                assertDiff(modRef.weight, modGPU.weight, 'std')
             end
@@ -130,7 +117,7 @@ local function BNTest(
                uniformInit(modRef.gradWeight, modGPU.gradWeight)
                assertDiff(modRef.gradBias, modGPU.gradBias, 'gradBias')
                assertDiff(modRef.gradWeight, modGPU.gradWeight, 'gradWeight')
-               assertDiff(modRef.normalized, modGPU.normalized, 'normalized')
+               -- assertDiff(modRef.normalized, modGPU.normalized, 'normalized')
 
                local scale = torch.random(1000) / 1000.0
                if debug then
@@ -142,8 +129,8 @@ local function BNTest(
                      end
                   )
                   scale = 1.0
-                  modRef.normalized:copy(modGPU.normalized)
-                  print('Normalized', modRef.normalized:float())
+                  -- modRef.normalized:copy(modGPU.normalized)
+                  -- print('Normalized', modRef.normalized:float())
                   print('GradOutput', gradOutput:float())
                end
 
