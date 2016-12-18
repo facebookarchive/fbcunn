@@ -10,7 +10,6 @@
 #include "src/fft/CuFFTStrategy.h"
 #include "src/fft/CuFFTWrapper.cuh"
 #include "src/fft/FBFFTHost.h"
-#include "src/fft/Utils.cuh"
 #include "src/fft/Utils.h"
 
 #include <cublas_v2.h>

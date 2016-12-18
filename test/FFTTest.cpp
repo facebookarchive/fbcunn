@@ -3,7 +3,6 @@
 #include "src/DeviceTensorUtils.h"
 #include "THCTensor.h"
 #include "src/fft/CuFFTWrapper.cuh"
-#include "test/InputCentricConvolution_UpdateOutput.cuh"
 #include "test/ReferenceConvolutions.h"
 #include "test/TestUtils.h"
 

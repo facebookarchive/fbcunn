@@ -10,7 +10,6 @@
 #include "test/ReferenceConvolutions.h"
 #include "test/TestUtils.h"
 
-#include <cuda.h>
 #include <folly/Optional.h>
 #include <glog/logging.h>
 #include <gtest/gtest.h>

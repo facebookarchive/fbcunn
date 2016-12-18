@@ -6,7 +6,6 @@
 #include "src/util/AsyncCopier.h"
 #include "src/util/Misc.h"
 
-#include <exception>
 #include <folly/Format.h>
 #include <glog/logging.h>
 
