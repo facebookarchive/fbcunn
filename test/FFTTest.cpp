@@ -23,7 +23,7 @@ unique_ptr<THCState> g_state;
 int main(int argc, char** argv) {
   testing::InitGoogleTest(&argc, argv);
   google::ParseCommandLineFlags(&argc, &argv, true);
-  g_state.reset(new THCState);
+  g_state.reset(THCState_alloc());
   THCudaInit(g_state.get());
 
   auto ret = RUN_ALL_TESTS();
