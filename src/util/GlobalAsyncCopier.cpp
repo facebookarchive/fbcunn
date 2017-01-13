@@ -23,7 +23,7 @@ std::unique_ptr<AsyncCopier> makeGlobalCopier() {
     bufferSize = folly::to<size_t>(ptr);
   }
 
-  return folly::make_unique<AsyncCopier>(bufferSize << 20);
+  return std::make_unique<AsyncCopier>(bufferSize << 20);
 }
 
 extern "C" void fbCudaAsyncMemcpyHtoD(void* dest,
