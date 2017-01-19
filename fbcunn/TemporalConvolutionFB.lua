@@ -60,6 +60,7 @@ function TemporalConvolutionFB:accGradParameters(input, gradOutput, scale)
       self, input, gradOutput, scale)
 end
 
--- we do not need to accumulate parameters when sharing
-TemporalConvolutionFB.sharedAccUpdateGradParameters =
-  TemporalConvolutionFB.accUpdateGradParameters
+function TemporalConvolutionFB:sharedAccUpdateGradParameters(input, gradOutput, lr)
+   -- we do not need to accumulate parameters when sharing:
+   self:defaultAccUpdateGradParameters(input, gradOutput, lr)
+end
