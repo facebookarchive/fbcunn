@@ -20,6 +20,7 @@ void initTemporalConvolutionFB(lua_State *L);
 void initTemporalKMaxPoolingCuda(lua_State* L);
 void initOneBitQuantizationCuda(lua_State* L);
 void initSparseNLLCriterionCuda(lua_State* L);
+void initTemporalConvolutionTBCCuda(lua_State* L);
 void initFeatureLPPoolingCuda(lua_State* L);
 void initCuBLASWrapper(lua_State *L);
 // void initFFTWrapper(lua_State *L);
@@ -39,6 +40,7 @@ extern "C" int LUAOPEN(lua_State* L) {
   initHSMCuda(L);
   initOneBitQuantizationCuda(L);
   initSparseNLLCriterionCuda(L);
+  initTemporalConvolutionTBCCuda(L);
   initFeatureLPPoolingCuda(L);
   initCuBLASWrapper(L);
   // initFFTWrapper(L);
