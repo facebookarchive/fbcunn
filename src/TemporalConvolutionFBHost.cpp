@@ -197,7 +197,6 @@ int updateOutput(lua_State *L) {
     // One single nice fat gemm, for instance in cnn-text:
     // 32 x 16 x 512 <- 32 x 32 x 512 * 512 x 512 x 2
     CHECK_EQ(kW, weight.getSize(1));
-    CHECK_EQ(inputWidth, inputWidth);
     CHECK_EQ(0, inputHeight % kW);
     int sizeWeight[2] {outputWidth, kW * inputWidth};
     int strideWeight[2] {sizeWeight[1], 1};
