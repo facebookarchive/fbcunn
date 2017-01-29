@@ -16,7 +16,6 @@
 #include <cuda_runtime.h>
 #include <cufft.h>
 #include <folly/Bits.h>
-#include <folly/Hash.h>
 #include <folly/Memory.h>
 #include <folly/ScopeGuard.h>
 #include <glog/logging.h>

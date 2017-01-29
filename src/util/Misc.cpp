@@ -3,7 +3,6 @@
 #include "src/util/Misc.h"
 
 #include <folly/Format.h>
-#include <folly/Memory.h>
 #include <mutex>
 #include <unordered_map>
 
