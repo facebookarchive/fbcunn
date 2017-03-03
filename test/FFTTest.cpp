@@ -22,7 +22,7 @@ unique_ptr<THCState> g_state;
 // Override gtest_main so as to parse the --verify flag
 int main(int argc, char** argv) {
   testing::InitGoogleTest(&argc, argv);
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
   g_state.reset(THCState_alloc());
   THCudaInit(g_state.get());
 
