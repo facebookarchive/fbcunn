@@ -248,9 +248,9 @@ void matmult(DeviceTensor<float, Dim>& C,
     ") * B (" << B << ")";
   LOG_TARGET << params;
 
-  auto fastestVaryingA = A.getStride(0) / A.getStride(1);
-  auto fastestVaryingB = B.getStride(0) / B.getStride(1);
-  auto fastestVaryingC = C.getStride(0) / C.getStride(1);
+  auto fastestVaryingA = A.getStride(0) / (Dim < 2 ? 1 : A.getStride(1));
+  auto fastestVaryingB = B.getStride(0) / (Dim < 2 ? 1 : B.getStride(1));
+  auto fastestVaryingC = C.getStride(0) / (Dim < 2 ? 1 : C.getStride(1));
   if (params.asComplex) {
     CHECK_EQ(3, Dim);
     CHECK_EQ(2, A.getSize(2));
