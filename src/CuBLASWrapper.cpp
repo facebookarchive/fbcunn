@@ -538,10 +538,10 @@ struct matmultBatchedStruct<Dim, Dim> {
 #define BATCHEDMM_TAIL_INSTANTIATION(DIM1, DIM2)                        \
   template <>                                                           \
   struct matmultBatchedStruct<DIM1, DIM2> {                             \
-    void run(DeviceTensor<float, DIM1>& C,                              \
-             DeviceTensor<float, DIM1>& A,                              \
-             DeviceTensor<float, DIM1>& B,                              \
-             const BLASParameters& params) {                            \
+    void run(DeviceTensor<float, DIM1>&,                                \
+             DeviceTensor<float, DIM1>&,                                \
+             DeviceTensor<float, DIM1>&,                                \
+             const BLASParameters&) {                                   \
       THError("BatchedMM needs at least 3 dimensions");                 \
     }                                                                   \
   }                                                                     \
