@@ -653,10 +653,10 @@ struct matmultIterStruct<Dim, Dim> {
 #define ITERATEDMM_TAIL_INSTANTIATION(DIM1, DIM2)         \
   template <>                                             \
   struct matmultIterStruct<DIM1, DIM2> {                  \
-    void run(DeviceTensor<float, DIM1>& C,                \
-             DeviceTensor<float, DIM1>& A,                \
-             DeviceTensor<float, DIM1>& B,                \
-             const BLASParameters& params) {              \
+    void run(DeviceTensor<float, DIM1>&,                  \
+             DeviceTensor<float, DIM1>&,                  \
+             DeviceTensor<float, DIM1>&,                  \
+             const BLASParameters&) {                     \
       CHECK(false) << "Should not be here";               \
     }                                                     \
   };
