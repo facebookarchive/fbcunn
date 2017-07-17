@@ -545,7 +545,7 @@ class ReferenceInputCentricTest : public ConvolutionModule {
     long filterColStride,
     const folly::Optional<tuple<long, long, long, long>>& inputPadding,
     Tensor<float>& input) override {
-    ASSERT_TRUE(false) << "not implemented";
+    FAIL() << "not implemented";
   }
 
   void accGradParameters(
@@ -556,7 +556,7 @@ class ReferenceInputCentricTest : public ConvolutionModule {
     float scale,
     const folly::Optional<tuple<long, long, long, long>>& inputPadding,
     Tensor<float>& filters) override {
-    ASSERT_TRUE(false) << "not implemented";
+    FAIL() << "not implemented";
   }
 };
 
@@ -648,7 +648,7 @@ class InputCentricTest : public ConvolutionModule {
     long filterColStride,
     const folly::Optional<tuple<long, long, long, long>>& inputPadding,
     Tensor<float>& input) override {
-    ASSERT_TRUE(false) << "not implemented";
+    FAIL() << "not implemented";
   }
 
   void accGradParameters(
@@ -659,7 +659,7 @@ class InputCentricTest : public ConvolutionModule {
     float scale,
     const folly::Optional<tuple<long, long, long, long>>& inputPadding,
     Tensor<float>& filters) override {
-    ASSERT_TRUE(false) << "not implemented";
+    FAIL() << "not implemented";
   }
 
  private:
