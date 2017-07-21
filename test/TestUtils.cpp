@@ -28,13 +28,12 @@ makeTHCudaTensorSameSize(THCState* state, const Tensor<float>& t) {
   return makeTHCudaTensorFull(state, sizes, strides);
 }
 
-
-Tensor<float>
-makeTestTensor(
-  initializer_list<long> sizeList,
-  initializer_list<float> factorList,
-  const std::function<float(long, long, long, long)>& computeVals,
-  const folly::Optional<tuple<long, long, long, long>>& padding = folly::none) {
+Tensor<float> makeTestTensor(
+    initializer_list<long> sizeList,
+    initializer_list<float> /*factorList*/,
+    const std::function<float(long, long, long, long)>& computeVals,
+    const folly::Optional<tuple<long, long, long, long>>& padding =
+        folly::none) {
   CHECK_EQ(4, sizeList.size());
 
   const auto sizes = vector<long>{sizeList.begin(), sizeList.end()};
@@ -70,21 +69,23 @@ makeTestTensor(
 // Populate with random
 Tensor<float>
 makeRandomTestTensor(initializer_list<long> sizeList) {
-  return makeTestTensor(sizeList,
-                        {0.0f, 0.0f, 0.0f, 0.0f},
-                        [](long i, long j, long k, long l) {
-                          return (float)(folly::Random::rand32(1000)) / 1000.0f;
-                        });
+  return makeTestTensor(
+      sizeList,
+      {0.0f, 0.0f, 0.0f, 0.0f},
+      [](long /*i*/, long /*j*/, long /*k*/, long /*l*/) {
+        return (float)(folly::Random::rand32(1000)) / 1000.0f;
+      });
 }
 
 // Populate with constant
 Tensor<float>
 makeTestTensor(initializer_list<long> sizeList, float constant) {
-  return makeTestTensor(sizeList,
-                        {0.0f, 0.0f, 0.0f, 0.0f},
-                        [constant](long i, long j, long k, long l) {
-                          return constant;
-                        });
+  return makeTestTensor(
+      sizeList,
+      {0.0f, 0.0f, 0.0f, 0.0f},
+      [constant](long /*i*/, long /*j*/, long /*k*/, long /*l*/) {
+        return constant;
+      });
 }
 
 // Populate with factorList

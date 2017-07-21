@@ -539,23 +539,23 @@ class ReferenceInputCentricTest : public ConvolutionModule {
   }
 
   void updateGradInput(
-    Tensor<float>& output,
-    Tensor<float>& filters,
-    long filterRowStride,
-    long filterColStride,
-    const folly::Optional<tuple<long, long, long, long>>& inputPadding,
-    Tensor<float>& input) override {
+      Tensor<float>& /*output*/,
+      Tensor<float>& /*filters*/,
+      long /*filterRowStride*/,
+      long /*filterColStride*/,
+      const folly::Optional<tuple<long, long, long, long>>& /*inputPadding*/,
+      Tensor<float>& /*input*/) override {
     FAIL() << "not implemented";
   }
 
   void accGradParameters(
-    Tensor<float>& input,
-    Tensor<float>& output,
-    long filterRowStride,
-    long filterColStride,
-    float scale,
-    const folly::Optional<tuple<long, long, long, long>>& inputPadding,
-    Tensor<float>& filters) override {
+      Tensor<float>& /*input*/,
+      Tensor<float>& /*output*/,
+      long /*filterRowStride*/,
+      long /*filterColStride*/,
+      float /*scale*/,
+      const folly::Optional<tuple<long, long, long, long>>& /*inputPadding*/,
+      Tensor<float>& /*filters*/) override {
     FAIL() << "not implemented";
   }
 };
@@ -642,23 +642,23 @@ class InputCentricTest : public ConvolutionModule {
   }
 
   void updateGradInput(
-    Tensor<float>& output,
-    Tensor<float>& filters,
-    long filterRowStride,
-    long filterColStride,
-    const folly::Optional<tuple<long, long, long, long>>& inputPadding,
-    Tensor<float>& input) override {
+      Tensor<float>& /*output*/,
+      Tensor<float>& /*filters*/,
+      long /*filterRowStride*/,
+      long /*filterColStride*/,
+      const folly::Optional<tuple<long, long, long, long>>& /*inputPadding*/,
+      Tensor<float>& /*input*/) override {
     FAIL() << "not implemented";
   }
 
   void accGradParameters(
-    Tensor<float>& input,
-    Tensor<float>& output,
-    long filterRowStride,
-    long filterColStride,
-    float scale,
-    const folly::Optional<tuple<long, long, long, long>>& inputPadding,
-    Tensor<float>& filters) override {
+      Tensor<float>& /*input*/,
+      Tensor<float>& /*output*/,
+      long /*filterRowStride*/,
+      long /*filterColStride*/,
+      float /*scale*/,
+      const folly::Optional<tuple<long, long, long, long>>& /*inputPadding*/,
+      Tensor<float>& /*filters*/) override {
     FAIL() << "not implemented";
   }
 
@@ -677,12 +677,12 @@ class CuFFT : public ConvolutionModule {
       impl_(impl) {}
 
   void updateOutput(
-    Tensor<float>& input,
-    Tensor<float>& filters,
-    long filterRowStride,
-    long filterColStride,
-    const folly::Optional<tuple<long, long, long, long>>& inputPadding,
-    Tensor<float>& output) override {
+      Tensor<float>& input,
+      Tensor<float>& filters,
+      long /*filterRowStride*/,
+      long /*filterColStride*/,
+      const folly::Optional<tuple<long, long, long, long>>& inputPadding,
+      Tensor<float>& output) override {
     ASSERT_FALSE(inputPadding); // padding not supported
 
     if (FLAGS_debug) {
@@ -772,13 +772,13 @@ class CuFFT : public ConvolutionModule {
   }
 
   void accGradParameters(
-    Tensor<float>& input,
-    Tensor<float>& output,
-    long filterRowStride,
-    long filterColStride,
-    float scale,
-    const folly::Optional<tuple<long, long, long, long>>& inputPadding,
-    Tensor<float>& filters) override {
+      Tensor<float>& input,
+      Tensor<float>& output,
+      long /*filterRowStride*/,
+      long /*filterColStride*/,
+      float scale,
+      const folly::Optional<tuple<long, long, long, long>>& inputPadding,
+      Tensor<float>& filters) override {
     ASSERT_FALSE(inputPadding); // padding not supported
 
     if (FLAGS_debug) {
@@ -867,12 +867,12 @@ class CuFFT : public ConvolutionModule {
   }
 
   void updateGradInput(
-    Tensor<float>& output,
-    Tensor<float>& filters,
-    long filterRowStride,
-    long filterColStride,
-    const folly::Optional<tuple<long, long, long, long>>& inputPadding,
-    Tensor<float>& input) override {
+      Tensor<float>& output,
+      Tensor<float>& filters,
+      long /*filterRowStride*/,
+      long /*filterColStride*/,
+      const folly::Optional<tuple<long, long, long, long>>& inputPadding,
+      Tensor<float>& input) override {
     ASSERT_FALSE(inputPadding); // padding not supported
 
     if (FLAGS_debug) {
